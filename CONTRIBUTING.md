@@ -1,8 +1,65 @@
 # Contributing to Embark Quoting System
 
-## Progress Tracking for AI Agents
+## Progress Tracking with Hierarchical Sub-Issues
 
-This project uses **GitHub Issues + GitHub Projects** for progress tracking. All progress is accessible locally via `gh` CLI.
+This project uses **GitHub Issues + GitHub Projects v2** with hierarchical sub-issues for progress tracking. All progress is accessible locally via `gh` CLI with automatic roll-up to parent issues.
+
+---
+
+## Issue Hierarchy
+
+This project follows a hierarchical issue structure:
+
+```
+Milestone: v1.0 MVP Release (Feb 28, 2025)
+  ↓
+Epic (parent issue - large feature/initiative)
+  ├─ Feature (sub-issue L1 - user-facing functionality)
+  │   └─ Task (sub-issue L2 - implementation work)
+  └─ Feature (sub-issue L1)
+      └─ Task (sub-issue L2)
+```
+
+### Current Epics
+
+| Epic # | Name | Features | Status |
+|--------|------|----------|--------|
+| [#15](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/15) | Foundation | 5 features | Todo |
+| [#24](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/24) | Quote Core | 6 features | Todo |
+| [#31](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/31) | Job Types | 5 features | Todo |
+| [#37](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/37) | Financial Calculations | 4 features | Todo |
+| [#42](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/42) | Sync Engine | 9 features | Todo |
+| [#55](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/55) | Outputs & Price Management | 2 features | Todo |
+| [#58](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/58) | Settings & Polish | 1 feature | Todo |
+
+**Total**: 7 epics, 30 features, 8 tasks = 45 issues
+
+---
+
+## Dual Status Architecture
+
+**IMPORTANT**: GitHub maintains TWO separate status systems that must stay synchronized:
+
+### 1. Issue Labels (Repository-Level)
+- Applied to issues: `status: pending`, `status: in-progress`, `status: completed`, `status: blocked`
+- Visible on issue pages, in issue lists, and across ALL projects
+- Created once, available everywhere
+
+### 2. Project Status Field (Project-Level)
+- Set in Project #2: "Todo", "In Progress", "Done"
+- Only visible within [Project #2 - Roadmap](https://github.com/users/IAMSamuelRodda/projects/2)
+- Must be updated separately via GraphQL or UI
+
+### Status Mapping
+
+| Issue Label | Project Status | When to Use |
+|-------------|---------------|-------------|
+| `status: pending` | Todo | Not started yet |
+| `status: in-progress` | In Progress | Currently being worked on |
+| `status: completed` | Done | Work complete, awaiting verification |
+| `status: blocked` | Todo | Blocked, treat as pending |
+
+**Key Rule**: Always update BOTH systems when changing status.
 
 ---
 
@@ -11,222 +68,362 @@ This project uses **GitHub Issues + GitHub Projects** for progress tracking. All
 ### View Current Progress
 
 ```bash
-# View all phase issues
-gh issue list --label "phase: 1-foundation,phase: 2-quote-core,phase: 3-job-types,phase: 4-financial,phase: 5-sync,phase: 6-outputs,phase: 7-polish"
+# View all epic issues
+gh issue list --label "type: epic" --state open
 
-# View specific phase
-gh issue view 1  # Phase 1: Foundation
-gh issue view 2  # Phase 2: Quote Core
-gh issue view 3  # Phase 3: Job Types
-gh issue view 4  # Phase 4: Financial Calculations
-gh issue view 5  # Phase 5: Sync Engine
-gh issue view 6  # Phase 6: Outputs & Price Management
-gh issue view 7  # Phase 7: Settings & Polish
+# View specific epic with sub-issues
+gh issue view 15  # Epic: Foundation
+gh issue view 24  # Epic: Quote Core
+gh issue view 31  # Epic: Job Types
 
-# View project board
-gh project view 1 --owner @me --web
+# View project board (roadmap view)
+gh project view 2 --owner IAMSamuelRodda --web
+
+# View project in terminal
+gh project view 2 --owner IAMSamuelRodda
 ```
 
-### View Pending Tasks
+### View Issues by Status
 
 ```bash
-# All pending issues
+# Pending features/tasks
 gh issue list --state open --label "status: pending"
 
-# In-progress issues
+# In-progress work
 gh issue list --state open --label "status: in-progress"
 
 # Blocked issues
 gh issue list --state open --label "status: blocked"
+
+# Features only
+gh issue list --state open --label "type: feature"
+
+# Tasks only
+gh issue list --state open --label "type: task"
+```
+
+### View Sub-Issues
+
+```bash
+# View features under an epic
+gh issue view 15  # Shows all sub-issues for Foundation epic
+
+# Find all issues with sub-issues (parent issues)
+gh issue list --search "has:sub-issues-progress"
+
+# Find all sub-issues
+gh issue list --search "has:parent-issue"
 ```
 
 ---
 
-## Updating Progress
+## Working on Features/Tasks
 
-### Starting Work on a Phase
+### Starting Work on a Feature
+
+When you start work on a feature, update BOTH status systems:
 
 ```bash
-# Mark phase as in-progress
-gh issue edit <issue-number> --remove-label "status: pending" --add-label "status: in-progress"
+# 1. Update issue label (repository-level)
+gh issue edit 16 --remove-label "status: pending" --add-label "status: in-progress"
 
-# Example: Starting Phase 1
-gh issue edit 1 --remove-label "status: pending" --add-label "status: in-progress"
+# 2. Add comment
+gh issue comment 16 --body "Started feature: AWS Infrastructure Foundation"
+
+# 3. Update project status field (project-level)
+# Option A: Use UI (quick)
+gh project view 2 --owner IAMSamuelRodda --web
+# In UI: Click status dropdown for #16 → "In Progress"
+
+# Option B: Delegate to github-progress-tracker agent (automated)
+# The agent updates both label AND project field automatically
 ```
 
-### Completing a Task
+**Recommended**: Delegate to `github-progress-tracker` agent - it handles dual status automatically!
 
-GitHub issue checklists must be updated via web interface or API. Use this command to open the issue in browser:
+### Completing a Feature/Task (Sub-Issue)
+
+**KEY**: When you close a sub-issue, progress automatically rolls up to the parent epic!
 
 ```bash
-# Open issue in browser to check off task
-gh issue view 1 --web
+# 1. Close the feature/task
+gh issue close 16 --comment "Feature complete: AWS infrastructure deployed and tested"
 
-# Or edit directly (requires knowing issue body markdown)
-gh issue edit 1 --body "$(gh issue view 1 --json body -q .body | sed 's/- \[ \] \*\*Phase 1.1\*\*/- [x] **Phase 1.1**/')"
+# 2. Add completed label
+gh issue edit 16 --add-label "status: completed"
+
+# 3. Update project status to "Done" (via UI or agent delegation)
+gh project view 2 --owner IAMSamuelRodda --web
+
+# 4. Verify parent epic shows updated progress (automatic!)
+gh issue view 15  # Foundation epic now shows "1/5 features complete"
 ```
 
-**Recommended Approach**: Use `gh issue view <number> --web` to open in browser and check tasks manually.
+**Automatic Progress Roll-Up**: The parent epic's progress bar updates automatically - no manual updates needed!
 
-### Marking a Task as Blocked
+### Completing an Epic
+
+When all features/tasks under an epic are complete:
 
 ```bash
-# Add blocked label and comment
-gh issue edit <issue-number> --add-label "status: blocked"
-gh issue comment <issue-number> --body "Blocked by: [reason]"
+# 1. Verify all sub-issues are closed
+gh issue view 15  # Should show "5/5 features complete"
 
-# Example
-gh issue edit 1 --add-label "status: blocked"
-gh issue comment 1 --body "Blocked by: Waiting for AWS credentials"
+# 2. Close the epic
+gh issue close 15 --comment "Epic complete: All foundation features delivered"
+
+# 3. Add completed label
+gh issue edit 15 --add-label "status: completed"
+
+# 4. Update project status to "Done"
+gh project view 2 --owner IAMSamuelRodda --web
 ```
 
-### Completing a Phase
+### Marking as Blocked
 
 ```bash
-# Mark phase as completed and close issue
-gh issue close <issue-number> --comment "Phase completed. All tasks finished and tested."
-gh issue edit <issue-number> --remove-label "status: in-progress" --add-label "status: completed"
+# Add blocked label and comment with dependency
+gh issue edit 17 --add-label "status: blocked"
+gh issue comment 17 --body "🚫 Blocked by #42: Waiting for sync engine design decisions"
 
-# Example: Completing Phase 1
-gh issue close 1 --comment "Phase 1 completed. Infrastructure deployed and authentication working."
-gh issue edit 1 --add-label "status: completed"
-```
-
----
-
-## Helper Scripts
-
-### Update Task Checklist (Simple Helper)
-
-Create `.github/scripts/check-task.sh`:
-
-```bash
-#!/bin/bash
-# Usage: ./check-task.sh <issue-number> <task-number>
-# Example: ./check-task.sh 1 3  (checks off Phase 1.2.1)
-
-ISSUE=$1
-TASK=$2
-
-# Fetch current body
-BODY=$(gh issue view $ISSUE --json body -q .body)
-
-# Check off the task (this is simplified - real implementation needs better parsing)
-UPDATED=$(echo "$BODY" | sed "${TASK}s/- \[ \]/- [x]/")
-
-# Update issue
-gh issue edit $ISSUE --body "$UPDATED"
-echo "✓ Task $TASK checked off in issue #$ISSUE"
-```
-
-### View Progress Summary
-
-```bash
-#!/bin/bash
-# Show progress summary
-
-echo "=== Embark Quoting System - Progress Summary ==="
-echo ""
-echo "Phase 1: Foundation"
-gh issue view 1 --json title,state,labels -q '.title + " [" + .state + "]"'
-echo ""
-echo "Phase 2: Quote Core"
-gh issue view 2 --json title,state,labels -q '.title + " [" + .state + "]"'
-echo ""
-echo "Phase 3: Job Types"
-gh issue view 3 --json title,state,labels -q '.title + " [" + .state + "]"'
-echo ""
-echo "Phase 4: Financial Calculations"
-gh issue view 4 --json title,state,labels -q '.title + " [" + .state + "]"'
-echo ""
-echo "Phase 5: Sync Engine"
-gh issue view 5 --json title,state,labels -q '.title + " [" + .state + "]"'
-echo ""
-echo "Phase 6: Outputs & Price Management"
-gh issue view 6 --json title,state,labels -q '.title + " [" + .state + "]"'
-echo ""
-echo "Phase 7: Settings & Polish"
-gh issue view 7 --json title,state,labels -q '.title + " [" + .state + "]"'
+# When unblocked
+gh issue edit 17 --remove-label "status: blocked" --add-label "status: in-progress"
+gh issue comment 17 --body "✅ Unblocked: Sync engine approach decided, can proceed with Docker deployment"
 ```
 
 ---
 
-## Best Practices for Agents
+## Agent Delegation
 
-### 1. Check Current Progress Before Starting
+### github-progress-tracker Agent (v1.2.0)
+
+Automates status updates with dual status architecture support.
+
+**Usage**:
+```
+Delegate when starting work:
+"Update progress: starting Feature #16 - AWS Infrastructure Foundation"
+
+Delegate when completing work:
+"Mark complete: Feature #16 - AWS infrastructure deployed and tested"
+```
+
+**What it does**:
+- ✓ Updates issue label (`status: pending` → `status: in-progress`)
+- ✓ Updates project status field (Todo → In Progress)
+- ✓ Adds progress comment
+- ✓ Closes issue when complete
+- ✓ Verifies parent epic progress roll-up
+
+**Benefit**: Maintains dual status architecture automatically - no manual UI clicking!
+
+### github-project-status-synchronizer Agent (v1.0.0)
+
+Bulk-synchronizes issue labels with project status fields.
+
+**Usage**:
+```
+After bulk changes:
+"sync project status for Project #2 (IAMSamuelRodda/embark-quoting-system)"
+
+Fix blank fields:
+"populate status fields for all items in Project #2, set to Todo"
+```
+
+**What it does**:
+- ✓ Maps issue labels to project status (pending→Todo, in-progress→In Progress)
+- ✓ Bulk updates all 45 items (30 seconds vs 5 minutes manual)
+- ✓ Reports statistics and validation
+
+**Use cases**:
+- After initial project setup (set all to Todo)
+- After label changes (synchronize to project)
+- Manual fix for blank status fields
+
+---
+
+## Best Practices
+
+### 1. Always Check Current State First
 
 ```bash
-# Always check what's already done
-gh issue list --state open
+# See what's being worked on
+gh issue list --state open --label "status: in-progress"
+
+# See what's blocked
+gh issue list --state open --label "status: blocked"
+
+# View specific epic's progress
+gh issue view 15  # Shows sub-issue progress bar
 ```
 
 ### 2. Update Status When Starting Work
 
 ```bash
-# Mark phase as in-progress when you start
+# Change from pending to in-progress
 gh issue edit <issue-number> --remove-label "status: pending" --add-label "status: in-progress"
+
+# Or delegate to github-progress-tracker
 ```
 
 ### 3. Comment on Progress
 
 ```bash
-# Add progress comments
-gh issue comment <issue-number> --body "Completed Phase X.Y: [description]"
+# Add detailed progress comments
+gh issue comment 16 --body "Completed AWS VPC setup:
+- VPC with public/private subnets
+- Security groups configured
+- RDS PostgreSQL instance running
+- S3 buckets created
+
+Next: ECR repository setup"
 ```
 
-### 4. Link Related Commits
+### 4. Link Commits to Issues
 
 ```bash
 # Reference issue in commit messages
-git commit -m "Implement Phase 1.2.1: Docker container
+git commit -m "feat: implement AWS VPC infrastructure
 
-Closes #1 (partial - task 1.2.1 complete)
+Completes Feature #16 sub-task: VPC setup
 
-- Created Dockerfile for Node.js 20
-- Basic Express server with /health endpoint
-- Tested locally
+- Created VPC with CIDR 10.0.0.0/16
+- Public subnets in 2 AZs
+- Private subnets for RDS
+- NAT gateways configured
+
+Relates to #15 (Foundation epic)
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)"
 ```
 
-### 5. Update Blueprint if Requirements Change
+### 5. Use Proper Issue Lifecycle
 
-If requirements change during implementation:
-
-1. Document change in issue comment
-2. Update `specs/BLUEPRINT.yaml` if needed
-3. Create follow-up issue if scope changes significantly
-
-```bash
-# Document requirements change
-gh issue comment <issue-number> --body "Requirements update: [description]
-
-Original: [what was planned]
-Updated: [what changed]
-Reason: [why it changed]"
+**Correct lifecycle**:
+```
+Create → Todo → In Progress → Done (project status) → Close (issue state)
 ```
 
----
+**Common mistake**:
+```
+❌ DON'T close issues to mark as "Done" - use project status field instead!
+```
 
-## Issue-Phase Mapping
+If you close an issue by mistake, reopen it:
+```bash
+gh issue reopen 47
+```
 
-| Issue # | Phase | Milestone |
-|---------|-------|-----------|
-| #1 | Phase 1: Foundation (Weeks 1-2) | Authentication working, deployed to AWS |
-| #2 | Phase 2: Quote Core (Weeks 3-4) | Can create quotes offline, sync when online |
-| #3 | Phase 3: Job Types (Weeks 5-6) | All 5 job types functional |
-| #4 | Phase 4: Financial Calculations (Week 7) | Accurate quote totals with configurable model |
-| #5 | Phase 5: Sync Engine (Weeks 8-10) | Conflict resolution working, sync robust |
-| #6 | Phase 6: Outputs & Price Management (Week 11) | Price management and PDF/email outputs working |
-| #7 | Phase 7: Settings & Polish (Week 11) | Production-ready application |
+### 6. Delegate Status Updates
+
+**Recommended approach**:
+- Use `github-progress-tracker` for individual issue updates (automatic dual status)
+- Use `github-project-status-synchronizer` for bulk operations (30 seconds vs 5 minutes)
 
 ---
 
 ## Project Links
 
 - **GitHub Repository**: https://github.com/IAMSamuelRodda/embark-quoting-system
-- **Project Board**: https://github.com/users/IAMSamuelRodda/projects/1
+- **Project Board (Roadmap)**: https://github.com/users/IAMSamuelRodda/projects/2
 - **Issues**: https://github.com/IAMSamuelRodda/embark-quoting-system/issues
+- **Milestone (v1.0 MVP)**: https://github.com/IAMSamuelRodda/embark-quoting-system/milestone/8
+
+---
+
+## Example Workflow
+
+### Starting a New Feature
+
+```bash
+# 1. Check current state
+gh issue list --state open --label "status: pending"
+
+# 2. View feature details
+gh issue view 16  # AWS Infrastructure Foundation
+
+# 3. Start work - delegate to agent (recommended)
+# Agent updates both label AND project status automatically
+
+# OR manual approach:
+gh issue edit 16 --remove-label "status: pending" --add-label "status: in-progress"
+gh issue comment 16 --body "Started AWS infrastructure setup"
+# Then update project status via UI
+
+# 4. Do the work
+# ... implement AWS VPC, RDS, S3, ECR ...
+
+# 5. Commit with issue reference
+git commit -m "feat: complete AWS VPC infrastructure
+
+Implements Feature #16: AWS Infrastructure Foundation (partial)
+
+- VPC with CIDR 10.0.0.0/16 created
+- Public/private subnets in 2 AZs
+- Security groups configured
+- Internet gateway and NAT gateways
+
+Next: RDS PostgreSQL setup
+
+Relates to #15
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+
+# 6. Comment on progress
+gh issue comment 16 --body "✅ VPC infrastructure complete:
+- VPC created and tested
+- Subnets verified in both AZs
+- Security groups validated
+- Gateway connectivity confirmed
+
+Next: RDS instance setup"
+
+# 7. When feature is complete - delegate to agent (recommended)
+# Agent closes issue, updates labels, updates project status, verifies parent epic
+
+# OR manual approach:
+gh issue close 16 --comment "Feature complete: AWS infrastructure deployed and verified"
+gh issue edit 16 --add-label "status: completed"
+# Then update project status via UI
+
+# 8. Verify parent epic shows progress
+gh issue view 15  # Should show "1/5 features complete"
+```
+
+### Working on an Epic End-to-End
+
+```bash
+# 1. Start the epic
+gh issue edit 15 --remove-label "status: pending" --add-label "status: in-progress"
+gh issue comment 15 --body "Started Foundation epic"
+
+# 2. Work on each feature (sub-issue) sequentially
+# Feature #16: AWS Infrastructure
+gh issue edit 16 --add-label "status: in-progress"
+# ... do work ...
+gh issue close 16 --comment "AWS infrastructure complete"
+
+# Feature #17: Docker & ECS Deployment
+gh issue edit 17 --add-label "status: in-progress"
+# ... do work ...
+gh issue close 17 --comment "Docker deployment complete"
+
+# Continue for features #21, #22, #23...
+
+# 3. Monitor epic progress
+gh issue view 15  # Shows "2/5 features complete", "3/5", etc.
+
+# 4. Complete the epic when all features done
+gh issue view 15  # Shows "5/5 features complete"
+gh issue close 15 --comment "Foundation epic complete: All features delivered"
+
+# 5. Update project status to Done
+gh project view 2 --owner IAMSamuelRodda --web
+# In UI: Set Epic #15 status to "Done"
+
+# 6. Verify milestone progress
+# Milestone "v1.0 MVP Release" now shows "1/7 epics complete"
+```
 
 ---
 
@@ -239,80 +436,100 @@ gh auth status
 gh auth refresh -h github.com -s project,read:project
 ```
 
-### Can't Update Issue Checklist
+### Project Status Fields Are Blank
 
-Use web interface for now:
 ```bash
-gh issue view <issue-number> --web
+# Delegate bulk synchronization
+# "sync project status for Project #2, set all to Todo"
+
+# Or use script directly
+cd ~/.claude/skills/github-project-setup
+./scripts/set-project-status.sh 2 IAMSamuelRodda "Todo"
 ```
 
-### Need to See Detailed BLUEPRINT
+### Can't See Sub-Issues on an Epic
 
 ```bash
-cat specs/BLUEPRINT.yaml | less
-# Or open in editor
-code specs/BLUEPRINT.yaml
+# Sub-issues should appear automatically
+gh issue view 15
+
+# If not showing, verify linking
+gh api repos/IAMSamuelRodda/embark-quoting-system/issues/15/sub_issues
 ```
 
----
-
-## Example Workflow
+### Issue Closed By Mistake
 
 ```bash
-# 1. Check current state
-gh issue list --state open
+# Reopen the issue
+gh issue reopen 47
 
-# 2. Start working on Phase 1
-gh issue edit 1 --remove-label "status: pending" --add-label "status: in-progress"
+# Update status back to In Progress
+gh issue edit 47 --add-label "status: in-progress"
 
-# 3. View tasks for Phase 1
-gh issue view 1
+# Update project status via UI
+gh project view 2 --owner IAMSamuelRodda --web
+```
 
-# 4. Complete Phase 1.1 (AWS Infrastructure)
-# ... do the work ...
+### Need to See Full Project Hierarchy
 
-# 5. Update checklist (via web or script)
-gh issue view 1 --web
-# Check off "Phase 1.1: AWS Infrastructure Foundation"
-
-# 6. Commit with issue reference
-git commit -m "Complete Phase 1.1: AWS Infrastructure Foundation
-
-Infrastructure deployed and tested:
-- VPC with subnets
-- RDS PostgreSQL running
-- S3 buckets created
-- ECR repository ready
-
-Relates to #1"
-
-# 7. Comment on progress
-gh issue comment 1 --body "✅ Phase 1.1 complete: AWS infrastructure deployed and verified"
-
-# 8. Continue with next task...
+```bash
+# View all epics with sub-issues
+for epic in 15 24 31 37 42 55 58; do
+  echo "=== Epic #$epic ==="
+  gh issue view $epic --json title,body | jq -r '.title'
+  gh api repos/IAMSamuelRodda/embark-quoting-system/issues/$epic/sub_issues --jq '.[] | "  - #\(.number): \(.title)"'
+  echo ""
+done
 ```
 
 ---
 
 ## Agent Coordination
 
-When multiple agents work on the project:
+When multiple agents or developers work on the project:
 
-1. **Check issue status first**: `gh issue view <number>`
-2. **Avoid duplicate work**: Check labels and comments
-3. **Communicate**: Add comments when starting/finishing tasks
+1. **Check status labels**: `gh issue list --label "status: in-progress"`
+2. **Avoid duplicate work**: Check issue comments for activity
+3. **Communicate**: Add comments when starting/finishing work
 4. **Use branches**: Create feature branches for parallel work
+5. **Delegate status updates**: Let agents handle dual status architecture
 
 ```bash
-# Check who's working on what
+# See who's working on what
 gh issue list --state open --label "status: in-progress"
+
+# See recently updated issues
+gh issue list --state open --search "sort:updated-desc"
 ```
+
+---
+
+## Technical References
+
+- **BLUEPRINT**: `specs/BLUEPRINT.yaml` - Complete technical specifications
+- **Financial Model**: `docs/financial-model.md` - Profit-First calculation details
+- **GitHub Setup Skill**: `~/.claude/skills/github-project-setup/` - Project setup automation
+- **CLAUDE.md**: `~/.claude/CLAUDE.md` - Global GitHub workflow patterns
 
 ---
 
 ## Need Help?
 
-- Review `specs/BLUEPRINT.yaml` for detailed technical specifications
-- Review `docs/financial-model.md` for Profit-First calculation details
-- Check git history: `git log --oneline`
+### Documentation
+- Review `specs/BLUEPRINT.yaml` for feature requirements
+- Check `docs/` for technical specifications
+- View git history: `git log --oneline --graph`
+
+### Progress Tracking
 - View all issues: `gh issue list --state all`
+- View project board: `gh project view 2 --owner IAMSamuelRodda --web`
+- Check milestone progress: `gh issue list --milestone "v1.0 MVP Release"`
+
+### Agent Delegation
+- Delegate status updates to `github-progress-tracker` (automatic dual status)
+- Delegate bulk operations to `github-project-status-synchronizer` (saves time)
+- Both agents understand the dual status architecture and hierarchical issues
+
+---
+
+**Last Updated**: 2025-11-03 (Migrated from phase-based to hierarchical sub-issue structure)
