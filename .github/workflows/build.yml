@@ -14,8 +14,6 @@ jobs:
   build-backend:
     name: Build Backend Docker Image
     runs-on: ubuntu-latest
-    # Skip this job if AWS credentials are not configured
-    if: vars.AWS_CONFIGURED == 'true' || secrets.AWS_ROLE_TO_ASSUME != ''
 
     permissions:
       id-token: write  # Required for AWS OIDC authentication

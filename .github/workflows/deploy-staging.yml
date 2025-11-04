@@ -17,8 +17,6 @@ jobs:
   deploy-backend:
     name: Deploy Backend to ECS
     runs-on: ubuntu-latest
-    # Skip this job if AWS credentials are not configured
-    if: vars.AWS_CONFIGURED == 'true' || secrets.AWS_ROLE_TO_ASSUME != ''
     environment:
       name: staging
       url: https://staging-api.embark-quoting.com  # TODO: Update to your staging API URL
@@ -96,8 +94,6 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend to S3/CloudFront
     runs-on: ubuntu-latest
-    # Skip this job if AWS credentials are not configured
-    if: vars.AWS_CONFIGURED == 'true' || secrets.AWS_ROLE_TO_ASSUME != ''
     environment:
       name: staging
       url: https://staging.embark-quoting.com  # TODO: Update to your staging frontend URL
@@ -180,8 +176,7 @@ jobs:
   e2e-tests:
     name: Run E2E Tests on Staging
     runs-on: ubuntu-latest
-    # Skip if AWS not configured (deployment jobs will be skipped)
-    if: (vars.AWS_CONFIGURED == 'true' || secrets.AWS_ROLE_TO_ASSUME != '') && !cancelled()
+    if: ${{ !cancelled() }}
     needs: [deploy-backend, deploy-frontend]
 
     steps:
@@ -225,8 +220,7 @@ jobs:
   lighthouse:
     name: Lighthouse Performance Audit
     runs-on: ubuntu-latest
-    # Skip if AWS not configured (deployment jobs will be skipped)
-    if: (vars.AWS_CONFIGURED == 'true' || secrets.AWS_ROLE_TO_ASSUME != '') && !cancelled()
+    if: ${{ !cancelled() }}
     needs: [deploy-frontend]
 
     steps:
