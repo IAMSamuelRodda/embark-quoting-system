@@ -70,17 +70,8 @@ jobs:
         run: npm audit --audit-level=moderate
         continue-on-error: true
         # Allow moderate vulnerabilities during development, fail on high/critical
-
-      - name: Run Snyk security scan
-        if: secrets.SNYK_TOKEN != ''
-        uses: snyk/actions/node@master
-        continue-on-error: true
-        # Optional: Set up Snyk account and add SNYK_TOKEN to GitHub Secrets
-        # This step will be skipped if SNYK_TOKEN is not configured
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high --file=${{ matrix.workspace }}/package.json
+        # Note: Snyk security scanning removed (optional external tool)
+        # npm audit provides baseline dependency vulnerability checking
 
   secrets-scan:
     name: Scan for Secrets
