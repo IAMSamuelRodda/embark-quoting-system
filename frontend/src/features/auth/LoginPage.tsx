@@ -6,7 +6,7 @@ import type { CognitoUser } from 'amazon-cognito-identity-js';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { signIn, isLoading, error, clearError } = useAuth();
+  const { isLoading, error, clearError } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -37,8 +37,8 @@ export function LoginPage() {
         return;
       }
 
-      // Normal login success - result is AuthUser
-      if (result && 'email' in result) {
+      // Normal login success - result is AuthUser (not challenge)
+      if (result && 'email' in result && !('challengeName' in result)) {
         // Update auth state manually
         useAuth.getState().setUser(result);
         navigate('/dashboard');

@@ -29,8 +29,17 @@ export const useAuth = create<AuthState>((set) => ({
   signIn: async (data: SignInData) => {
     set({ isLoading: true, error: null });
     try {
-      const user = await authService.signIn(data);
-      set({ user, isAuthenticated: true, isLoading: false });
+      const result = await authService.signIn(data);
+
+      // Check if we got a challenge (new password required)
+      if ('challengeName' in result) {
+        // Challenge response - don't set user state, let UI handle it
+        set({ isLoading: false });
+        throw new Error('NEW_PASSWORD_REQUIRED');
+      }
+
+      // Normal login success - result is AuthUser
+      set({ user: result, isAuthenticated: true, isLoading: false });
     } catch (error: any) {
       set({
         error: error.message || 'Failed to sign in',
