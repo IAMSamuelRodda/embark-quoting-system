@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './features/auth/LoginPage';
-import { SignupPage } from './features/auth/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { useAuth } from './features/auth/useAuth';
 
@@ -11,7 +10,8 @@ function App() {
   // Check authentication status on mount
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   if (isLoading) {
     return (
@@ -32,12 +32,6 @@ function App() {
           path="/login"
           element={
             isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
-          }
-        />
-        <Route
-          path="/signup"
-          element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <SignupPage />
           }
         />
 

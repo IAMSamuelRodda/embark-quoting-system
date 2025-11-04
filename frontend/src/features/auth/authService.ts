@@ -87,7 +87,7 @@ class AuthService {
   /**
    * Sign in with email and password
    */
-  async signIn(data: SignInData): Promise<AuthUser> {
+  async signIn(data: SignInData): Promise<AuthUser | { challengeName: 'NEW_PASSWORD_REQUIRED'; cognitoUser: CognitoUser; email: string }> {
     const { email, password } = data;
 
     const authenticationDetails = new AuthenticationDetails({
@@ -118,10 +118,46 @@ class AuthService {
           reject(err);
         },
         newPasswordRequired: () => {
-          // Handle first-time login requiring password change
-          reject(new Error('New password required'));
+          // Return challenge information so UI can prompt for new password
+          resolve({
+            challengeName: 'NEW_PASSWORD_REQUIRED',
+            cognitoUser,
+            email,
+          });
         },
       });
+    });
+  }
+
+  /**
+   * Complete new password challenge
+   */
+  async completeNewPasswordChallenge(
+    cognitoUser: CognitoUser,
+    newPassword: string
+  ): Promise<AuthUser> {
+    return new Promise((resolve, reject) => {
+      cognitoUser.completeNewPasswordChallenge(
+        newPassword,
+        {},
+        {
+          onSuccess: (result) => {
+            const idToken = result.getIdToken();
+            const payload = idToken.payload;
+
+            const user: AuthUser = {
+              email: payload.email || '',
+              role: payload['custom:role'] || 'field_worker',
+              groups: payload['cognito:groups'] || [],
+            };
+
+            resolve(user);
+          },
+          onFailure: (err) => {
+            reject(err);
+          },
+        }
+      );
     });
   }
 
@@ -144,21 +180,18 @@ class AuthService {
       return null;
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       cognitoUser.getSession((err: Error | null, session: any) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        if (!session.isValid()) {
+        if (err || !session || !session.isValid()) {
+          // No valid session - return null instead of rejecting
           resolve(null);
           return;
         }
 
         cognitoUser.getUserAttributes((err) => {
           if (err) {
-            reject(err);
+            // Error getting attributes - return null instead of rejecting
+            resolve(null);
             return;
           }
 

@@ -17,11 +17,12 @@ interface AuthState {
   resetPassword: (email: string, code: string, newPassword: string) => Promise<void>;
   checkAuth: () => Promise<void>;
   clearError: () => void;
+  setUser: (user: AuthUser) => void;
 }
 
 export const useAuth = create<AuthState>((set) => ({
   user: null,
-  isLoading: false,
+  isLoading: true, // Start with true to prevent flash of wrong route
   error: null,
   isAuthenticated: false,
 
@@ -133,14 +134,17 @@ export const useAuth = create<AuthState>((set) => ({
         set({ user: null, isAuthenticated: false, isLoading: false });
       }
     } catch (error: any) {
+      // No user authenticated is not an error - just set state to unauthenticated
       set({
         user: null,
         isAuthenticated: false,
-        error: error.message || 'Failed to check authentication',
+        error: null, // Don't show error for missing auth
         isLoading: false,
       });
     }
   },
 
   clearError: () => set({ error: null }),
+
+  setUser: (user: AuthUser) => set({ user, isAuthenticated: true, isLoading: false }),
 }));
