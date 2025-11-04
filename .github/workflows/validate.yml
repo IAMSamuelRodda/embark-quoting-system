@@ -72,7 +72,7 @@ jobs:
         # Allow moderate vulnerabilities during development, fail on high/critical
 
       - name: Run Snyk security scan
-        if: ${{ secrets.SNYK_TOKEN != '' }}
+        if: secrets.SNYK_TOKEN != ''
         uses: snyk/actions/node@master
         continue-on-error: true
         # Optional: Set up Snyk account and add SNYK_TOKEN to GitHub Secrets
