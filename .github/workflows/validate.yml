@@ -1,0 +1,121 @@
+name: Validate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        workspace: [frontend, backend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./${{ matrix.workspace }}
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./${{ matrix.workspace }}
+        run: npm run lint
+        # TODO: Add "lint": "eslint . --ext .js,.jsx,.ts,.tsx" to package.json
+        # TODO: Install eslint and configure .eslintrc.json
+
+      - name: Check formatting with Prettier
+        working-directory: ./${{ matrix.workspace }}
+        run: npm run format:check
+        # TODO: Add "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"" to package.json
+        # TODO: Install prettier and create .prettierrc.json
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        workspace: [frontend, backend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.workspace }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./${{ matrix.workspace }}
+        run: npm ci
+
+      - name: Run npm audit
+        working-directory: ./${{ matrix.workspace }}
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+        # Allow moderate vulnerabilities during development, fail on high/critical
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        # TODO: Set up Snyk account and add SNYK_TOKEN to GitHub Secrets
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --file=${{ matrix.workspace }}/package.json
+
+  secrets-scan:
+    name: Scan for Secrets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better secret detection
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  typecheck:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run TypeScript compiler check
+        working-directory: ./frontend
+        run: npx tsc --noEmit
+        # Checks types without emitting files

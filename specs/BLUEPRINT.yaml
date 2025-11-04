@@ -389,6 +389,278 @@ milestones:
       - Security requirements satisfied (HTTPS, JWT, RBAC)
 
     epics:
+      epic_0:
+        name: DevOps Foundation
+        weeks: 0-1
+        avg_complexity: 2.5
+        deliverable: CI/CD pipelines working, AWS infrastructure automated, development tooling configured
+        note: This epic must be completed before Epic 1 to enable automated deployments
+
+        feature_0_1:
+          name: GitHub Actions Workflows
+          complexity:
+            composite: 2.4
+            normalized: 48%
+            level: low_medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 3
+              testing: 2
+          estimated_days: 2
+          deliverables:
+            - .github/workflows/validate.yml (linting, security, typecheck)
+            - .github/workflows/test.yml (unit + integration tests)
+            - .github/workflows/build.yml (Docker + frontend builds)
+            - .github/workflows/deploy-staging.yml (ECS + S3 deployment)
+            - .github/workflows/deploy-prod.yml (production with approval)
+            - Updated package.json scripts (lint, test, format)
+          testing:
+            - Workflow syntax validation
+            - Local testing with act (GitHub Actions local runner)
+
+        feature_0_2:
+          name: AWS Infrastructure Setup
+          original_complexity: 3.67
+          note: Broken down to depth 2 following Dependency Ordering pattern
+
+          task_0_2_1:
+            name: VPC and Networking Foundation
+            complexity:
+              composite: 2.3
+              normalized: 46%
+              level: low_medium
+              dimensions:
+                technical_complexity: 3
+                scope_size: 2
+                dependencies: 1
+                uncertainty: 2
+                risk: 3
+                testing: 3
+            estimated_days: 0.5
+            deliverables:
+              - VPC with CIDR block 10.0.0.0/16
+              - Public subnets (2 AZs)
+              - Private subnets (2 AZs)
+              - Internet Gateway
+              - NAT Gateway
+              - Route tables
+            testing:
+              - VPC created with correct CIDR
+              - Internet access from public subnets
+              - NAT Gateway routes traffic from private subnets
+
+          task_0_2_2:
+            name: IAM Roles and OIDC Setup
+            complexity:
+              composite: 2.7
+              normalized: 54%
+              level: medium
+              dimensions:
+                technical_complexity: 3
+                scope_size: 2
+                dependencies: 2
+                uncertainty: 2
+                risk: 4
+                testing: 3
+            estimated_days: 0.5
+            deliverables:
+              - OIDC identity provider for GitHub Actions
+              - IAM role for GitHub Actions with trust policy
+              - Permissions (ECR, ECS, S3, CloudFront, Secrets Manager)
+              - ECS task execution role
+              - ECS task role
+            testing:
+              - GitHub Actions can assume role
+              - Role has necessary permissions
+              - Trust policy allows only repository
+
+          task_0_2_3:
+            name: ECR and Security Groups
+            complexity:
+              composite: 2.0
+              normalized: 40%
+              level: low
+              dimensions:
+                technical_complexity: 2
+                scope_size: 2
+                dependencies: 2
+                uncertainty: 1
+                risk: 2
+                testing: 2
+            estimated_days: 0.5
+            deliverables:
+              - ECR repository (embark-quoting-backend)
+              - Security group for ALB (allow 80/443)
+              - Security group for ECS (allow ALB traffic)
+              - Security group for RDS (allow ECS traffic)
+            testing:
+              - Push test image to ECR
+              - Pull test image from ECR
+              - Security group rules validated
+
+          task_0_2_4:
+            name: RDS PostgreSQL Databases
+            complexity:
+              composite: 2.5
+              normalized: 50%
+              level: medium
+              dimensions:
+                technical_complexity: 3
+                scope_size: 2
+                dependencies: 3
+                uncertainty: 2
+                risk: 3
+                testing: 3
+            estimated_days: 0.5
+            deliverables:
+              - RDS PostgreSQL 15 (db.t4g.micro) for staging
+              - RDS PostgreSQL 15 (db.t4g.micro) for production
+              - Subnet groups in private subnets
+              - Parameter groups
+              - Store credentials in AWS Secrets Manager
+            testing:
+              - Connect to staging database
+              - Connect to production database
+              - Credentials retrievable from Secrets Manager
+
+          task_0_2_5:
+            name: S3 Buckets and Cognito
+            complexity:
+              composite: 2.2
+              normalized: 44%
+              level: low
+              dimensions:
+                technical_complexity: 2
+                scope_size: 3
+                dependencies: 1
+                uncertainty: 2
+                risk: 3
+                testing: 2
+            estimated_days: 0.5
+            deliverables:
+              - S3 bucket for staging frontend
+              - S3 bucket for production frontend
+              - Enable static website hosting
+              - Bucket policies for CloudFront access
+              - Cognito user pool for staging
+              - Cognito user pool for production
+              - App clients configured
+              - User groups (admins, field_workers)
+            testing:
+              - Upload test file to S3 buckets
+              - Static website hosting works
+              - Create test user in Cognito
+              - Verify user groups
+
+          task_0_2_6:
+            name: ECS Clusters and Services
+            complexity:
+              composite: 2.8
+              normalized: 56%
+              level: medium
+              dimensions:
+                technical_complexity: 3
+                scope_size: 3
+                dependencies: 4
+                uncertainty: 2
+                risk: 3
+                testing: 3
+            estimated_days: 0.5
+            deliverables:
+              - ECS cluster for staging
+              - ECS cluster for production
+              - Task definitions (0.25 vCPU, 0.5 GB)
+              - ECS services with Fargate
+              - Application Load Balancers (staging + production)
+              - Target groups and health checks
+              - Auto-scaling policies
+            testing:
+              - Deploy test task to staging cluster
+              - Health check responds via ALB
+              - Auto-scaling triggers on CPU/memory
+
+          task_0_2_7:
+            name: CloudFront Distributions
+            complexity:
+              composite: 2.3
+              normalized: 46%
+              level: low_medium
+              dimensions:
+                technical_complexity: 2
+                scope_size: 2
+                dependencies: 3
+                uncertainty: 2
+                risk: 2
+                testing: 3
+            estimated_days: 0.5
+            deliverables:
+              - CloudFront distribution for staging S3 bucket
+              - CloudFront distribution for production S3 bucket
+              - SSL certificates (ACM)
+              - Cache behaviors
+              - Origin access identity
+            testing:
+              - Access staging site via CloudFront URL
+              - Access production site via CloudFront URL
+              - SSL certificate valid
+              - Cache invalidation works
+
+        feature_0_3:
+          name: GitHub Repository Configuration
+          complexity:
+            composite: 2.0
+            normalized: 40%
+            level: low
+            dimensions:
+              technical_complexity: 1
+              scope_size: 2
+              dependencies: 3
+              uncertainty: 1
+              risk: 2
+              testing: 2
+          estimated_days: 1
+          deliverables:
+            - GitHub Secrets configured (AWS credentials, environment URLs)
+            - GitHub Environments (staging + production)
+            - Branch protection rules on main (require PR reviews, status checks)
+            - Required status checks configured (8 checks)
+          testing:
+            - Attempt direct commit to main (should fail)
+            - Create test PR and verify checks run
+            - Verify secrets are accessible in workflows
+
+        feature_0_4:
+          name: Development Tooling Setup
+          complexity:
+            composite: 2.5
+            normalized: 50%
+            level: medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 2
+          deliverables:
+            - Backend ESLint configuration (.eslintrc.json)
+            - Backend Jest configuration (jest.config.js)
+            - Backend Prettier configuration (.prettierrc.json)
+            - Backend Dockerfile with health checks
+            - Frontend Vitest configuration (vitest.config.ts)
+            - Frontend Prettier configuration
+            - Sample unit tests (frontend + backend)
+            - Integration test setup with PostgreSQL
+          testing:
+            - Run lint and verify it catches errors
+            - Run tests and verify they pass
+            - Run format check and verify it works
+            - Build Docker image and verify health check
+
       epic_1:
         name: Foundation
         weeks: 1-2

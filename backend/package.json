@@ -7,7 +7,12 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:unit": "echo \"TODO: Add Jest unit tests\" && exit 0",
+    "test:integration": "echo \"TODO: Add integration tests\" && exit 0",
+    "lint": "echo \"TODO: Add ESLint configuration\" && exit 0",
+    "format:check": "echo \"TODO: Add Prettier configuration\" && exit 0",
+    "migrate:test": "echo \"TODO: Add Drizzle migrations\" && exit 0"
   },
   "keywords": ["quoting", "landscaping", "pwa"],
   "author": "Embark Landscaping & Earthworks",

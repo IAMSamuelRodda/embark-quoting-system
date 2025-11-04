@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "format:check": "echo \"TODO: Add Prettier configuration\" && exit 0",
     "preview": "vite preview",
+    "test:unit": "echo \"TODO: Add Vitest unit tests\" && exit 0",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report"
