@@ -4,6 +4,7 @@ import {
   AuthenticationDetails,
   CognitoUserAttribute,
   type ISignUpResult,
+  type CognitoUserSession,
 } from 'amazon-cognito-identity-js';
 
 // Cognito configuration from Terraform output
@@ -181,7 +182,7 @@ class AuthService {
     }
 
     return new Promise((resolve) => {
-      cognitoUser.getSession((err: Error | null, session: any) => {
+      cognitoUser.getSession((err: Error | null, session: CognitoUserSession | null) => {
         if (err || !session || !session.isValid()) {
           // No valid session - return null instead of rejecting
           resolve(null);
@@ -233,7 +234,7 @@ class AuthService {
   /**
    * Forgot password - send reset code
    */
-  async forgotPassword(email: string): Promise<any> {
+  async forgotPassword(email: string): Promise<void> {
     const cognitoUser = new CognitoUser({
       Username: email,
       Pool: userPool,
