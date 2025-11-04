@@ -1,0 +1,23 @@
+{
+  "name": "embark-quoting-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Embark Quoting System",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["quoting", "landscaping", "pwa"],
+  "author": "Embark Landscaping & Earthworks",
+  "license": "PRIVATE",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
