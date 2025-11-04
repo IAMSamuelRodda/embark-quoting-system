@@ -35,10 +35,10 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for detailed progress tracking workfl
 # View current progress
 gh issue list --state open
 
-# View Phase 1 tasks
+# View Epic 1 tasks
 gh issue view 1
 
-# Start working on a phase
+# Start working on an epic
 gh issue edit 1 --remove-label "status: pending" --add-label "status: in-progress"
 ```
 
@@ -87,17 +87,17 @@ cat docs/financial-model.md
 
 ## Implementation Plan
 
-| Phase | Timeline | Status | Milestone |
-|-------|----------|--------|-----------|
-| [Phase 1: Foundation](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/1) | Weeks 1-2 | Pending | Auth working, deployed to AWS |
-| [Phase 2: Quote Core](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/2) | Weeks 3-4 | Pending | Create quotes offline, sync online |
-| [Phase 3: Job Types](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/3) | Weeks 5-6 | Pending | All 5 job types functional |
-| [Phase 4: Financial](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/4) | Week 7 | Pending | Accurate totals with config model |
-| [Phase 5: Sync Engine](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/5) | Weeks 8-10 | Pending | Conflict resolution working |
-| [Phase 6: Outputs](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/6) | Week 11 | Pending | PDF/email + price management |
-| [Phase 7: Polish](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/7) | Week 11 | Pending | Production-ready |
+| Epic | Timeline | Status | Milestone |
+|------|----------|--------|-----------|
+| [Epic 1: Foundation](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/1) | Weeks 1-2 | Pending | Auth working, deployed to AWS |
+| [Epic 2: Quote Core](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/2) | Weeks 3-4 | Pending | Create quotes offline, sync online |
+| [Epic 3: Job Types](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/3) | Weeks 5-6 | Pending | All 5 job types functional |
+| [Epic 4: Financial](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/4) | Week 7 | Pending | Accurate totals with config model |
+| [Epic 5: Sync Engine](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/5) | Weeks 8-10 | Pending | Conflict resolution working |
+| [Epic 6: Outputs](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/6) | Week 11 | Pending | PDF/email + price management |
+| [Epic 7: Polish](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/7) | Week 11 | Pending | Production-ready |
 
-**Total Tasks**: 37 subtasks across 7 phases
+**Total**: 7 epics, 37 features/tasks
 **All tasks**: ≤3.0/5.0 complexity (validated)
 
 ---
@@ -127,7 +127,7 @@ All parameters configurable. See [`docs/financial-model.md`](./docs/financial-mo
 - **Conflict Detection**: Version vectors track changes
 - **Auto-Merge**: Non-critical fields (notes, metadata)
 - **Manual Resolution**: Critical fields (customer contact, status, totals)
-- **Spike Task**: 5-day research phase (Phase 5.0) to design conflict resolution strategy
+- **Spike Task**: 5-day research spike (Feature 5.0 in Epic 5) to design conflict resolution strategy
 
 ---
 
@@ -145,18 +145,18 @@ This project uses **GitHub Issues + Projects** for dynamic progress tracking.
 
 **View Progress**:
 - [Project Board](https://github.com/users/IAMSamuelRodda/projects/1) (visual kanban)
-- [All Issues](https://github.com/IAMSamuelRodda/embark-quoting-system/issues) (phase checklists)
+- [All Issues](https://github.com/IAMSamuelRodda/embark-quoting-system/issues) (hierarchical: epic → feature → task)
 
 **Update Progress** (agents):
 ```bash
-# Mark phase in-progress
+# Mark epic/feature in-progress
 gh issue edit <issue-number> --remove-label "status: pending" --add-label "status: in-progress"
 
 # Add progress comment
-gh issue comment <issue-number> --body "Completed Phase X.Y: [description]"
+gh issue comment <issue-number> --body "Completed Feature X.Y: [description]"
 
-# Close completed phase
-gh issue close <issue-number> --comment "Phase complete"
+# Close completed feature/task (progress auto-rolls up to parent epic)
+gh issue close <issue-number> --comment "Feature complete"
 ```
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for complete workflow.
@@ -177,8 +177,8 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for complete workflow.
 - Testing Complexity
 
 **Breakdown**:
-- Phase 1 (Infrastructure): 90% → 5 subtasks (avg 2.8/5.0)
-- Phase 5 (Sync Engine): 90% → spike + 6 subtasks (avg 2.6/5.0)
+- Epic 1 (Infrastructure): 90% → 5 features (avg 2.8/5.0)
+- Epic 5 (Sync Engine): 90% → spike + 6 features (avg 2.6/5.0)
 - All tasks: ≤3.0/5.0 composite score
 
 ---

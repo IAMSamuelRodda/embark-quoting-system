@@ -378,920 +378,931 @@ database_schema:
     indexes:
       - idx_sync_logs_ttl (created_at)
 
-phases:
-  phase_1:
-    name: Foundation
-    weeks: 1-2
-    avg_complexity: 2.8
-    milestone: Authentication working, deployed to AWS
+milestones:
+  milestone_1:
+    name: v1.0 MVP Release
+    timeline_weeks: 10-11
+    description: Complete offline-first quoting system with all 5 job types and sync engine
+    success_criteria:
+      - All functional requirements met (auth, quotes, sync, PDF export)
+      - Performance targets achieved (Lighthouse >90, <3s load)
+      - Security requirements satisfied (HTTPS, JWT, RBAC)
 
-    phase_1_1:
-      name: AWS Infrastructure Foundation
-      complexity:
-        composite: 3.0
-        normalized: 60%
-        level: medium_high
-        dimensions:
-          technical_complexity: 4
-          scope_size: 4
-          dependencies: 5
-          uncertainty: 2
-          risk: 4
-          testing: 3
-      estimated_days: 3
-      deliverables:
-        - VPC with public/private subnets
-        - Security groups (ALB, ECS, RDS)
-        - RDS PostgreSQL instance (db.t4g.micro)
-        - S3 buckets (backups, exports)
-        - ECR repository
-      testing:
-        - Database connectivity test
-        - Security group rules validation
-        - S3 access verification
+    epics:
+      epic_1:
+        name: Foundation
+        weeks: 1-2
+        avg_complexity: 2.8
+        deliverable: Authentication working, deployed to AWS
 
-    phase_1_2:
-      name: Docker & ECS Deployment
-      original_complexity: 3.2
-      note: Broken down to depth 2 for manageability
+        feature_1_1:
+          name: AWS Infrastructure Foundation
+          complexity:
+            composite: 3.0
+            normalized: 60%
+            level: medium_high
+            dimensions:
+              technical_complexity: 4
+              scope_size: 4
+              dependencies: 5
+              uncertainty: 2
+              risk: 4
+              testing: 3
+          estimated_days: 3
+          deliverables:
+            - VPC with public/private subnets
+            - Security groups (ALB, ECS, RDS)
+            - RDS PostgreSQL instance (db.t4g.micro)
+            - S3 buckets (backups, exports)
+            - ECR repository
+          testing:
+            - Database connectivity test
+            - Security group rules validation
+            - S3 access verification
 
-      phase_1_2_1:
-        name: Docker Container - Hello World
-        complexity:
-          composite: 2.2
-          normalized: 44%
-          level: low
-          dimensions:
-            technical_complexity: 2
-            scope_size: 2
-            dependencies: 2
-            uncertainty: 2
-            risk: 2
-            testing: 3
-        estimated_days: 1
-        deliverables:
-          - Dockerfile for Node.js 20
-          - Basic Express server with /health endpoint
-          - Build and test locally
-        testing:
-          - Docker image builds successfully
-          - Health check responds
+        feature_1_2:
+          name: Docker & ECS Deployment
+          original_complexity: 3.2
+          note: Broken down to depth 2 for manageability
 
-      phase_1_2_2:
-        name: ECR Push & ECS Task Definition
-        complexity:
-          composite: 2.5
-          normalized: 50%
-          level: medium
-          dimensions:
-            technical_complexity: 3
-            scope_size: 2
-            dependencies: 3
-            uncertainty: 2
-            risk: 2
-            testing: 3
-        estimated_days: 1
-        deliverables:
-          - Push image to ECR
-          - ECS task definition (0.25 vCPU, 0.5 GB)
-          - Environment variables setup
-        testing:
-          - Task definition created successfully
+          task_1_2_1:
+            name: Docker Container - Hello World
+            complexity:
+              composite: 2.2
+              normalized: 44%
+              level: low
+              dimensions:
+                technical_complexity: 2
+                scope_size: 2
+                dependencies: 2
+                uncertainty: 2
+                risk: 2
+                testing: 3
+            estimated_days: 1
+            deliverables:
+              - Dockerfile for Node.js 20
+              - Basic Express server with /health endpoint
+              - Build and test locally
+            testing:
+              - Docker image builds successfully
+              - Health check responds
 
-      phase_1_2_3:
-        name: ECS Service & ALB Configuration
-        complexity:
-          composite: 2.7
-          normalized: 54%
-          level: medium
-          dimensions:
-            technical_complexity: 3
-            scope_size: 3
-            dependencies: 3
-            uncertainty: 2
-            risk: 3
-            testing: 3
-        estimated_days: 2
-        deliverables:
-          - ECS Fargate service
-          - Application Load Balancer
-          - Target groups and health checks
-          - Route 53 DNS (optional)
-        testing:
-          - End-to-end deployment verification
-          - Health check via ALB URL
+          task_1_2_2:
+            name: ECR Push & ECS Task Definition
+            complexity:
+              composite: 2.5
+              normalized: 50%
+              level: medium
+              dimensions:
+                technical_complexity: 3
+                scope_size: 2
+                dependencies: 3
+                uncertainty: 2
+                risk: 2
+                testing: 3
+            estimated_days: 1
+            deliverables:
+              - Push image to ECR
+              - ECS task definition (0.25 vCPU, 0.5 GB)
+              - Environment variables setup
+            testing:
+              - Task definition created successfully
 
-    phase_1_3:
-      name: Cognito User Pool Setup
-      complexity:
-        composite: 2.8
-        normalized: 56%
-        level: medium
-        dimensions:
-          technical_complexity: 3
-          scope_size: 3
-          dependencies: 2
-          uncertainty: 2
-          risk: 4
-          testing: 3
-      estimated_days: 2
-      deliverables:
-        - User pool with email verification
-        - Password policy (8+ chars, uppercase, numbers)
-        - User groups (admins, field_workers)
-        - Custom attributes (custom:role)
-        - Email templates (verification, password reset)
-      testing:
-        - Create users manually
-        - Verify email flow
-        - Test groups assignment
+          task_1_2_3:
+            name: ECS Service & ALB Configuration
+            complexity:
+              composite: 2.7
+              normalized: 54%
+              level: medium
+              dimensions:
+                technical_complexity: 3
+                scope_size: 3
+                dependencies: 3
+                uncertainty: 2
+                risk: 3
+                testing: 3
+            estimated_days: 2
+            deliverables:
+              - ECS Fargate service
+              - Application Load Balancer
+              - Target groups and health checks
+              - Route 53 DNS (optional)
+            testing:
+              - End-to-end deployment verification
+              - Health check via ALB URL
 
-    phase_1_4:
-      name: Frontend Auth Slice
-      complexity:
-        composite: 2.5
-        normalized: 50%
-        level: medium
-        dimensions:
-          technical_complexity: 2
-          scope_size: 3
-          dependencies: 3
-          uncertainty: 2
-          risk: 3
-          testing: 2
-      estimated_days: 3
-      deliverables:
-        - React PWA scaffold (Vite + TypeScript)
-        - Service worker setup
-        - features/auth/ vertical slice
-        - LoginPage.tsx
-        - SignupPage.tsx
-        - useAuth.ts hook
-        - authService.ts (Cognito SDK)
-        - Token storage (localStorage)
-        - JWT refresh mechanism
-      testing:
-        - Login/logout flow
-        - Token persistence
-        - Auto-refresh on expiry
+        feature_1_3:
+          name: Cognito User Pool Setup
+          complexity:
+            composite: 2.8
+            normalized: 56%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 4
+              testing: 3
+          estimated_days: 2
+          deliverables:
+            - User pool with email verification
+            - Password policy (8+ chars, uppercase, numbers)
+            - User groups (admins, field_workers)
+            - Custom attributes (custom:role)
+            - Email templates (verification, password reset)
+          testing:
+            - Create users manually
+            - Verify email flow
+            - Test groups assignment
 
-    phase_1_5:
-      name: Role-Based Access Control
-      complexity:
-        composite: 2.3
-        normalized: 46%
-        level: low_medium
-        dimensions:
-          technical_complexity: 2
-          scope_size: 2
-          dependencies: 3
-          uncertainty: 2
-          risk: 3
-          testing: 2
-      estimated_days: 2
-      deliverables:
-        - Backend auth.middleware.ts with JWT validation
-        - Backend role check helper (requireAdmin())
-        - Frontend ProtectedRoute component
-        - Frontend conditional rendering by role
-      testing:
-        - Admin-only routes blocked for field workers
-        - Permission checks working
+        feature_1_4:
+          name: Frontend Auth Slice
+          complexity:
+            composite: 2.5
+            normalized: 50%
+            level: medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 2
+          estimated_days: 3
+          deliverables:
+            - React PWA scaffold (Vite + TypeScript)
+            - Service worker setup
+            - features/auth/ vertical slice
+            - LoginPage.tsx
+            - SignupPage.tsx
+            - useAuth.ts hook
+            - authService.ts (Cognito SDK)
+            - Token storage (localStorage)
+            - JWT refresh mechanism
+          testing:
+            - Login/logout flow
+            - Token persistence
+            - Auto-refresh on expiry
 
-  phase_2:
-    name: Quote Core
-    weeks: 3-4
-    avg_complexity: 2.5
-    milestone: Can create quotes offline, sync when online
+        feature_1_5:
+          name: Role-Based Access Control
+          complexity:
+            composite: 2.3
+            normalized: 46%
+            level: low_medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 2
+          estimated_days: 2
+          deliverables:
+            - Backend auth.middleware.ts with JWT validation
+            - Backend role check helper (requireAdmin())
+            - Frontend ProtectedRoute component
+            - Frontend conditional rendering by role
+          testing:
+            - Admin-only routes blocked for field workers
+            - Permission checks working
 
-    phase_2_1:
-      name: PostgreSQL Schema & Migrations
-      complexity:
-        composite: 2.2
-        normalized: 44%
-        level: low
-        dimensions:
-          technical_complexity: 2
-          scope_size: 2
-          dependencies: 2
-          uncertainty: 2
-          risk: 3
-          testing: 2
-      estimated_days: 2
-      deliverables:
-        - Schema for users, quotes, jobs, financials, quote_versions
-        - Migration scripts (Drizzle ORM)
-        - Seed data (5 sample quotes)
-        - Indexes on quote_number, user_id, status
-      testing:
-        - Migrations up/down
-        - Seed data loads
-        - Query performance
+      epic_2:
+        name: Quote Core
+        weeks: 3-4
+        avg_complexity: 2.5
+        deliverable: Can create quotes offline, sync when online
 
-    phase_2_2:
-      name: Backend Quote API (Basic CRUD)
-      complexity:
-        composite: 2.5
-        normalized: 50%
-        level: medium
-        dimensions:
-          technical_complexity: 2
-          scope_size: 3
-          dependencies: 3
-          uncertainty: 2
-          risk: 3
-          testing: 2
-      estimated_days: 2
-      deliverables:
-        - features/quotes/ backend slice
-        - quotes.routes.ts (REST endpoints)
-        - quotes.controller.ts
-        - quotes.service.ts
-        - quotes.repository.ts (Drizzle queries)
-        - Routes GET/POST/PUT/DELETE /quotes
-        - Validation (Zod schemas)
-      testing:
-        - Postman/curl tests for all CRUD operations
+        feature_2_1:
+          name: PostgreSQL Schema & Migrations
+          complexity:
+            composite: 2.2
+            normalized: 44%
+            level: low
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 3
+              testing: 2
+          estimated_days: 2
+          deliverables:
+            - Schema for users, quotes, jobs, financials, quote_versions
+            - Migration scripts (Drizzle ORM)
+            - Seed data (5 sample quotes)
+            - Indexes on quote_number, user_id, status
+          testing:
+            - Migrations up/down
+            - Seed data loads
+            - Query performance
 
-    phase_2_3:
-      name: IndexedDB Local Storage
-      complexity:
-        composite: 2.7
-        normalized: 54%
-        level: medium
-        dimensions:
-          technical_complexity: 3
-          scope_size: 3
-          dependencies: 2
-          uncertainty: 2
-          risk: 3
-          testing: 3
-      estimated_days: 2
-      deliverables:
-        - Dexie.js setup (shared/db/indexedDb.ts)
-        - Object stores (quotes, syncQueue, changeLog)
-        - features/quotes/quotesDb.ts (local CRUD)
-        - Indexes (quoteNumber, status, updatedAt, syncStatus)
-      testing:
-        - Offline persistence
-        - Data survives page refresh
+        feature_2_2:
+          name: Backend Quote API (Basic CRUD)
+          complexity:
+            composite: 2.5
+            normalized: 50%
+            level: medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 2
+          estimated_days: 2
+          deliverables:
+            - features/quotes/ backend slice
+            - quotes.routes.ts (REST endpoints)
+            - quotes.controller.ts
+            - quotes.service.ts
+            - quotes.repository.ts (Drizzle queries)
+            - Routes GET/POST/PUT/DELETE /quotes
+            - Validation (Zod schemas)
+          testing:
+            - Postman/curl tests for all CRUD operations
 
-    phase_2_4:
-      name: Quote List/Dashboard UI
-      complexity:
-        composite: 2.3
-        normalized: 46%
-        level: low_medium
-        dimensions:
-          technical_complexity: 2
-          scope_size: 3
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 3
-      estimated_days: 3
-      deliverables:
-        - QuoteList.tsx component
-        - Filter bar (status, date range)
-        - Search (quote number, customer name)
-        - Quote card component
-        - Quick actions (New Quote button)
-      testing:
-        - Filtering works
-        - Search works
-        - Mobile responsive
+        feature_2_3:
+          name: IndexedDB Local Storage
+          complexity:
+            composite: 2.7
+            normalized: 54%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 2
+          deliverables:
+            - Dexie.js setup (shared/db/indexedDb.ts)
+            - Object stores (quotes, syncQueue, changeLog)
+            - features/quotes/quotesDb.ts (local CRUD)
+            - Indexes (quoteNumber, status, updatedAt, syncStatus)
+          testing:
+            - Offline persistence
+            - Data survives page refresh
 
-    phase_2_5:
-      name: Quote Editor (Customer Info Only)
-      complexity:
-        composite: 2.0
-        normalized: 40%
-        level: low
-        dimensions:
-          technical_complexity: 2
-          scope_size: 2
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 2
-      estimated_days: 2
-      deliverables:
-        - QuoteEditor.tsx page
-        - Customer form (React Hook Form + Zod)
-        - Name, email, phone, address fields
-        - Suburb, postcode, optional GPS
-        - Save draft functionality
-      testing:
-        - Form validation
-        - Save draft
-        - Edit existing quote
+        feature_2_4:
+          name: Quote List/Dashboard UI
+          complexity:
+            composite: 2.3
+            normalized: 46%
+            level: low_medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 3
+          deliverables:
+            - QuoteList.tsx component
+            - Filter bar (status, date range)
+            - Search (quote number, customer name)
+            - Quote card component
+            - Quick actions (New Quote button)
+          testing:
+            - Filtering works
+            - Search works
+            - Mobile responsive
 
-    phase_2_6:
-      name: Basic Sync (Online Only)
-      complexity:
-        composite: 2.8
-        normalized: 56%
-        level: medium
-        dimensions:
-          technical_complexity: 3
-          scope_size: 3
-          dependencies: 3
-          uncertainty: 2
-          risk: 3
-          testing: 3
-      estimated_days: 3
-      note: No conflict handling yet (happy path only)
-      deliverables:
-        - Connection detection (navigator.onLine)
-        - Push local changes to API when online
-        - Pull remote changes on app load
-        - Sync status indicator (synced, pending, error)
-      testing:
-        - Create quote offline → go online → verify syncs
+        feature_2_5:
+          name: Quote Editor (Customer Info Only)
+          complexity:
+            composite: 2.0
+            normalized: 40%
+            level: low
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 2
+          estimated_days: 2
+          deliverables:
+            - QuoteEditor.tsx page
+            - Customer form (React Hook Form + Zod)
+            - Name, email, phone, address fields
+            - Suburb, postcode, optional GPS
+            - Save draft functionality
+          testing:
+            - Form validation
+            - Save draft
+            - Edit existing quote
 
-  phase_3:
-    name: Job Types
-    weeks: 5-6
-    avg_complexity: 2.3
-    milestone: All 5 job types functional
+        feature_2_6:
+          name: Basic Sync (Online Only)
+          complexity:
+            composite: 2.8
+            normalized: 56%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 3
+          note: No conflict handling yet (happy path only)
+          deliverables:
+            - Connection detection (navigator.onLine)
+            - Push local changes to API when online
+            - Pull remote changes on app load
+            - Sync status indicator (synced, pending, error)
+          testing:
+            - Create quote offline → go online → verify syncs
 
-    phase_3_1:
-      name: Job Schema & Multi-Job UI
-      complexity:
-        composite: 2.5
-        normalized: 50%
-        level: medium
-        dimensions:
-          technical_complexity: 2
-          scope_size: 3
-          dependencies: 3
-          uncertainty: 2
-          risk: 2
-          testing: 3
-      estimated_days: 2
-      deliverables:
-        - jobs table (quote_id, job_type, parameters JSONB, subtotal)
-        - Multi-job UI structure
-        - Add/remove job buttons
-        - Job type selector dropdown
-        - Reorder jobs (drag-and-drop optional)
-      testing:
-        - Add multiple jobs
-        - Remove jobs
-        - Save/load
+      epic_3:
+        name: Job Types
+        weeks: 5-6
+        avg_complexity: 2.3
+        deliverable: All 5 job types functional
 
-    phase_3_2:
-      name: Retaining Wall Form
-      complexity:
-        composite: 2.2
-        normalized: 44%
-        level: low
-        dimensions:
-          technical_complexity: 2
-          scope_size: 2
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 3
-      estimated_days: 2
-      deliverables:
-        - RetainingWallForm.tsx
-        - Inputs (bays, height 200-1000mm dropdown, length)
-        - Checkboxes (ag pipe, orange plastic)
-        - Material calculations (blocks, sand, cement)
-        - Labour estimate
-      testing:
-        - Validate height increments
-        - Material quantities accurate
+        feature_3_1:
+          name: Job Schema & Multi-Job UI
+          complexity:
+            composite: 2.5
+            normalized: 50%
+            level: medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 2
+          deliverables:
+            - jobs table (quote_id, job_type, parameters JSONB, subtotal)
+            - Multi-job UI structure
+            - Add/remove job buttons
+            - Job type selector dropdown
+            - Reorder jobs (drag-and-drop optional)
+          testing:
+            - Add multiple jobs
+            - Remove jobs
+            - Save/load
 
-    phase_3_3:
-      name: Driveway Form
-      complexity:
-        composite: 2.2
-        normalized: 44%
-        level: low
-        dimensions:
-          technical_complexity: 2
-          scope_size: 2
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 3
-      estimated_days: 2
-      deliverables:
-        - DrivewayForm.tsx
-        - Inputs (length, width, base thickness default 200mm)
-        - Topping option (enable/disable, thickness default 100mm, type 20mm gravel)
-        - Material calculations (road base, gravel, compaction)
-      testing:
-        - Topping toggle
-        - Calculations with/without topping
+        feature_3_2:
+          name: Retaining Wall Form
+          complexity:
+            composite: 2.2
+            normalized: 44%
+            level: low
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 2
+          deliverables:
+            - RetainingWallForm.tsx
+            - Inputs (bays, height 200-1000mm dropdown, length)
+            - Checkboxes (ag pipe, orange plastic)
+            - Material calculations (blocks, sand, cement)
+            - Labour estimate
+          testing:
+            - Validate height increments
+            - Material quantities accurate
 
-    phase_3_4:
-      name: Trenching + Stormwater Forms
-      complexity:
-        composite: 2.5
-        normalized: 50%
-        level: medium
-        dimensions:
-          technical_complexity: 3
-          scope_size: 3
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 3
-      estimated_days: 3
-      deliverables:
-        - TrenchingForm.tsx (length, width 300/600/900mm, depth, stormwater integration)
-        - StormwaterForm.tsx (pipe length/type, T-joints, elbows, downpipe adaptors)
-        - Integration between forms (stormwater can trigger trenching)
-        - Material calculations (pipe, fittings, excavation)
-      testing:
-        - Integration between forms
-        - Edge cases (no pipe in trench)
+        feature_3_3:
+          name: Driveway Form
+          complexity:
+            composite: 2.2
+            normalized: 44%
+            level: low
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 2
+          deliverables:
+            - DrivewayForm.tsx
+            - Inputs (length, width, base thickness default 200mm)
+            - Topping option (enable/disable, thickness default 100mm, type 20mm gravel)
+            - Material calculations (road base, gravel, compaction)
+          testing:
+            - Topping toggle
+            - Calculations with/without topping
 
-    phase_3_5:
-      name: Site Prep Form
-      complexity:
-        composite: 2.3
-        normalized: 46%
-        level: low_medium
-        dimensions:
-          technical_complexity: 2
-          scope_size: 2
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 3
-      estimated_days: 2
-      deliverables:
-        - SitePrepForm.tsx
-        - Inputs (area m², depth, backfill type road_base/paving_sand)
-        - Dumping (required? distance km)
-        - Supply distance km
-        - Labour/travel/dumping cost inputs
-      testing:
-        - Dumping calculations
-        - Travel cost accuracy
+        feature_3_4:
+          name: Trenching + Stormwater Forms
+          complexity:
+            composite: 2.5
+            normalized: 50%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 3
+          deliverables:
+            - TrenchingForm.tsx (length, width 300/600/900mm, depth, stormwater integration)
+            - StormwaterForm.tsx (pipe length/type, T-joints, elbows, downpipe adaptors)
+            - Integration between forms (stormwater can trigger trenching)
+            - Material calculations (pipe, fittings, excavation)
+          testing:
+            - Integration between forms
+            - Edge cases (no pipe in trench)
 
-  phase_4:
-    name: Financial Calculations
-    weeks: 7
-    avg_complexity: 2.3
-    milestone: Accurate quote totals with configurable model
+        feature_3_5:
+          name: Site Prep Form
+          complexity:
+            composite: 2.3
+            normalized: 46%
+            level: low_medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 2
+          deliverables:
+            - SitePrepForm.tsx
+            - Inputs (area m², depth, backfill type road_base/paving_sand)
+            - Dumping (required? distance km)
+            - Supply distance km
+            - Labour/travel/dumping cost inputs
+          testing:
+            - Dumping calculations
+            - Travel cost accuracy
 
-    phase_4_1:
-      name: Configurable Settings Schema
-      complexity:
-        composite: 2.0
-        normalized: 40%
-        level: low
-        dimensions:
-          technical_complexity: 2
-          scope_size: 2
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 2
-      estimated_days: 1
-      deliverables:
-        - price_sheets table with defaults JSONB
-        - Profit-First percentages (profit, owner, tax, opex)
-        - GST rate
-        - Overhead multiplier
-        - Deposit options
-        - Rounding increment
-        - Admin UI (features/prices/DefaultsEditor.tsx)
-      testing:
-        - Update defaults
-        - Verify applied to new quotes
+      epic_4:
+        name: Financial Calculations
+        weeks: 7
+        avg_complexity: 2.3
+        deliverable: Accurate quote totals with configurable model
 
-    phase_4_2:
-      name: Calculation Engine
-      complexity:
-        composite: 2.8
-        normalized: 56%
-        level: medium
-        dimensions:
-          technical_complexity: 3
-          scope_size: 3
-          dependencies: 3
-          uncertainty: 2
-          risk: 3
-          testing: 3
-      estimated_days: 3
-      deliverables:
-        - features/quotes/quoteCalculations.ts
-        - Sum materials from all jobs
-        - Apply overhead multiplier
-        - Apply Profit-First breakdown
-        - Calculate GST
-        - Rounding logic
-        - Real-time preview in UI
-      testing:
-        - Unit tests for all edge cases
-        - Verify against manual calculations
+        feature_4_1:
+          name: Configurable Settings Schema
+          complexity:
+            composite: 2.0
+            normalized: 40%
+            level: low
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 2
+          estimated_days: 1
+          deliverables:
+            - price_sheets table with defaults JSONB
+            - Profit-First percentages (profit, owner, tax, opex)
+            - GST rate
+            - Overhead multiplier
+            - Deposit options
+            - Rounding increment
+            - Admin UI (features/prices/DefaultsEditor.tsx)
+          testing:
+            - Update defaults
+            - Verify applied to new quotes
 
-    phase_4_3:
-      name: Financial Breakdown UI
-      complexity:
-        composite: 2.2
-        normalized: 44%
-        level: low
-        dimensions:
-          technical_complexity: 2
-          scope_size: 2
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 3
-      estimated_days: 2
-      deliverables:
-        - FinancialSummary.tsx component
-        - Breakdown toggle (show/hide Profit-First details)
-        - Subtotal per job
-        - Deposit calculator (20%/25%/30% selector)
-        - Warning if deposit < materials cost
-      testing:
-        - Toggle breakdown
-        - Deposit warnings
+        feature_4_2:
+          name: Calculation Engine
+          complexity:
+            composite: 2.8
+            normalized: 56%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 3
+          deliverables:
+            - features/quotes/quoteCalculations.ts
+            - Sum materials from all jobs
+            - Apply overhead multiplier
+            - Apply Profit-First breakdown
+            - Calculate GST
+            - Rounding logic
+            - Real-time preview in UI
+          testing:
+            - Unit tests for all edge cases
+            - Verify against manual calculations
 
-    phase_4_4:
-      name: Access Modifiers & Adjustments
-      complexity:
-        composite: 2.0
-        normalized: 40%
-        level: low
-        dimensions:
-          technical_complexity: 2
-          scope_size: 2
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 2
-      estimated_days: 1
-      deliverables:
-        - Tight access multiplier (1.1x checkbox)
-        - Rock clause checkbox (adds disclaimer to PDF)
-        - Per-quote overrides (custom percentage inputs)
-      testing:
-        - Modifiers apply correctly
-        - PDF includes clauses
+        feature_4_3:
+          name: Financial Breakdown UI
+          complexity:
+            composite: 2.2
+            normalized: 44%
+            level: low
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 2
+          deliverables:
+            - FinancialSummary.tsx component
+            - Breakdown toggle (show/hide Profit-First details)
+            - Subtotal per job
+            - Deposit calculator (20%/25%/30% selector)
+            - Warning if deposit < materials cost
+          testing:
+            - Toggle breakdown
+            - Deposit warnings
 
-  phase_5:
-    name: Sync Engine
-    weeks: 8-10
-    avg_complexity: 2.6
-    milestone: Conflict resolution working, sync robust
-    requires_spike: true
+        feature_4_4:
+          name: Access Modifiers & Adjustments
+          complexity:
+            composite: 2.0
+            normalized: 40%
+            level: low
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 2
+          estimated_days: 1
+          deliverables:
+            - Tight access multiplier (1.1x checkbox)
+            - Rock clause checkbox (adds disclaimer to PDF)
+            - Per-quote overrides (custom percentage inputs)
+          testing:
+            - Modifiers apply correctly
+            - PDF includes clauses
 
-    phase_5_0:
-      name: SPIKE - Conflict Resolution Strategy Design
-      type: research
-      criticality: high
-      reduces_uncertainty: "4/5 → 2/5"
-      estimated_days: 5
-      week: 8
-      deliverables:
-        research_report:
-          duration_days: 2
-          topics:
-            - Version vectors vs CRDTs vs Operational Transforms
-            - Survey Figma, Google Docs, Notion conflict strategies
-            - Decision recommendation for quote app
-        conflict_rules_design:
-          duration_days: 1
-          content:
-            - Critical fields (customer contact, quote status, totals)
-            - Non-critical fields (notes, metadata)
-            - Auto-merge rules by field type
-        algorithm_pseudocode:
-          duration_days: 1
-          content:
-            - Conflict detection logic
-            - Auto-merge implementation
-            - Manual resolution workflow
-        prototype_poc:
-          duration_days: 1
-          content:
-            - Simple JS implementation
-            - Test with sample conflicts
-      acceptance_criteria:
-        - Technical design document approved
-        - Pseudocode reviewed and validated
-        - POC demonstrates feasibility
+      epic_5:
+        name: Sync Engine
+        weeks: 8-10
+        avg_complexity: 2.6
+        deliverable: Conflict resolution working, sync robust
+        requires_spike: true
 
-    phase_5_1:
-      name: Sync Queue Manager
-      complexity:
-        composite: 2.5
-        normalized: 50%
-        level: medium
-        dimensions:
-          technical_complexity: 3
-          scope_size: 2
-          dependencies: 3
-          uncertainty: 2
-          risk: 3
-          testing: 2
-      estimated_days: 2
-      deliverables:
-        - features/sync/syncQueue.ts
-        - IndexedDB syncQueue operations (add, process, retry)
-        - Priority system (critical=1, high=2, normal=3, low=4)
-        - Exponential backoff (1s, 2s, 4s, 8s, 30s, 60s)
-        - Dead-letter queue after 6 failures
-      testing:
-        - Offline queue
-        - Retry logic
-        - Priority ordering
+        feature_5_0:
+          name: SPIKE - Conflict Resolution Strategy Design
+          type: research
+          criticality: high
+          reduces_uncertainty: "4/5 → 2/5"
+          estimated_days: 5
+          week: 8
+          deliverables:
+            research_report:
+              duration_days: 2
+              topics:
+                - Version vectors vs CRDTs vs Operational Transforms
+                - Survey Figma, Google Docs, Notion conflict strategies
+                - Decision recommendation for quote app
+            conflict_rules_design:
+              duration_days: 1
+              content:
+                - Critical fields (customer contact, quote status, totals)
+                - Non-critical fields (notes, metadata)
+                - Auto-merge rules by field type
+            algorithm_pseudocode:
+              duration_days: 1
+              content:
+                - Conflict detection logic
+                - Auto-merge implementation
+                - Manual resolution workflow
+            prototype_poc:
+              duration_days: 1
+              content:
+                - Simple JS implementation
+                - Test with sample conflicts
+          acceptance_criteria:
+            - Technical design document approved
+            - Pseudocode reviewed and validated
+            - POC demonstrates feasibility
 
-    phase_5_2:
-      name: Version Tracking
-      complexity:
-        composite: 2.7
-        normalized: 54%
-        level: medium
-        dimensions:
-          technical_complexity: 3
-          scope_size: 3
-          dependencies: 2
-          uncertainty: 2
-          risk: 3
-          testing: 3
-      estimated_days: 2
-      deliverables:
-        - quote_versions table
-        - Increment version on every update
-        - Store full quote snapshots (JSONB)
-        - Backend store versions on PUT /quotes/:id
-        - Frontend track local version
-      testing:
-        - Version history
-        - Snapshot retrieval
+        feature_5_1:
+          name: Sync Queue Manager
+          complexity:
+            composite: 2.5
+            normalized: 50%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 2
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 2
+          estimated_days: 2
+          deliverables:
+            - features/sync/syncQueue.ts
+            - IndexedDB syncQueue operations (add, process, retry)
+            - Priority system (critical=1, high=2, normal=3, low=4)
+            - Exponential backoff (1s, 2s, 4s, 8s, 30s, 60s)
+            - Dead-letter queue after 6 failures
+          testing:
+            - Offline queue
+            - Retry logic
+            - Priority ordering
 
-    phase_5_3:
-      name: Conflict Detection
-      original_complexity: 3.0
-      note: Broken down to depth 2
+        feature_5_2:
+          name: Version Tracking
+          complexity:
+            composite: 2.7
+            normalized: 54%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 2
+          deliverables:
+            - quote_versions table
+            - Increment version on every update
+            - Store full quote snapshots (JSONB)
+            - Backend store versions on PUT /quotes/:id
+            - Frontend track local version
+          testing:
+            - Version history
+            - Snapshot retrieval
 
-      phase_5_3_1:
-        name: Version Comparison
-        complexity:
-          composite: 2.3
-          normalized: 46%
-          level: low_medium
-          dimensions:
-            technical_complexity: 2
-            scope_size: 2
-            dependencies: 2
-            uncertainty: 2
-            risk: 3
-            testing: 3
-        estimated_days: 1
-        deliverables:
-          - Compare local.version vs remote.version
-          - Flag if versions diverged
-        testing:
-          - Detect version mismatch
+        feature_5_3:
+          name: Conflict Detection
+          original_complexity: 3.0
+          note: Broken down to depth 2
 
-      phase_5_3_2:
-        name: Field-Level Diff
-        complexity:
-          composite: 2.5
-          normalized: 50%
-          level: medium
-          dimensions:
-            technical_complexity: 3
-            scope_size: 2
-            dependencies: 3
-            uncertainty: 2
-            risk: 3
-            testing: 2
-        estimated_days: 2
-        deliverables:
-          - Deep diff local vs remote quote (using spike algorithm)
-          - Categorize conflicts (critical vs non-critical)
-          - Generate conflict report with field paths
-        testing:
-          - Multi-device edit scenarios
-          - Field-level accuracy
+          task_5_3_1:
+            name: Version Comparison
+            complexity:
+              composite: 2.3
+              normalized: 46%
+              level: low_medium
+              dimensions:
+                technical_complexity: 2
+                scope_size: 2
+                dependencies: 2
+                uncertainty: 2
+                risk: 3
+                testing: 3
+            estimated_days: 1
+            deliverables:
+              - Compare local.version vs remote.version
+              - Flag if versions diverged
+            testing:
+              - Detect version mismatch
 
-    phase_5_4:
-      name: Auto-Merge (Non-Critical Fields)
-      complexity:
-        composite: 2.8
-        normalized: 56%
-        level: medium
-        dimensions:
-          technical_complexity: 3
-          scope_size: 3
-          dependencies: 3
-          uncertainty: 2
-          risk: 3
-          testing: 3
-      estimated_days: 2
-      deliverables:
-        - Implement merge strategy from spike
-        - Last-Write-Wins for metadata (newest timestamp)
-        - Concatenate notes/internal notes with separator
-        - Merge job arrays by ID (add new, preserve existing)
-        - Recalculate financials from merged inputs
-        - Apply auto-merge, increment version
-      testing:
-        - Auto-merge scenarios
-        - Verify data integrity
+          task_5_3_2:
+            name: Field-Level Diff
+            complexity:
+              composite: 2.5
+              normalized: 50%
+              level: medium
+              dimensions:
+                technical_complexity: 3
+                scope_size: 2
+                dependencies: 3
+                uncertainty: 2
+                risk: 3
+                testing: 2
+            estimated_days: 2
+            deliverables:
+              - Deep diff local vs remote quote (using spike algorithm)
+              - Categorize conflicts (critical vs non-critical)
+              - Generate conflict report with field paths
+            testing:
+              - Multi-device edit scenarios
+              - Field-level accuracy
 
-    phase_5_5:
-      name: Manual Conflict Resolution UI
-      complexity:
-        composite: 2.5
-        normalized: 50%
-        level: medium
-        dimensions:
-          technical_complexity: 2
-          scope_size: 3
-          dependencies: 2
-          uncertainty: 2
-          risk: 3
-          testing: 3
-      estimated_days: 3
-      deliverables:
-        - ConflictResolver.tsx modal
-        - Side-by-side comparison (local vs remote)
-        - Field diff viewer (highlight changes)
-        - Actions (Accept Local, Accept Remote, Manual Merge)
-        - Manual merge (field-by-field picker)
-      testing:
-        - Resolve conflicts manually
-        - Save merged version
+        feature_5_4:
+          name: Auto-Merge (Non-Critical Fields)
+          complexity:
+            composite: 2.8
+            normalized: 56%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 2
+          deliverables:
+            - Implement merge strategy from spike
+            - Last-Write-Wins for metadata (newest timestamp)
+            - Concatenate notes/internal notes with separator
+            - Merge job arrays by ID (add new, preserve existing)
+            - Recalculate financials from merged inputs
+            - Apply auto-merge, increment version
+          testing:
+            - Auto-merge scenarios
+            - Verify data integrity
 
-    phase_5_6:
-      name: Sync Testing & Edge Cases
-      original_complexity: 3.2
-      note: Broken down to depth 2
+        feature_5_5:
+          name: Manual Conflict Resolution UI
+          complexity:
+            composite: 2.5
+            normalized: 50%
+            level: medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 3
+          deliverables:
+            - ConflictResolver.tsx modal
+            - Side-by-side comparison (local vs remote)
+            - Field diff viewer (highlight changes)
+            - Actions (Accept Local, Accept Remote, Manual Merge)
+            - Manual merge (field-by-field picker)
+          testing:
+            - Resolve conflicts manually
+            - Save merged version
 
-      phase_5_6_1:
-        name: Multi-Device Sync Testing
-        complexity:
-          composite: 2.7
-          normalized: 54%
-          level: medium
-          dimensions:
-            technical_complexity: 3
-            scope_size: 2
-            dependencies: 3
-            uncertainty: 2
-            risk: 3
-            testing: 4
-        estimated_days: 2
-        deliverables:
-          - Test 2 devices editing same quote offline
-          - Test 3-way conflict (3 devices)
-          - Verify auto-merge + manual resolution
-        testing:
-          - Multi-device scenarios documented
+        feature_5_6:
+          name: Sync Testing & Edge Cases
+          original_complexity: 3.2
+          note: Broken down to depth 2
 
-      phase_5_6_2:
-        name: Network Edge Cases
-        complexity:
-          composite: 2.5
-          normalized: 50%
-          level: medium
-          dimensions:
-            technical_complexity: 2
-            scope_size: 2
-            dependencies: 2
-            uncertainty: 2
-            risk: 3
-            testing: 4
-        estimated_days: 1
-        deliverables:
-          - Test network interruption mid-sync
-          - Test rapid online/offline transitions
-          - Test sync queue processing under poor connectivity
-        testing:
-          - Robust error handling
+          task_5_6_1:
+            name: Multi-Device Sync Testing
+            complexity:
+              composite: 2.7
+              normalized: 54%
+              level: medium
+              dimensions:
+                technical_complexity: 3
+                scope_size: 2
+                dependencies: 3
+                uncertainty: 2
+                risk: 3
+                testing: 4
+            estimated_days: 2
+            deliverables:
+              - Test 2 devices editing same quote offline
+              - Test 3-way conflict (3 devices)
+              - Verify auto-merge + manual resolution
+            testing:
+              - Multi-device scenarios documented
 
-      phase_5_6_3:
-        name: E2E Integration Testing
-        complexity:
-          composite: 2.3
-          normalized: 46%
-          level: low_medium
-          dimensions:
-            technical_complexity: 2
-            scope_size: 2
-            dependencies: 2
-            uncertainty: 2
-            risk: 2
-            testing: 4
-        estimated_days: 1
-        deliverables:
-          - Playwright tests for complete flows
-          - Create quote offline → sync online
-          - Edit quote on 2 devices → resolve conflict
-          - Queue retry after failures
-        testing:
-          - E2E test suite passing
+          task_5_6_2:
+            name: Network Edge Cases
+            complexity:
+              composite: 2.5
+              normalized: 50%
+              level: medium
+              dimensions:
+                technical_complexity: 2
+                scope_size: 2
+                dependencies: 2
+                uncertainty: 2
+                risk: 3
+                testing: 4
+            estimated_days: 1
+            deliverables:
+              - Test network interruption mid-sync
+              - Test rapid online/offline transitions
+              - Test sync queue processing under poor connectivity
+            testing:
+              - Robust error handling
 
-  phase_6:
-    name: Outputs & Price Management
-    weeks: 11
-    avg_complexity: 2.5
-    milestone: Price management and PDF/email outputs working
+          task_5_6_3:
+            name: E2E Integration Testing
+            complexity:
+              composite: 2.3
+              normalized: 46%
+              level: low_medium
+              dimensions:
+                technical_complexity: 2
+                scope_size: 2
+                dependencies: 2
+                uncertainty: 2
+                risk: 2
+                testing: 4
+            estimated_days: 1
+            deliverables:
+              - Playwright tests for complete flows
+              - Create quote offline → sync online
+              - Edit quote on 2 devices → resolve conflict
+              - Queue retry after failures
+            testing:
+              - E2E test suite passing
 
-    phase_6_1:
-      name: Price Management (Admin)
-      complexity:
-        composite: 2.5
-        normalized: 50%
-        level: medium
-        dimensions:
-          technical_complexity: 2
-          scope_size: 3
-          dependencies: 2
-          uncertainty: 2
-          risk: 3
-          testing: 3
-      estimated_days: 3
-      deliverables:
-        - features/prices/PriceManagement.tsx (Admin only)
-        - price_items table (name, price, unit, last_checked)
-        - Price editor grid
-        - Version history view
-        - Price change notifications (email to all users)
-      testing:
-        - Update prices
-        - Version history
-        - Notifications sent
+      epic_6:
+        name: Outputs & Price Management
+        weeks: 11
+        avg_complexity: 2.5
+        deliverable: Price management and PDF/email outputs working
 
-    phase_6_2:
-      name: Quote Outputs (PDF + Email)
-      complexity:
-        composite: 2.5
-        normalized: 50%
-        level: medium
-        dimensions:
-          technical_complexity: 3
-          scope_size: 3
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 3
-      estimated_days: 3
-      deliverables:
-        - QuoteViewer.tsx (customer-facing layout)
-        - PDF generation (jsPDF)
-        - Company branding
-        - Customer details
-        - Job breakdowns
-        - Financial summary
-        - Terms & conditions
-        - Rock clause (if applicable)
-        - Email templates (HTML + text)
-        - SES integration (send quote PDF)
-      testing:
-        - PDF output quality
-        - Email delivery
-        - Print layout
+        feature_6_1:
+          name: Price Management (Admin)
+          complexity:
+            composite: 2.5
+            normalized: 50%
+            level: medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 3
+          deliverables:
+            - features/prices/PriceManagement.tsx (Admin only)
+            - price_items table (name, price, unit, last_checked)
+            - Price editor grid
+            - Version history view
+            - Price change notifications (email to all users)
+          testing:
+            - Update prices
+            - Version history
+            - Notifications sent
 
-  phase_7:
-    name: Settings & Polish
-    weeks: 11
-    avg_complexity: 2.5
-    milestone: Production-ready application
+        feature_6_2:
+          name: Quote Outputs (PDF + Email)
+          complexity:
+            composite: 2.5
+            normalized: 50%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 3
+          deliverables:
+            - QuoteViewer.tsx (customer-facing layout)
+            - PDF generation (jsPDF)
+            - Company branding
+            - Customer details
+            - Job breakdowns
+            - Financial summary
+            - Terms & conditions
+            - Rock clause (if applicable)
+            - Email templates (HTML + text)
+            - SES integration (send quote PDF)
+          testing:
+            - PDF output quality
+            - Email delivery
+            - Print layout
 
-    phase_7_1:
-      name: Settings & Polish
-      complexity:
-        composite: 2.5
-        normalized: 50%
-        level: medium
-        dimensions:
-          technical_complexity: 2
-          scope_size: 3
-          dependencies: 2
-          uncertainty: 2
-          risk: 2
-          testing: 4
-      estimated_days: 3
-      deliverables:
-        - features/settings/SettingsPage.tsx
-        - Profile editor (name, email)
-        - Preferences (theme, notifications, default deposit %)
-        - Password change
-        - Admin user management CRUD
-        - Mobile responsive refinement
-        - Accessibility audit (WCAG AA)
-        - Performance optimization
-        - Code splitting
-        - Lazy load routes
-        - Bundle size < 500KB gzipped
-      testing:
-        - Lighthouse score >90
-        - Mobile usability
-        - Accessibility
+      epic_7:
+        name: Settings & Polish
+        weeks: 11
+        avg_complexity: 2.5
+        deliverable: Production-ready application
+
+        feature_7_1:
+          name: Settings & Polish
+          complexity:
+            composite: 2.5
+            normalized: 50%
+            level: medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 4
+          estimated_days: 3
+          deliverables:
+            - features/settings/SettingsPage.tsx
+            - Profile editor (name, email)
+            - Preferences (theme, notifications, default deposit %)
+            - Password change
+            - Admin user management CRUD
+            - Mobile responsive refinement
+            - Accessibility audit (WCAG AA)
+            - Performance optimization
+            - Code splitting
+            - Lazy load routes
+            - Bundle size < 500KB gzipped
+          testing:
+            - Lighthouse score >90
+            - Mobile usability
+            - Accessibility
+
 
 cost_estimate:
   monthly_total: 45
@@ -1364,28 +1375,28 @@ risk_mitigation:
 
     aws_infrastructure_config:
       issue: Configuration complexity
-      mitigation: Phase 1b broken into 3 subtasks
+      mitigation: Epic 1 Feature 2 (Docker & ECS) broken into 3 tasks
       buffer: 2-week cushion (11 weeks vs 6 original)
 
     testing_complexity:
       issue: Multi-device scenarios difficult to test
-      mitigation: Phase 5_6 dedicated testing phase
+      mitigation: Epic 5 includes dedicated testing feature (feature_5_6)
       tools: Playwright for E2E, BrowserStack for real devices
 
     timeline_optimism:
       issue: Original plan too optimistic
-      mitigation: Conservative estimates (1 week per major phase)
+      mitigation: Conservative estimates (1 week per major epic)
       validation: All subtasks ≤3.0 complexity (medium or low)
 
 implementation_notes:
   parallel_work_opportunities:
-    - Start Phase 5_0 (spike) during Week 2-3 to frontload de-risking
-    - Frontend and backend can work in parallel after Phase 1
+    - Start Epic 5 spike (feature_5_0) during Week 2-3 to frontload de-risking
+    - Frontend and backend can work in parallel after Epic 1
 
   recommended_order:
-    - Follow sequential phases 1-7
-    - Do not skip spike task (Phase 5_0)
-    - Complete testing phases before moving to next major phase
+    - Follow sequential epics 1-7
+    - Do not skip spike task (feature_5_0 in Epic 5)
+    - Complete testing features before moving to next major epic
 
   plan_confidence: 85%
   confidence_rationale:
