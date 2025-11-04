@@ -43,7 +43,7 @@ export function LoginPage() {
         useAuth.getState().setUser(result);
         navigate('/dashboard');
       }
-    } catch (error: any) {
+    } catch (error) {
       // Error handling
       clearError();
       console.error('Login failed:', error);
@@ -87,8 +87,8 @@ export function LoginPage() {
       // Update auth state
       useAuth.getState().setUser(user);
       navigate('/dashboard');
-    } catch (error: any) {
-      setPasswordError(error.message || 'Failed to set new password');
+    } catch (error) {
+      setPasswordError(error instanceof Error ? error.message : 'Failed to set new password');
     }
   };
 

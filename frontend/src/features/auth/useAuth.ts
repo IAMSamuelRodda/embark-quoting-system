@@ -40,9 +40,9 @@ export const useAuth = create<AuthState>((set) => ({
 
       // Normal login success - result is AuthUser
       set({ user: result, isAuthenticated: true, isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({
-        error: error.message || 'Failed to sign in',
+        error: error instanceof Error ? error.message : 'Failed to sign in',
         isLoading: false,
       });
       throw error;
@@ -54,9 +54,9 @@ export const useAuth = create<AuthState>((set) => ({
     try {
       await authService.signUp(data);
       set({ isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({
-        error: error.message || 'Failed to sign up',
+        error: error instanceof Error ? error.message : 'Failed to sign up',
         isLoading: false,
       });
       throw error;
@@ -68,9 +68,9 @@ export const useAuth = create<AuthState>((set) => ({
     try {
       await authService.signOut();
       set({ user: null, isAuthenticated: false, isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({
-        error: error.message || 'Failed to sign out',
+        error: error instanceof Error ? error.message : 'Failed to sign out',
         isLoading: false,
       });
       throw error;
@@ -82,9 +82,9 @@ export const useAuth = create<AuthState>((set) => ({
     try {
       await authService.confirmSignUp(email, code);
       set({ isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({
-        error: error.message || 'Failed to confirm sign up',
+        error: error instanceof Error ? error.message : 'Failed to confirm sign up',
         isLoading: false,
       });
       throw error;
@@ -96,9 +96,9 @@ export const useAuth = create<AuthState>((set) => ({
     try {
       await authService.resendConfirmationCode(email);
       set({ isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({
-        error: error.message || 'Failed to resend code',
+        error: error instanceof Error ? error.message : 'Failed to resend code',
         isLoading: false,
       });
       throw error;
@@ -110,9 +110,9 @@ export const useAuth = create<AuthState>((set) => ({
     try {
       await authService.forgotPassword(email);
       set({ isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({
-        error: error.message || 'Failed to send reset code',
+        error: error instanceof Error ? error.message : 'Failed to send reset code',
         isLoading: false,
       });
       throw error;
@@ -124,9 +124,9 @@ export const useAuth = create<AuthState>((set) => ({
     try {
       await authService.resetPassword(email, code, newPassword);
       set({ isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
       set({
-        error: error.message || 'Failed to reset password',
+        error: error instanceof Error ? error.message : 'Failed to reset password',
         isLoading: false,
       });
       throw error;
@@ -142,7 +142,7 @@ export const useAuth = create<AuthState>((set) => ({
       } else {
         set({ user: null, isAuthenticated: false, isLoading: false });
       }
-    } catch (error: any) {
+    } catch {
       // No user authenticated is not an error - just set state to unauthenticated
       set({
         user: null,

@@ -65,8 +65,8 @@ export function NewPasswordForm({ cognitoUser, email }: NewPasswordFormProps) {
 
       // Navigate to dashboard
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Failed to set new password');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to set new password');
     } finally {
       setIsLoading(false);
     }
