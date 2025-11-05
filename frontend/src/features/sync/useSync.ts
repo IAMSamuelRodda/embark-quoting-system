@@ -124,7 +124,7 @@ export const useSync = create<SyncStore>((set, get) => ({
     get().refreshPendingCount();
 
     // Store cleanup functions
-    (window as any).__syncCleanup = () => {
+    (window as Window & { __syncCleanup?: () => void }).__syncCleanup = () => {
       unsubscribeConnection();
       unsubscribeAutoSync();
     };

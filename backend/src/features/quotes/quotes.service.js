@@ -284,11 +284,11 @@ export async function addJob(quoteId, jobData, userId, isAdmin) {
  * Update a job
  * @param {string} jobId - Job ID
  * @param {Object} updates - Updates to apply
- * @param {string} userId - User ID
- * @param {boolean} isAdmin - Whether user is admin
+ * @param {string} _userId - User ID (reserved for future authorization)
+ * @param {boolean} _isAdmin - Whether user is admin (reserved for future authorization)
  * @returns {Promise<Object>} Updated job
  */
-export async function updateJob(jobId, updates, userId, isAdmin) {
+export async function updateJob(jobId, updates, _userId, _isAdmin) {
   // TODO: Implement authorization check via quote ownership
   return await repository.updateJob(jobId, updates);
 }
@@ -296,11 +296,11 @@ export async function updateJob(jobId, updates, userId, isAdmin) {
 /**
  * Delete a job
  * @param {string} jobId - Job ID
- * @param {string} userId - User ID
- * @param {boolean} isAdmin - Whether user is admin
+ * @param {string} _userId - User ID (reserved for future authorization)
+ * @param {boolean} _isAdmin - Whether user is admin (reserved for future authorization)
  * @returns {Promise<Object>} Deleted job
  */
-export async function deleteJob(jobId, userId, isAdmin) {
+export async function deleteJob(jobId, _userId, _isAdmin) {
   // TODO: Implement authorization check via quote ownership
   return await repository.deleteJob(jobId);
 }

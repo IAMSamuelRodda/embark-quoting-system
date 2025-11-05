@@ -6,6 +6,7 @@
  */
 
 import { CognitoUserPool } from 'amazon-cognito-identity-js';
+import type { Quote, Job, Financial } from '../types/models';
 
 // API Configuration
 // TODO: Move to environment variable (VITE_API_URL)
@@ -27,18 +28,24 @@ async function getAuthToken(): Promise<string | null> {
   if (!cognitoUser) return null;
 
   return new Promise((resolve) => {
-    cognitoUser.getSession((err: Error | null, session: any) => {
-      if (err || !session || !session.isValid()) {
+    cognitoUser.getSession((err: Error | null, session: unknown) => {
+      if (err || !session || typeof session !== 'object') {
         resolve(null);
         return;
       }
-      const token = session.getIdToken().getJwtToken();
+      // Type assertion after null check
+      const validSession = session as { isValid: () => boolean; getIdToken: () => { getJwtToken: () => string } };
+      if (!validSession.isValid()) {
+        resolve(null);
+        return;
+      }
+      const token = validSession.getIdToken().getJwtToken();
       resolve(token);
     });
   });
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -48,9 +55,9 @@ export interface ApiResponse<T = any> {
 export class ApiError extends Error {
   public status: number;
   public statusText: string;
-  public response?: any;
+  public response?: unknown;
 
-  constructor(status: number, statusText: string, response?: any) {
+  constructor(status: number, statusText: string, response?: unknown) {
     super(`API Error ${status}: ${statusText}`);
     this.name = 'ApiError';
     this.status = status;
@@ -62,14 +69,14 @@ export class ApiError extends Error {
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   headers?: Record<string, string>;
-  body?: any;
+  body?: unknown;
   requiresAuth?: boolean;
 }
 
 /**
  * Make an authenticated API request
  */
-export async function apiRequest<T = any>(
+export async function apiRequest<T = unknown>(
   endpoint: string,
   options: RequestOptions = {},
 ): Promise<ApiResponse<T>> {
@@ -131,43 +138,43 @@ export const api = {
   // Quotes
   quotes: {
     getAll: (params?: { status?: string; limit?: number; offset?: number }) => {
-      const query = new URLSearchParams(params as any).toString();
-      return apiRequest<any[]>(`/api/quotes${query ? `?${query}` : ''}`);
+      const query = new URLSearchParams(params as Record<string, string>).toString();
+      return apiRequest<Quote[]>(`/api/quotes${query ? `?${query}` : ''}`);
     },
 
     getById: (id: string) => {
-      return apiRequest<any>(`/api/quotes/${id}`);
+      return apiRequest<Quote>(`/api/quotes/${id}`);
     },
 
-    create: (data: any) => {
-      return apiRequest<any>(`/api/quotes`, {
+    create: (data: Partial<Quote>) => {
+      return apiRequest<Quote>(`/api/quotes`, {
         method: 'POST',
         body: data,
       });
     },
 
-    update: (id: string, data: any) => {
-      return apiRequest<any>(`/api/quotes/${id}`, {
+    update: (id: string, data: Partial<Quote>) => {
+      return apiRequest<Quote>(`/api/quotes/${id}`, {
         method: 'PUT',
         body: data,
       });
     },
 
     delete: (id: string) => {
-      return apiRequest<any>(`/api/quotes/${id}`, {
+      return apiRequest<{ success: boolean }>(`/api/quotes/${id}`, {
         method: 'DELETE',
       });
     },
 
     search: (query: string) => {
-      return apiRequest<any[]>(`/api/quotes/search?q=${encodeURIComponent(query)}`);
+      return apiRequest<Quote[]>(`/api/quotes/search?q=${encodeURIComponent(query)}`);
     },
   },
 
   // Jobs
   jobs: {
-    create: (quoteId: string, data: any) => {
-      return apiRequest<any>(`/api/quotes/${quoteId}/jobs`, {
+    create: (quoteId: string, data: Partial<Job>) => {
+      return apiRequest<Job>(`/api/quotes/${quoteId}/jobs`, {
         method: 'POST',
         body: data,
       });
@@ -176,8 +183,8 @@ export const api = {
 
   // Financials
   financials: {
-    upsert: (quoteId: string, data: any) => {
-      return apiRequest<any>(`/api/quotes/${quoteId}/financials`, {
+    upsert: (quoteId: string, data: Partial<Financial>) => {
+      return apiRequest<Financial>(`/api/quotes/${quoteId}/financials`, {
         method: 'PUT',
         body: data,
       });

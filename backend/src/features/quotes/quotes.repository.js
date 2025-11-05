@@ -85,8 +85,12 @@ export async function getAllQuotes(filters = {}) {
 
   // Apply filters
   const conditions = [];
-  if (status) conditions.push(eq(quotes.status, status));
-  if (user_id) conditions.push(eq(quotes.user_id, user_id));
+  if (status) {
+    conditions.push(eq(quotes.status, status));
+  }
+  if (user_id) {
+    conditions.push(eq(quotes.user_id, user_id));
+  }
 
   if (conditions.length > 0) {
     query = query.where(and(...conditions));
@@ -104,7 +108,9 @@ export async function getQuoteById(quoteId) {
   // Get quote
   const [quote] = await db.select().from(quotes).where(eq(quotes.id, quoteId));
 
-  if (!quote) return null;
+  if (!quote) {
+    return null;
+  }
 
   // Get jobs for this quote
   const quoteJobs = await db

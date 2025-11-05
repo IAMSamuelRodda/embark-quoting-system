@@ -6,7 +6,8 @@
  */
 
 import { Router } from 'express';
-import { authenticateToken, requireAdmin } from '../../shared/middleware/auth.middleware.js';
+import { authenticateToken } from '../../shared/middleware/auth.middleware.js';
+// import { requireAdmin } from '../../shared/middleware/auth.middleware.js'; // Available for admin-only routes
 import * as controller from './quotes.controller.js';
 
 const router = Router();
