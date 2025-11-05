@@ -4,12 +4,9 @@ Offline-first PWA quoting application for Embark Landscaping & Earthworks.
 
 ## Project Status
 
-**Phase**: Planning Complete
-**Timeline**: 10-11 weeks
-**Complexity**: Validated (48% average - MEDIUM)
-**Architecture**: Vertical Slice (AI-optimized)
-
-[View Project Board](https://github.com/users/IAMSamuelRodda/projects/1) | [View Issues](https://github.com/IAMSamuelRodda/embark-quoting-system/issues)
+**Current Phase**: In Development
+**Architecture**: Vertical Slice, Offline-First PWA
+**Progress**: [View Project Board](https://github.com/users/IAMSamuelRodda/projects/2) | [View Issues](https://github.com/IAMSamuelRodda/embark-quoting-system/issues)
 
 ---
 
@@ -87,18 +84,11 @@ cat docs/financial-model.md
 
 ## Implementation Plan
 
-| Epic | Timeline | Status | Milestone |
-|------|----------|--------|-----------|
-| [Epic 1: Foundation](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/1) | Weeks 1-2 | Pending | Auth working, deployed to AWS |
-| [Epic 2: Quote Core](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/2) | Weeks 3-4 | Pending | Create quotes offline, sync online |
-| [Epic 3: Job Types](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/3) | Weeks 5-6 | Pending | All 5 job types functional |
-| [Epic 4: Financial](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/4) | Week 7 | Pending | Accurate totals with config model |
-| [Epic 5: Sync Engine](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/5) | Weeks 8-10 | Pending | Conflict resolution working |
-| [Epic 6: Outputs](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/6) | Week 11 | Pending | PDF/email + price management |
-| [Epic 7: Polish](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/7) | Week 11 | Pending | Production-ready |
+The project is organized into 7 major epics with features and tasks tracked in GitHub Issues.
 
-**Total**: 7 epics, 37 features/tasks
-**All tasks**: ≤3.0/5.0 complexity (validated)
+**View Current Status**: [GitHub Issues](https://github.com/IAMSamuelRodda/embark-quoting-system/issues) | [Project Board](https://github.com/users/IAMSamuelRodda/projects/2)
+
+**Implementation Details**: See [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml) for complete technical specifications.
 
 ---
 
@@ -106,28 +96,30 @@ cat docs/financial-model.md
 
 ### Job Types
 
-1. **Retaining Walls**: Bays, height (200-1000mm), ag pipe, orange plastic
-2. **Driveways**: Length, width, base, optional topping (20mm gravel)
-3. **Trenching**: Width (300/600/900mm), depth, stormwater integration
-4. **Stormwater**: PVC 90mm pipe, joints, elbows, downpipe adaptors
-5. **Site Prep**: Area, depth, backfill type, dumping, travel distances
+Supports 5 specialized job types for landscaping and earthworks:
+1. **Retaining Walls**
+2. **Driveways**
+3. **Trenching**
+4. **Stormwater**
+5. **Site Prep**
+
+**Details**: See [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml) for complete parameters and calculation logic.
 
 ### Financial Model
 
-**Profit-First Allocation** (businesses <$250K revenue):
-- 5% Profit
-- 50% Owner's Pay
-- 15% Tax
-- 30% Operating Expenses
+Uses **Profit-First methodology** with configurable allocation percentages for businesses <$250K revenue.
 
-All parameters configurable. See [`docs/financial-model.md`](./docs/financial-model.md).
+**Formula**: `Quote Price = Raw Materials ÷ 0.30`
+
+**Full Details**: See [`docs/financial-model.md`](./docs/financial-model.md) for complete methodology and rationale.
 
 ### Offline Sync
 
 - **Conflict Detection**: Version vectors track changes
 - **Auto-Merge**: Non-critical fields (notes, metadata)
 - **Manual Resolution**: Critical fields (customer contact, status, totals)
-- **Spike Task**: 5-day research spike (Feature 5.0 in Epic 5) to design conflict resolution strategy
+
+**Implementation**: See Epic 5 in [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml)
 
 ---
 
@@ -144,7 +136,7 @@ All parameters configurable. See [`docs/financial-model.md`](./docs/financial-mo
 This project uses **GitHub Issues + Projects** for dynamic progress tracking.
 
 **View Progress**:
-- [Project Board](https://github.com/users/IAMSamuelRodda/projects/1) (visual kanban)
+- [Project Board](https://github.com/users/IAMSamuelRodda/projects/2) (visual roadmap)
 - [All Issues](https://github.com/IAMSamuelRodda/embark-quoting-system/issues) (hierarchical: epic → feature → task)
 
 **Update Progress** (agents):
@@ -163,53 +155,16 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for complete workflow.
 
 ---
 
-## Complexity Validation
-
-**Original Plan**: 67% average complexity (HIGH RISK)
-**Revised Plan**: 48% average complexity (MEDIUM - acceptable)
-
-**Methodology**: 6-dimension complexity assessment (improving-plans skill)
-- Technical Complexity
-- Scope/Size
-- Dependencies
-- Uncertainty/Ambiguity
-- Risk Level
-- Testing Complexity
-
-**Breakdown**:
-- Epic 1 (Infrastructure): 90% → 5 features (avg 2.8/5.0)
-- Epic 5 (Sync Engine): 90% → spike + 6 features (avg 2.6/5.0)
-- All tasks: ≤3.0/5.0 composite score
-
----
-
 ## Success Criteria
 
-### Functional
-- ✅ User authentication (Cognito)
-- ✅ All 5 job types functional
-- ✅ Offline mode working
-- ✅ Sync with conflict resolution
-- ✅ PDF export + email
-- ✅ Price management (admin)
+See [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml) for complete functional, performance, security, and UX requirements.
 
-### Performance
-- ✅ App loads <3s
-- ✅ Works on 3G
-- ✅ Lighthouse score >90
-
-### Security
-- ✅ HTTPS enforced
-- ✅ JWT auth
-- ✅ Role-based access control
-- ✅ Input validation (Zod)
-- ✅ No critical vulnerabilities
-
-### UX
-- ✅ Mobile responsive
-- ✅ WCAG AA accessible
-- ✅ Clear sync status
-- ✅ Helpful error messages
+**Key Goals**:
+- Full offline functionality
+- Professional PDF export
+- Sub-3s load times
+- WCAG AA accessibility
+- Secure authentication & RBAC
 
 ---
 
@@ -232,5 +187,5 @@ Private - Embark Landscaping & Earthworks
 ## Links
 
 - **Repository**: https://github.com/IAMSamuelRodda/embark-quoting-system
-- **Project Board**: https://github.com/users/IAMSamuelRodda/projects/1
+- **Project Board**: https://github.com/users/IAMSamuelRodda/projects/2
 - **Issues**: https://github.com/IAMSamuelRodda/embark-quoting-system/issues

@@ -22,17 +22,18 @@ Epic (parent issue - large feature/initiative)
 
 ### Current Epics
 
-| Epic # | Name | Features | Status |
-|--------|------|----------|--------|
-| [#15](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/15) | Foundation | 5 features | Todo |
-| [#24](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/24) | Quote Core | 6 features | Todo |
-| [#31](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/31) | Job Types | 5 features | Todo |
-| [#37](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/37) | Financial Calculations | 4 features | Todo |
-| [#42](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/42) | Sync Engine | 9 features | Todo |
-| [#55](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/55) | Outputs & Price Management | 2 features | Todo |
-| [#58](https://github.com/IAMSamuelRodda/embark-quoting-system/issues/58) | Settings & Polish | 1 feature | Todo |
+**View Live Status**: [All Epics](https://github.com/IAMSamuelRodda/embark-quoting-system/issues?q=is%3Aissue+label%3A%22type%3A+epic%22)
 
-**Total**: 7 epics, 30 features, 8 tasks = 45 issues
+The project uses 7 major epics with hierarchical sub-issues (features and tasks). Current status is tracked dynamically in GitHub Issues.
+
+**Quick Access**:
+```bash
+# View all epics
+gh issue list --label "type: epic" --state all
+
+# View specific epic
+gh issue view <epic-number>
+```
 
 ---
 
@@ -532,4 +533,4 @@ gh issue list --state open --search "sort:updated-desc"
 
 ---
 
-**Last Updated**: 2025-11-03 (Migrated from phase-based to hierarchical sub-issue structure)
+**Last Updated**: 2025-11-05 (Removed stale status tables, pointed to GitHub Issues as source of truth)
