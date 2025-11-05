@@ -6,7 +6,7 @@ import type { CognitoUser } from 'amazon-cognito-identity-js';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { isLoading, error, clearError, signIn: signInFromStore } = useAuth();
+  const { isLoading, error, clearError } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
