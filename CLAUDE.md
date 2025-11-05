@@ -158,6 +158,110 @@ See `CONTRIBUTING.md` for complete workflow.
 
 ---
 
+## 🔄 GitHub Workflow Standards
+
+### Commit-Issue Linking (CRITICAL)
+
+**RULE**: Every commit MUST be linked to a GitHub issue UNLESS it's auto-closed due to sub-issue rollup.
+
+**Why**: GitHub issues are the single source of truth for progress tracking, not BLUEPRINT.yaml or documentation. Commits without issue links create "ghost progress" that's invisible in project tracking.
+
+**How to Link Commits to Issues**:
+```bash
+# Option 1: Reference in commit message (closes issue when merged to main)
+git commit -m "Implement quote CRUD API endpoints
+
+Closes #26"
+
+# Option 2: Multiple issues
+git commit -m "Add auth middleware and RBAC checks
+
+Closes #23
+Relates to #26"
+
+# Option 3: In PR description (preferred for feature branches)
+gh pr create --title "Implement Backend Quote API" --body "Closes #26"
+```
+
+**GitHub Keywords** (auto-close issues):
+- `Closes #N`, `Fixes #N`, `Resolves #N` → Closes issue when merged to main
+- `Relates to #N`, `Refs #N` → Links without closing
+
+**Exception**: Sub-issue auto-close
+- When closing a parent epic/feature, GitHub automatically closes sub-issues
+- Sub-issues don't need individual commit links if work is done as part of parent
+
+**When to Close Issues**:
+- **Immediately** after completing work, not in batches
+- Close via commit message OR manually via `gh issue close #N --comment "Reason"`
+- Include verification details in close comment
+
+**Verification**:
+```bash
+# Check if commit is linked to an issue
+gh pr view <PR-number> --json closingIssuesReferences
+
+# List commits without issue references (audit)
+git log --oneline --grep="#" --invert-grep
+```
+
+---
+
+## 📝 BLUEPRINT.yaml Change Management
+
+### When Plans Change
+
+**RULE**: When the plan changes due to user requests or issues discovered by agents, document the change in `specs/BLUEPRINT.yaml` with a concise comment explaining what triggered the update.
+
+**Why**: BLUEPRINT.yaml is the implementation plan. When reality diverges from the plan, the plan must be updated to reflect reality. Comments preserve the decision trail for future reference.
+
+**Format for Changes**:
+```yaml
+feature_2_2:
+  name: Backend Quote API (Basic CRUD)
+  complexity: 2.5
+  estimated_days: 2
+  # UPDATED 2025-11-05: Increased from 2 to 3 days due to additional
+  # authentication middleware requirements discovered during Epic 1
+  revised_estimated_days: 3
+  note: Authentication middleware must be implemented first (blocking dependency)
+  deliverables:
+    - features/quotes/ backend slice
+    # ADDED 2025-11-05: JWT validation middleware required for all endpoints
+    - auth.middleware.ts (JWT validation)
+    - quotes.routes.ts (REST endpoints)
+```
+
+**What Triggers Updates**:
+1. **Scope Changes**: User adds/removes requirements
+2. **Blocking Issues**: Dependencies discovered during implementation
+3. **Timeline Changes**: Work takes longer/shorter than estimated
+4. **Technical Pivots**: Architecture decisions change (e.g., Lambda → ECS)
+5. **Feature Splits**: Task complexity exceeds 3.0, requiring breakdown
+
+**Comment Format**:
+```yaml
+# UPDATED YYYY-MM-DD: <concise reason for change>
+# ADDED YYYY-MM-DD: <why this was added>
+# REMOVED YYYY-MM-DD: <why this was removed>
+# BLOCKED YYYY-MM-DD: <what is blocking this>
+```
+
+**Update Workflow**:
+1. Make changes to BLUEPRINT.yaml with comments
+2. Commit with issue reference: `git commit -m "Update BLUEPRINT: revise Epic 2 timeline (Relates to #26)"`
+3. Update related GitHub issues if needed
+4. DO NOT update BLUEPRINT.yaml with completion status - GitHub issues are the source of truth for progress
+
+**What NOT to Update**:
+- ❌ Don't add progress percentages to BLUEPRINT
+- ❌ Don't mark features as "IMPLEMENTED" in BLUEPRINT
+- ❌ Don't duplicate GitHub issue status in BLUEPRINT
+- ✅ DO update plans, estimates, requirements, deliverables
+- ✅ DO document why plans changed
+
+---
+
 ## 🔗 External Links
 
 - **Project Board**: https://github.com/users/IAMSamuelRodda/projects/1
@@ -175,3 +279,5 @@ See `CONTRIBUTING.md` for complete workflow.
 | 2025-11-04 | Updated to Epic/Feature/Task terminology | Align with github-project-setup skill hierarchy (Milestone→Epic→Feature→Task) |
 | 2025-11-04 | Removed phase_ mapping notes | Fully committed to epic/feature/task convention (BLUEPRINT.yaml updated: phases→epics, phase_X→epic_X) |
 | 2025-11-04 | BLUEPRINT.yaml restructured for multiple milestones | Added milestone wrapper to support project planning beyond MVP (YAML structure: milestones.milestone_1.epics.epic_X) |
+| 2025-11-05 | Added GitHub Workflow Standards section | Enforce commit-issue linking as critical practice; establish GitHub as source of truth for progress |
+| 2025-11-05 | Added BLUEPRINT.yaml Change Management section | Document plan changes with concise comments; preserve decision trail when reality diverges from plan |
