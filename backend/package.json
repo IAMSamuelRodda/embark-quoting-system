@@ -7,21 +7,33 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node database/migrate.js",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:unit": "echo \"TODO: Add Jest unit tests\" && exit 0",
     "test:integration": "echo \"TODO: Add integration tests\" && exit 0",
     "lint": "echo \"TODO: Add ESLint configuration\" && exit 0",
-    "format:check": "echo \"TODO: Add Prettier configuration\" && exit 0",
-    "migrate:test": "echo \"TODO: Add Drizzle migrations\" && exit 0"
+    "format:check": "echo \"TODO: Add Prettier configuration\" && exit 0"
   },
-  "keywords": ["quoting", "landscaping", "pwa"],
+  "keywords": [
+    "quoting",
+    "landscaping",
+    "pwa"
+  ],
   "author": "Embark Landscaping & Earthworks",
   "license": "PRIVATE",
   "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.922.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.31.6",
+    "drizzle-orm": "^0.44.7",
     "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "pg": "^8.16.3",
+    "zod": "^4.1.12"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=20.0.0"
   }
