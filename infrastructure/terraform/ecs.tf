@@ -85,24 +85,40 @@ resource "aws_ecs_task_definition" "backend" {
         {
           name  = "AWS_REGION"
           value = var.aws_region
+        },
+        {
+          name  = "DB_HOST"
+          value = aws_db_instance.main.address
+        },
+        {
+          name  = "DB_PORT"
+          value = tostring(aws_db_instance.main.port)
+        },
+        {
+          name  = "DB_NAME"
+          value = aws_db_instance.main.db_name
+        },
+        {
+          name  = "DB_USER"
+          value = aws_db_instance.main.username
+        },
+        {
+          name  = "COGNITO_USER_POOL_ID"
+          value = aws_cognito_user_pool.main.id
+        },
+        {
+          name  = "COGNITO_CLIENT_ID"
+          value = aws_cognito_user_pool_client.frontend.id
+        },
+        {
+          name  = "CORS_ORIGIN"
+          value = "http://localhost:5173,https://${aws_cloudfront_distribution.frontend.domain_name}"
         }
       ]
 
       secrets = [
         {
-          name      = "DATABASE_URL"
-          valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:host::"
-        },
-        {
-          name      = "DATABASE_NAME"
-          valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:dbname::"
-        },
-        {
-          name      = "DATABASE_USER"
-          valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:username::"
-        },
-        {
-          name      = "DATABASE_PASSWORD"
+          name      = "DB_PASSWORD"
           valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:password::"
         }
       ]

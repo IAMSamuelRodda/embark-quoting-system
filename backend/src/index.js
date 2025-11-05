@@ -2,6 +2,14 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { testConnection, closePool } from './shared/db/postgres.js';
+
+// Debug: Check environment variables before importing routes
+console.log('🔍 Environment variables at startup:');
+console.log('  NODE_ENV:', process.env.NODE_ENV || 'UNDEFINED');
+console.log('  DB_HOST:', process.env.DB_HOST || 'UNDEFINED');
+console.log('  COGNITO_USER_POOL_ID:', process.env.COGNITO_USER_POOL_ID || 'UNDEFINED');
+console.log('  COGNITO_CLIENT_ID:', process.env.COGNITO_CLIENT_ID || 'UNDEFINED');
+
 import quotesRoutes from './features/quotes/quotes.routes.js';
 
 const app = express();
