@@ -6,7 +6,7 @@ import type { CognitoUser } from 'amazon-cognito-identity-js';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { isLoading, error, clearError } = useAuth();
+  const { isLoading, error, clearError, signIn: signInFromStore } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,6 +24,7 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+    useAuth.setState({ isLoading: true });
 
     try {
       const result = await authService.signIn(formData);
@@ -34,6 +35,7 @@ export function LoginPage() {
           cognitoUser: result.cognitoUser,
           email: result.email,
         });
+        useAuth.setState({ isLoading: false });
         return;
       }
 
@@ -44,8 +46,11 @@ export function LoginPage() {
         navigate('/dashboard');
       }
     } catch (error) {
-      // Error handling
-      clearError();
+      // Error handling - update store with error
+      useAuth.setState({
+        error: error instanceof Error ? error.message : 'Failed to sign in',
+        isLoading: false
+      });
       console.error('Login failed:', error);
     }
   };
