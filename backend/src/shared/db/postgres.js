@@ -13,6 +13,10 @@ export const pool = new Pool({
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
   connectionTimeoutMillis: 2000, // Return an error if connection takes longer than 2 seconds
+  // SSL configuration for RDS (required for AWS RDS PostgreSQL)
+  ssl: process.env.NODE_ENV === 'production' || process.env.DB_HOST?.includes('rds.amazonaws.com')
+    ? { rejectUnauthorized: false } // RDS uses Amazon cert, don't reject
+    : false, // Local development doesn't need SSL
 });
 
 // Handle pool errors

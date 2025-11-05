@@ -110,13 +110,28 @@ resource "aws_security_group" "ecs" {
   description = "Security group for ECS tasks"
   vpc_id      = aws_vpc.main.id
 
-  # Allow traffic from ALB on application port
-  ingress {
-    description     = "Traffic from ALB"
-    from_port       = 3000
-    to_port         = 3000
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
+  # Allow traffic from ALB on application port (when ALB is enabled)
+  dynamic "ingress" {
+    for_each = var.enable_alb ? [1] : []
+    content {
+      description     = "Traffic from ALB"
+      from_port       = 3000
+      to_port         = 3000
+      protocol        = "tcp"
+      security_groups = [aws_security_group.alb.id]
+    }
+  }
+
+  # Allow traffic from internet when ALB is disabled (minimal cost setup)
+  dynamic "ingress" {
+    for_each = var.enable_alb ? [] : [1]
+    content {
+      description = "HTTP from internet (ALB disabled)"
+      from_port   = 3000
+      to_port     = 3000
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
   }
 
   # Allow all outbound traffic (for database connections, external APIs, etc.)

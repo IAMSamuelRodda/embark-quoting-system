@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { testConnection, closePool } from './shared/db/postgres.js';
+import quotesRoutes from './features/quotes/quotes.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,13 +39,18 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// API Routes
+app.use('/api/quotes', quotesRoutes);
+
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
     message: 'Embark Quoting System API',
     version: '1.0.0',
     endpoints: {
-      health: '/health'
+      health: '/health',
+      quotes: '/api/quotes',
+      docs: 'See README.md for API documentation'
     }
   });
 });

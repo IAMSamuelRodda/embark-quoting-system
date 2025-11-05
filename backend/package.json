@@ -26,6 +26,7 @@
   "license": "PRIVATE",
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.922.0",
+    "aws-jwt-verify": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.6",
