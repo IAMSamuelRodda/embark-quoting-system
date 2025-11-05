@@ -11,6 +11,7 @@ console.log('  COGNITO_USER_POOL_ID:', process.env.COGNITO_USER_POOL_ID || 'UNDE
 console.log('  COGNITO_CLIENT_ID:', process.env.COGNITO_CLIENT_ID || 'UNDEFINED');
 
 import quotesRoutes from './features/quotes/quotes.routes.js';
+import settingsRoutes from './features/financials/settings.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,6 +52,7 @@ app.get('/health', async (req, res) => {
 
 // API Routes
 app.use('/api/quotes', quotesRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -60,6 +62,7 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       quotes: '/api/quotes',
+      settings: '/api/settings',
       docs: 'See README.md for API documentation',
     },
   });
