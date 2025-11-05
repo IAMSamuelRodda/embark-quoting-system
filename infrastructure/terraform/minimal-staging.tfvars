@@ -13,7 +13,7 @@ aws_region   = "ap-southeast-2"  # Sydney, Australia
 # Networking - SIMPLIFIED (no NAT Gateway needed)
 vpc_cidr              = "10.0.0.0/16"
 public_subnet_cidrs   = ["10.0.1.0/24", "10.0.2.0/24"]
-private_subnet_cidrs  = []  # Not used in minimal setup
+private_subnet_cidrs  = ["10.0.10.0/24", "10.0.11.0/24"]  # For RDS only (RDS doesn't need NAT)
 
 # Deployment flags for minimal setup
 enable_nat_gateway = false  # Save $50/month
@@ -27,7 +27,7 @@ github_branch = "main"
 # Database - FREE TIER (t3.micro, single-AZ)
 db_instance_class    = "db.t3.micro"  # FREE for 12 months (was db.t4g.micro)
 db_allocated_storage = 20              # FREE tier allows up to 20 GB
-db_engine_version    = "15.5"
+db_engine_version    = "15"  # Use latest 15.x version available in region
 db_name              = "embark_quoting_staging"
 db_username          = "embark_admin"
 db_multi_az          = false           # Single AZ for minimal cost

@@ -37,10 +37,11 @@ resource "aws_db_parameter_group" "main" {
     value = "1000" # Log queries taking longer than 1 second
   }
 
-  # Connection limits
+  # Connection limits (static parameter requires pending-reboot)
   parameter {
-    name  = "max_connections"
-    value = "100"
+    name         = "max_connections"
+    value        = "100"
+    apply_method = "pending-reboot"
   }
 
   tags = {

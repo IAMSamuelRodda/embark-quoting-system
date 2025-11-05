@@ -43,3 +43,6 @@ secrets.auto.tfvars
 # OS files
 .DS_Store
 Thumbs.db
+
+# Terraform plan files
+*.tfplan

@@ -229,7 +229,7 @@ resource "aws_cognito_user_pool_client" "frontend" {
 
   # Attribute read/write permissions
   read_attributes  = ["email", "name", "custom:role"]
-  write_attributes = ["name"]
+  write_attributes = []  # Standard attributes like 'name' cannot be written by clients
 
   # Prevent user existence errors (security best practice)
   prevent_user_existence_errors = "ENABLED"

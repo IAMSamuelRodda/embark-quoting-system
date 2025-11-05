@@ -11,8 +11,8 @@
 | Configuration | Resources | Monthly Cost (AUD) | Use Case |
 |---------------|-----------|-------------------|----------|
 | **Full Production** | 75 | ~$113/month | Production-ready with HA |
-| **Minimal Staging** | 64 | ~$3-5/month | POC / Early Development |
-| **Savings** | -11 | **-$108/month** | **96% cost reduction** |
+| **Minimal Staging** | 69 | ~$10-12/month | POC / Early Development |
+| **Savings** | -6 | **-$101/month** | **89% cost reduction** |
 
 ---
 
@@ -44,6 +44,7 @@
 |---------|--------------|-------------------|--------|
 | **NAT Gateway** | ❌ Removed | ~~$50~~ **$0** | Saved |
 | **Application Load Balancer** | ❌ Removed | ~~$25~~ **$0** | Saved |
+| **VPC Endpoints** | ✅ 5 endpoints (ECR API, ECR DKR, S3 Gateway, Secrets Manager, CloudWatch Logs) | $7.20 | **Required** |
 | **RDS PostgreSQL** | db.t3.micro, 20 GB, single-AZ | $0 | ✅ **FREE** (12 mo) |
 | **ECS Fargate** | 0.25 vCPU, 0.5 GB, public subnet | $0 | ✅ **FREE** (6 mo credits) |
 | **S3** | 1 GB storage | $0 | ✅ **FREE** (5 GB) |
@@ -53,7 +54,7 @@
 | **Data Transfer** | Outbound (minimal) | $1-2 | Partial free |
 | **CloudWatch** | Logs (reduced) | $1-2 | Partial free |
 | **VPC** | Public subnets only | $0 | Always free |
-| **TOTAL** | | **~$3-5/month** | |
+| **TOTAL** | | **~$10-12/month** | |
 
 ---
 
