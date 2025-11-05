@@ -46,13 +46,16 @@ export interface ApiResponse<T = any> {
 }
 
 export class ApiError extends Error {
-  constructor(
-    public status: number,
-    public statusText: string,
-    public response?: any,
-  ) {
+  public status: number;
+  public statusText: string;
+  public response?: any;
+
+  constructor(status: number, statusText: string, response?: any) {
     super(`API Error ${status}: ${statusText}`);
     this.name = 'ApiError';
+    this.status = status;
+    this.statusText = statusText;
+    this.response = response;
   }
 }
 

@@ -89,7 +89,6 @@ export function SyncStatusIndicator() {
           onClick={handleSync}
           className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-sky-500"
           title="Sync now"
-          disabled={syncState === 'syncing'}
         >
           <RefreshCw className="w-5 h-5" />
         </button>
