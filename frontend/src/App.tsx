@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from './features/auth/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { QuoteDetailPage } from './pages/QuoteDetailPage';
+import { QuoteEditor } from './features/quotes/QuoteEditor';
 import { useAuth } from './features/auth/useAuth';
 
 function App() {
@@ -40,6 +42,18 @@ function App() {
           path="/dashboard"
           element={
             isAuthenticated ? <DashboardPage /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/quotes/new"
+          element={
+            isAuthenticated ? <QuoteEditor /> : <Navigate to="/login" replace />
+          }
+        />
+        <Route
+          path="/quotes/:id"
+          element={
+            isAuthenticated ? <QuoteDetailPage /> : <Navigate to="/login" replace />
           }
         />
 
