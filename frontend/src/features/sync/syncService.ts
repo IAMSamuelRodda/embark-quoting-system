@@ -13,6 +13,7 @@ import { db } from '../../shared/db/indexedDb';
 import { api, ApiError } from '../../shared/api/apiClient';
 import { connectionMonitor } from '../../shared/utils/connection';
 import { SyncOperation, SyncStatus } from '../../shared/types/models';
+import type { Quote } from '../../shared/types/models';
 import { markQuoteAsSynced, markQuoteAsSyncError } from '../quotes/quotesDb';
 
 export interface SyncResult {
@@ -63,11 +64,11 @@ export async function pushChanges(): Promise<{
       // Execute operation based on type
       switch (item.operation) {
         case SyncOperation.CREATE:
-          await api.quotes.create(item.data);
+          await api.quotes.create(item.data as Partial<Quote>);
           break;
 
         case SyncOperation.UPDATE:
-          await api.quotes.update(item.quote_id, item.data);
+          await api.quotes.update(item.quote_id, item.data as Partial<Quote>);
           break;
 
         case SyncOperation.DELETE:
@@ -87,7 +88,7 @@ export async function pushChanges(): Promise<{
       // Handle errors
       let errorMessage = 'Unknown error';
       if (error instanceof ApiError) {
-        errorMessage = error.response?.message || error.statusText;
+        errorMessage = (error.response as any)?.message || error.statusText;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -183,7 +184,7 @@ export async function pullChanges(): Promise<{
 
     let errorMessage = 'Failed to pull changes from server';
     if (error instanceof ApiError) {
-      errorMessage = error.response?.message || error.statusText;
+      errorMessage = (error.response as any)?.message || error.statusText;
     } else if (error instanceof Error) {
       errorMessage = error.message;
     }

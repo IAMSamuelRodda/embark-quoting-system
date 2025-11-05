@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuotes } from '../features/quotes/useQuotes';
+import { FinancialSummary } from '../features/financials/FinancialSummary';
 
 export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -207,30 +208,11 @@ export function QuoteDetailPage() {
 
         {/* Financials */}
         {selectedQuote.financials && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Financial Summary</h2>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-700">Direct Cost:</span>
-                <span className="font-medium">
-                  {formatCurrency(selectedQuote.financials.direct_cost)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-700">GST:</span>
-                <span className="font-medium">
-                  {formatCurrency(selectedQuote.financials.gst_amount)}
-                </span>
-              </div>
-              <div className="border-t border-gray-200 pt-2 mt-2">
-                <div className="flex justify-between text-lg font-bold">
-                  <span className="text-gray-900">Total (inc GST):</span>
-                  <span className="text-primary-600">
-                    {formatCurrency(selectedQuote.financials.total_inc_gst)}
-                  </span>
-                </div>
-              </div>
-            </div>
+          <div className="mb-6">
+            <FinancialSummary
+              financials={selectedQuote.financials as any}
+              jobs={selectedQuote.jobs || []}
+            />
           </div>
         )}
 
