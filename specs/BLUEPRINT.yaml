@@ -884,6 +884,10 @@ milestones:
               risk: 3
               testing: 2
           estimated_days: 2
+          # UPDATED 2025-11-05: Will implement Feature 1.5 (RBAC) deliverables
+          # alongside this feature for better integration. Auth middleware needed
+          # to secure API endpoints from day 1. See issue #23 for rationale.
+          revised_estimated_days: 3
           deliverables:
             - features/quotes/ backend slice
             - quotes.routes.ts (REST endpoints)
@@ -892,8 +896,14 @@ milestones:
             - quotes.repository.ts (Drizzle queries)
             - Routes GET/POST/PUT/DELETE /quotes
             - Validation (Zod schemas)
+            # ADDED 2025-11-05: Feature 1.5 deliverables integrated
+            - shared/middleware/auth.middleware.ts (JWT validation)
+            - shared/middleware/requireAdmin() helper
           testing:
             - Postman/curl tests for all CRUD operations
+            # ADDED 2025-11-05: Auth testing integrated
+            - JWT validation working
+            - Admin-only endpoints properly secured
 
         feature_2_3:
           name: IndexedDB Local Storage
