@@ -88,7 +88,11 @@ class AuthService {
   /**
    * Sign in with email and password
    */
-  async signIn(data: SignInData): Promise<AuthUser | { challengeName: 'NEW_PASSWORD_REQUIRED'; cognitoUser: CognitoUser; email: string }> {
+  async signIn(
+    data: SignInData,
+  ): Promise<
+    AuthUser | { challengeName: 'NEW_PASSWORD_REQUIRED'; cognitoUser: CognitoUser; email: string }
+  > {
     const { email, password } = data;
 
     const authenticationDetails = new AuthenticationDetails({
@@ -135,7 +139,7 @@ class AuthService {
    */
   async completeNewPasswordChallenge(
     cognitoUser: CognitoUser,
-    newPassword: string
+    newPassword: string,
   ): Promise<AuthUser> {
     return new Promise((resolve, reject) => {
       cognitoUser.completeNewPasswordChallenge(
@@ -157,7 +161,7 @@ class AuthService {
           onFailure: (err) => {
             reject(err);
           },
-        }
+        },
       );
     });
   }
@@ -255,11 +259,7 @@ class AuthService {
   /**
    * Reset password with code
    */
-  async resetPassword(
-    email: string,
-    code: string,
-    newPassword: string
-  ): Promise<string> {
+  async resetPassword(email: string, code: string, newPassword: string): Promise<string> {
     const cognitoUser = new CognitoUser({
       Username: email,
       Pool: userPool,

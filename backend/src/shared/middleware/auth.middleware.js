@@ -76,9 +76,7 @@ export function requireAdmin(req, res, next) {
   }
 
   // Check if user has admin role
-  const isAdmin =
-    req.user.role === 'admin' ||
-    req.user.groups.includes('admins');
+  const isAdmin = req.user.role === 'admin' || req.user.groups.includes('admins');
 
   if (!isAdmin) {
     return res.status(403).json({

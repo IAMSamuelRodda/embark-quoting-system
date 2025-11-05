@@ -13,17 +13,10 @@ const quoteEditorSchema = z.object({
     .string()
     .min(1, 'Customer name is required')
     .max(200, 'Customer name must be less than 200 characters'),
-  customer_email: z
-    .string()
-    .email('Invalid email address')
-    .optional()
-    .or(z.literal('')),
+  customer_email: z.string().email('Invalid email address').optional().or(z.literal('')),
   customer_phone: z
     .string()
-    .regex(
-      /^(\+?61|0)?[2-478]( ?\d){8}$/,
-      'Invalid Australian phone number (e.g., 0412 345 678)'
-    )
+    .regex(/^(\+?61|0)?[2-478]( ?\d){8}$/, 'Invalid Australian phone number (e.g., 0412 345 678)')
     .optional()
     .or(z.literal('')),
   customer_address: z.string().max(500, 'Address must be less than 500 characters').optional(),
@@ -94,7 +87,7 @@ export function QuoteEditor() {
         console.error('Error getting location:', error);
         alert('Failed to get location: ' + error.message);
         setGettingLocation(false);
-      }
+      },
     );
   };
 
@@ -168,8 +161,7 @@ export function QuoteEditor() {
         {!navigator.onLine && (
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-yellow-800 text-sm">
-              📵 You're offline. Quote will be saved locally and synced when you're back
-              online.
+              📵 You're offline. Quote will be saved locally and synced when you're back online.
             </p>
           </div>
         )}
@@ -179,7 +171,10 @@ export function QuoteEditor() {
           <div className="space-y-6">
             {/* Customer Name */}
             <div>
-              <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="customer_name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Customer Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -196,7 +191,10 @@ export function QuoteEditor() {
 
             {/* Customer Email */}
             <div>
-              <label htmlFor="customer_email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="customer_email"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Email
               </label>
               <input
@@ -213,7 +211,10 @@ export function QuoteEditor() {
 
             {/* Customer Phone */}
             <div>
-              <label htmlFor="customer_phone" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="customer_phone"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Phone
               </label>
               <input
@@ -230,7 +231,10 @@ export function QuoteEditor() {
 
             {/* Customer Address */}
             <div>
-              <label htmlFor="customer_address" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="customer_address"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Street Address
               </label>
               <textarea
@@ -346,7 +350,10 @@ export function QuoteEditor() {
               {gpsEnabled && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="gps_latitude" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="gps_latitude"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Latitude
                     </label>
                     <input
@@ -364,7 +371,10 @@ export function QuoteEditor() {
                   </div>
 
                   <div>
-                    <label htmlFor="gps_longitude" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="gps_longitude"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Longitude
                     </label>
                     <input
@@ -384,7 +394,8 @@ export function QuoteEditor() {
               )}
 
               <p className="mt-2 text-xs text-gray-500">
-                GPS coordinates help locate the job site on a map and can be used for route planning.
+                GPS coordinates help locate the job site on a map and can be used for route
+                planning.
               </p>
             </div>
           </div>

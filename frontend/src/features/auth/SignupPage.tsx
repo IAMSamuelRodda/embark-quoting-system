@@ -82,9 +82,7 @@ export function SignupPage() {
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -97,9 +95,7 @@ export function SignupPage() {
         <div className="max-w-md w-full mx-4">
           <div className="bg-white rounded-xl shadow-xl p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">
-                Verify Email
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-900">Verify Email</h1>
               <p className="text-gray-600 mt-2">
                 Enter the verification code sent to {formData.email}
               </p>
@@ -113,10 +109,7 @@ export function SignupPage() {
 
             <form onSubmit={handleConfirm} className="space-y-6">
               <div>
-                <label
-                  htmlFor="code"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
+                <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
                   Verification Code
                 </label>
                 <input
@@ -159,9 +152,7 @@ export function SignupPage() {
       <div className="max-w-md w-full mx-4">
         <div className="bg-white rounded-xl shadow-xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Create Account
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
             <p className="text-gray-600 mt-2">Sign up for Embark Quoting</p>
           </div>
 
@@ -179,10 +170,7 @@ export function SignupPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email
               </label>
               <input
@@ -199,10 +187,7 @@ export function SignupPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="role"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
                 Role
               </label>
               <select
@@ -219,10 +204,7 @@ export function SignupPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <input
@@ -273,10 +255,7 @@ export function SignupPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
-              <Link
-                to="/login"
-                className="text-primary-600 hover:text-primary-700 font-medium"
-              >
+              <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
                 Sign in
               </Link>
             </p>

@@ -16,10 +16,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN?.split(',') || '*',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN?.split(',') || '*',
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // Health check endpoint
@@ -32,7 +34,7 @@ app.get('/health', async (req, res) => {
       service: 'embark-quoting-backend',
       version: '1.0.0',
       environment: process.env.NODE_ENV || 'development',
-      database: dbConnected ? 'connected' : 'disconnected'
+      database: dbConnected ? 'connected' : 'disconnected',
     });
   } catch (error) {
     res.status(503).json({
@@ -42,7 +44,7 @@ app.get('/health', async (req, res) => {
       version: '1.0.0',
       environment: process.env.NODE_ENV || 'development',
       database: 'error',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -58,8 +60,8 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       quotes: '/api/quotes',
-      docs: 'See README.md for API documentation'
-    }
+      docs: 'See README.md for API documentation',
+    },
   });
 });
 

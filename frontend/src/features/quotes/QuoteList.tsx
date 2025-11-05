@@ -54,10 +54,7 @@ export function QuoteList() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-gray-900">Quotes</h1>
-            <button
-              onClick={handleCreateQuote}
-              className="btn-primary flex items-center gap-2"
-            >
+            <button onClick={handleCreateQuote} className="btn-primary flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5"
@@ -160,9 +157,7 @@ export function QuoteList() {
                 />
               </svg>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {searchQuery || statusFilter !== 'all'
-                  ? 'No quotes found'
-                  : 'No quotes yet'}
+                {searchQuery || statusFilter !== 'all' ? 'No quotes found' : 'No quotes yet'}
               </h2>
               <p className="text-gray-600 mb-6">
                 {searchQuery || statusFilter !== 'all'

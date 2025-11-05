@@ -26,14 +26,18 @@ const createQuoteSchema = z.object({
   customer_email: z.string().email().optional().or(z.literal('')),
   customer_phone: z.string().optional(),
   customer_address: z.string().optional(),
-  location: z.object({
-    suburb: z.string().optional(),
-    postcode: z.string().optional(),
-    gps: z.object({
-      lat: z.number().optional(),
-      lng: z.number().optional(),
-    }).optional(),
-  }).optional(),
+  location: z
+    .object({
+      suburb: z.string().optional(),
+      postcode: z.string().optional(),
+      gps: z
+        .object({
+          lat: z.number().optional(),
+          lng: z.number().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
   status: quoteStatusEnum.default('draft'),
   metadata: z.record(z.any()).optional(),
 });
@@ -43,14 +47,18 @@ const updateQuoteSchema = z.object({
   customer_email: z.string().email().optional().or(z.literal('')),
   customer_phone: z.string().optional(),
   customer_address: z.string().optional(),
-  location: z.object({
-    suburb: z.string().optional(),
-    postcode: z.string().optional(),
-    gps: z.object({
-      lat: z.number().optional(),
-      lng: z.number().optional(),
-    }).optional(),
-  }).optional(),
+  location: z
+    .object({
+      suburb: z.string().optional(),
+      postcode: z.string().optional(),
+      gps: z
+        .object({
+          lat: z.number().optional(),
+          lng: z.number().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
   status: quoteStatusEnum.optional(),
   metadata: z.record(z.any()).optional(),
 });

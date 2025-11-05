@@ -24,10 +24,7 @@ async function generateQuoteNumber(): Promise<string> {
   const prefix = `EE-${year}-`;
 
   // Get all quotes for this year
-  const quotesThisYear = await db.quotes
-    .where('quote_number')
-    .startsWith(prefix)
-    .toArray();
+  const quotesThisYear = await db.quotes.where('quote_number').startsWith(prefix).toArray();
 
   // Extract sequence numbers
   const sequences = quotesThisYear.map((q) => {
@@ -93,9 +90,7 @@ export async function getQuoteById(id: string): Promise<Quote | undefined> {
 /**
  * Get quote with all related data (jobs, financials)
  */
-export async function getQuoteWithDetails(
-  id: string
-): Promise<QuoteWithDetails | undefined> {
+export async function getQuoteWithDetails(id: string): Promise<QuoteWithDetails | undefined> {
   const quote = await db.quotes.get(id);
   if (!quote) return undefined;
 
@@ -129,22 +124,17 @@ export async function getAllQuotes(): Promise<QuoteListItem[]> {
         updated_at: quote.updated_at,
         sync_status: quote.sync_status,
       };
-    })
+    }),
   );
 
   // Sort by updated_at descending (most recent first)
-  return quotesWithTotals.sort(
-    (a, b) => b.updated_at.getTime() - a.updated_at.getTime()
-  );
+  return quotesWithTotals.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime());
 }
 
 /**
  * Update an existing quote
  */
-export async function updateQuote(
-  id: string,
-  updates: Partial<Quote>
-): Promise<void> {
+export async function updateQuote(id: string, updates: Partial<Quote>): Promise<void> {
   const quote = await db.quotes.get(id);
   if (!quote) throw new Error(`Quote ${id} not found`);
 
@@ -219,7 +209,7 @@ export async function searchQuotes(query: string): Promise<QuoteListItem[]> {
     .filter(
       (quote) =>
         quote.quote_number.toLowerCase().includes(lowerQuery) ||
-        quote.customer_name.toLowerCase().includes(lowerQuery)
+        quote.customer_name.toLowerCase().includes(lowerQuery),
     )
     .toArray();
 
@@ -237,20 +227,16 @@ export async function searchQuotes(query: string): Promise<QuoteListItem[]> {
         updated_at: quote.updated_at,
         sync_status: quote.sync_status,
       };
-    })
+    }),
   );
 
-  return quotesWithTotals.sort(
-    (a, b) => b.updated_at.getTime() - a.updated_at.getTime()
-  );
+  return quotesWithTotals.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime());
 }
 
 /**
  * Filter quotes by status
  */
-export async function getQuotesByStatus(
-  status: QuoteStatus
-): Promise<QuoteListItem[]> {
+export async function getQuotesByStatus(status: QuoteStatus): Promise<QuoteListItem[]> {
   const quotes = await db.quotes.where('status').equals(status).toArray();
 
   const quotesWithTotals = await Promise.all(
@@ -266,12 +252,10 @@ export async function getQuotesByStatus(
         updated_at: quote.updated_at,
         sync_status: quote.sync_status,
       };
-    })
+    }),
   );
 
-  return quotesWithTotals.sort(
-    (a, b) => b.updated_at.getTime() - a.updated_at.getTime()
-  );
+  return quotesWithTotals.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime());
 }
 
 /**
@@ -279,7 +263,7 @@ export async function getQuotesByStatus(
  */
 export async function getQuotesByDateRange(
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): Promise<QuoteListItem[]> {
   const quotes = await db.quotes
     .where('created_at')
@@ -299,12 +283,10 @@ export async function getQuotesByDateRange(
         updated_at: quote.updated_at,
         sync_status: quote.sync_status,
       };
-    })
+    }),
   );
 
-  return quotesWithTotals.sort(
-    (a, b) => b.updated_at.getTime() - a.updated_at.getTime()
-  );
+  return quotesWithTotals.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime());
 }
 
 // ============================================================================
@@ -327,10 +309,7 @@ export async function markQuoteAsSynced(id: string): Promise<void> {
 /**
  * Mark quote as sync error
  */
-export async function markQuoteAsSyncError(
-  id: string,
-  _errorMessage: string
-): Promise<void> {
+export async function markQuoteAsSyncError(id: string, _errorMessage: string): Promise<void> {
   await db.quotes.update(id, {
     sync_status: SyncStatus.ERROR,
   });

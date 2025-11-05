@@ -9,7 +9,12 @@ import {
   deleteQuote,
   getSyncQueueSize,
 } from './quotesDb';
-import type { QuoteListItem, QuoteWithDetails, Quote, QuoteStatus } from '../../shared/types/models';
+import type {
+  QuoteListItem,
+  QuoteWithDetails,
+  Quote,
+  QuoteStatus,
+} from '../../shared/types/models';
 
 interface QuotesState {
   // Data

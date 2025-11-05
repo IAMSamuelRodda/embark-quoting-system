@@ -1,10 +1,22 @@
+import { useEffect } from 'react';
 import { useAuth } from '../features/auth/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { QuoteList } from '../features/quotes/QuoteList';
+import { SyncStatusIndicator } from '../features/sync/SyncStatusIndicator';
+import { useSync } from '../features/sync/useSync';
 
 export function DashboardPage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { sync, isOnline } = useSync();
+
+  // Trigger initial sync when dashboard loads (if online)
+  useEffect(() => {
+    if (isOnline) {
+      sync();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   const handleSignOut = async () => {
     await signOut();
@@ -18,25 +30,15 @@ export function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Embark Quoting System
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">Embark Quoting System</h1>
               <p className="text-sm text-gray-600 mt-1">
                 Welcome, {user?.email} ({user?.role})
               </p>
             </div>
             <div className="flex items-center gap-4">
-              {/* Online/Offline Indicator */}
-              <div className="flex items-center gap-2">
-                <div className={`h-3 w-3 rounded-full ${navigator.onLine ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="text-sm text-gray-600">
-                  {navigator.onLine ? 'Online' : 'Offline'}
-                </span>
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="btn-secondary"
-              >
+              {/* Sync Status Indicator */}
+              <SyncStatusIndicator />
+              <button onClick={handleSignOut} className="btn-secondary">
                 Sign Out
               </button>
             </div>

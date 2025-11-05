@@ -321,12 +321,7 @@ export async function upsertFinancials(req, res) {
     const userId = req.user.sub;
     const isAdmin = req.user.role === 'admin';
 
-    const financials = await service.upsertFinancials(
-      id,
-      financialData,
-      userId,
-      isAdmin
-    );
+    const financials = await service.upsertFinancials(id, financialData, userId, isAdmin);
 
     res.status(200).json({
       success: true,

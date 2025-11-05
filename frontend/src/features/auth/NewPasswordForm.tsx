@@ -57,7 +57,7 @@ export function NewPasswordForm({ cognitoUser, email }: NewPasswordFormProps) {
     try {
       const user = await authService.completeNewPasswordChallenge(
         cognitoUser,
-        formData.newPassword
+        formData.newPassword,
       );
 
       // Update auth state
@@ -87,9 +87,7 @@ export function NewPasswordForm({ cognitoUser, email }: NewPasswordFormProps) {
         <div className="bg-white rounded-xl shadow-xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Set New Password
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">Set New Password</h1>
             <p className="text-gray-600 mt-2">
               Please set a permanent password for <strong>{email}</strong>
             </p>
@@ -105,10 +103,7 @@ export function NewPasswordForm({ cognitoUser, email }: NewPasswordFormProps) {
           {/* New Password Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label
-                htmlFor="newPassword"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 New Password
               </label>
               <input
@@ -185,8 +180,8 @@ export function NewPasswordForm({ cognitoUser, email }: NewPasswordFormProps) {
           {/* Security note */}
           <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-blue-800 text-sm">
-              🔒 Your password will be encrypted and securely stored. You'll be
-              automatically logged in after setting your password.
+              🔒 Your password will be encrypted and securely stored. You'll be automatically logged
+              in after setting your password.
             </p>
           </div>
         </div>

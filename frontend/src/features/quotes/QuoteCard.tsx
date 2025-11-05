@@ -87,15 +87,11 @@ export function QuoteCard({ quote }: QuoteCardProps) {
       {/* Header: Quote Number + Status */}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            {quote.quote_number}
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900">{quote.quote_number}</h3>
           <p className="text-sm text-gray-600">{quote.customer_name}</p>
         </div>
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyles(
-            quote.status
-          )}`}
+          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyles(quote.status)}`}
         >
           {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
         </span>
@@ -103,9 +99,7 @@ export function QuoteCard({ quote }: QuoteCardProps) {
 
       {/* Price */}
       <div className="mb-3">
-        <p className="text-2xl font-bold text-primary-600">
-          {formatCurrency(quote.total_inc_gst)}
-        </p>
+        <p className="text-2xl font-bold text-primary-600">{formatCurrency(quote.total_inc_gst)}</p>
       </div>
 
       {/* Footer: Dates + Sync Status */}

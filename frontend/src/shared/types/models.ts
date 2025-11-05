@@ -18,7 +18,7 @@ export const QuoteStatus = {
   ARCHIVED: 'archived',
 } as const;
 
-export type QuoteStatus = typeof QuoteStatus[keyof typeof QuoteStatus];
+export type QuoteStatus = (typeof QuoteStatus)[keyof typeof QuoteStatus];
 
 export const JobType = {
   RETAINING_WALL: 'retaining_wall',
@@ -28,14 +28,14 @@ export const JobType = {
   SITE_PREP: 'site_prep',
 } as const;
 
-export type JobType = typeof JobType[keyof typeof JobType];
+export type JobType = (typeof JobType)[keyof typeof JobType];
 
 export const UserRole = {
   ADMIN: 'admin',
   FIELD_WORKER: 'field_worker',
 } as const;
 
-export type UserRole = typeof UserRole[keyof typeof UserRole];
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
 export const SyncStatus = {
   SYNCED: 'synced',
@@ -44,7 +44,7 @@ export const SyncStatus = {
   CONFLICT: 'conflict',
 } as const;
 
-export type SyncStatus = typeof SyncStatus[keyof typeof SyncStatus];
+export type SyncStatus = (typeof SyncStatus)[keyof typeof SyncStatus];
 
 export const SyncOperation = {
   CREATE: 'create',
@@ -52,7 +52,7 @@ export const SyncOperation = {
   DELETE: 'delete',
 } as const;
 
-export type SyncOperation = typeof SyncOperation[keyof typeof SyncOperation];
+export type SyncOperation = (typeof SyncOperation)[keyof typeof SyncOperation];
 
 // ============================================================================
 // BASE TYPES

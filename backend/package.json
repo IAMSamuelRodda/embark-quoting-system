@@ -11,11 +11,15 @@
     "db:migrate": "node database/migrate.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test:unit": "echo \"TODO: Add Jest unit tests\" && exit 0",
-    "test:integration": "echo \"TODO: Add integration tests\" && exit 0",
-    "lint": "echo \"TODO: Add ESLint configuration\" && exit 0",
-    "format:check": "echo \"TODO: Add Prettier configuration\" && exit 0"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:unit": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPatterns=src",
+    "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPatterns=tests/integration",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write \"src/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.js\""
   },
   "keywords": [
     "quoting",
@@ -37,5 +41,13 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/jest": "^30.0.0",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "jest": "^30.2.0",
+    "prettier": "^3.6.2"
   }
 }

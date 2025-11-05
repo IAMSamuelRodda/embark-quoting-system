@@ -32,37 +32,27 @@ function App() {
         {/* Public routes */}
         <Route
           path="/login"
-          element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
-          }
+          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
         />
 
         {/* Protected routes */}
         <Route
           path="/dashboard"
-          element={
-            isAuthenticated ? <DashboardPage /> : <Navigate to="/login" replace />
-          }
+          element={isAuthenticated ? <DashboardPage /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/quotes/new"
-          element={
-            isAuthenticated ? <QuoteEditor /> : <Navigate to="/login" replace />
-          }
+          element={isAuthenticated ? <QuoteEditor /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/quotes/:id"
-          element={
-            isAuthenticated ? <QuoteDetailPage /> : <Navigate to="/login" replace />
-          }
+          element={isAuthenticated ? <QuoteDetailPage /> : <Navigate to="/login" replace />}
         />
 
         {/* Default redirect */}
         <Route
           path="/"
-          element={
-            <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />
-          }
+          element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />}
         />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

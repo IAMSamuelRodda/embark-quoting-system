@@ -43,8 +43,7 @@ export function QuoteFilters({
         <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-2">
           <span className="text-yellow-600">📤</span>
           <p className="text-sm text-yellow-800">
-            {syncQueueSize} {syncQueueSize === 1 ? 'change' : 'changes'} pending
-            sync
+            {syncQueueSize} {syncQueueSize === 1 ? 'change' : 'changes'} pending sync
           </p>
         </div>
       )}
@@ -90,9 +89,7 @@ export function QuoteFilters({
         <select
           id="status-filter"
           value={statusFilter}
-          onChange={(e) =>
-            onStatusChange(e.target.value as QuoteStatusType | 'all')
-          }
+          onChange={(e) => onStatusChange(e.target.value as QuoteStatusType | 'all')}
           className="input-field flex-1"
         >
           <option value="all">All Quotes</option>

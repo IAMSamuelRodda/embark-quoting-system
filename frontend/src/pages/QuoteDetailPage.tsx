@@ -56,7 +56,9 @@ export function QuoteDetailPage() {
         <div className="max-w-3xl mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Quote Not Found</h2>
-            <p className="text-gray-600 mb-6">{error || 'The requested quote could not be found.'}</p>
+            <p className="text-gray-600 mb-6">
+              {error || 'The requested quote could not be found.'}
+            </p>
             <button onClick={handleBack} className="btn-primary">
               Back to Quotes
             </button>
@@ -122,8 +124,8 @@ export function QuoteDetailPage() {
                 selectedQuote.status === 'draft'
                   ? 'bg-gray-100 text-gray-800'
                   : selectedQuote.status === 'approved'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-blue-100 text-blue-800'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-blue-100 text-blue-800'
               }`}
             >
               {selectedQuote.status.charAt(0).toUpperCase() + selectedQuote.status.slice(1)}
@@ -210,11 +212,15 @@ export function QuoteDetailPage() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-700">Direct Cost:</span>
-                <span className="font-medium">{formatCurrency(selectedQuote.financials.direct_cost)}</span>
+                <span className="font-medium">
+                  {formatCurrency(selectedQuote.financials.direct_cost)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-700">GST:</span>
-                <span className="font-medium">{formatCurrency(selectedQuote.financials.gst_amount)}</span>
+                <span className="font-medium">
+                  {formatCurrency(selectedQuote.financials.gst_amount)}
+                </span>
               </div>
               <div className="border-t border-gray-200 pt-2 mt-2">
                 <div className="flex justify-between text-lg font-bold">
@@ -238,9 +244,7 @@ export function QuoteDetailPage() {
             </div>
             <div>
               <label className="text-gray-700 font-medium">Sync Status</label>
-              <p className="mt-1 text-gray-900">
-                {selectedQuote.sync_status || 'Not synced'}
-              </p>
+              <p className="mt-1 text-gray-900">{selectedQuote.sync_status || 'Not synced'}</p>
             </div>
             <div>
               <label className="text-gray-700 font-medium">Created</label>

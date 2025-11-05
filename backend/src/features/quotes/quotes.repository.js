@@ -102,10 +102,7 @@ export async function getAllQuotes(filters = {}) {
  */
 export async function getQuoteById(quoteId) {
   // Get quote
-  const [quote] = await db
-    .select()
-    .from(quotes)
-    .where(eq(quotes.id, quoteId));
+  const [quote] = await db.select().from(quotes).where(eq(quotes.id, quoteId));
 
   if (!quote) return null;
 
@@ -135,10 +132,7 @@ export async function getQuoteById(quoteId) {
  * @returns {Promise<Object|null>} Quote
  */
 export async function getQuoteByNumber(quoteNumber) {
-  const [quote] = await db
-    .select()
-    .from(quotes)
-    .where(eq(quotes.quote_number, quoteNumber));
+  const [quote] = await db.select().from(quotes).where(eq(quotes.quote_number, quoteNumber));
 
   return quote || null;
 }
@@ -166,7 +160,7 @@ export async function searchQuotes(searchTerm, limit = 50) {
     .from(quotes)
     .leftJoin(financials, eq(quotes.id, financials.quote_id))
     .where(
-      sql`${quotes.customer_name} ILIKE ${searchPattern} OR ${quotes.quote_number} ILIKE ${searchPattern}`
+      sql`${quotes.customer_name} ILIKE ${searchPattern} OR ${quotes.quote_number} ILIKE ${searchPattern}`,
     )
     .orderBy(desc(quotes.updated_at))
     .limit(limit);
@@ -202,11 +196,7 @@ export async function updateQuote(quoteId, updates) {
  * @returns {Promise<Object>} Updated job
  */
 export async function updateJob(jobId, updates) {
-  const [updated] = await db
-    .update(jobs)
-    .set(updates)
-    .where(eq(jobs.id, jobId))
-    .returning();
+  const [updated] = await db.update(jobs).set(updates).where(eq(jobs.id, jobId)).returning();
 
   return updated;
 }
@@ -247,10 +237,7 @@ export async function deleteQuote(quoteId) {
   await db.delete(quoteVersions).where(eq(quoteVersions.quote_id, quoteId));
 
   // Delete quote
-  const [deleted] = await db
-    .delete(quotes)
-    .where(eq(quotes.id, quoteId))
-    .returning();
+  const [deleted] = await db.delete(quotes).where(eq(quotes.id, quoteId)).returning();
 
   return deleted;
 }
@@ -261,10 +248,7 @@ export async function deleteQuote(quoteId) {
  * @returns {Promise<Object>} Deleted job
  */
 export async function deleteJob(jobId) {
-  const [deleted] = await db
-    .delete(jobs)
-    .where(eq(jobs.id, jobId))
-    .returning();
+  const [deleted] = await db.delete(jobs).where(eq(jobs.id, jobId)).returning();
 
   return deleted;
 }
@@ -279,10 +263,7 @@ export async function deleteJob(jobId) {
  * @returns {Promise<Object>} Created version
  */
 export async function createQuoteVersion(versionData) {
-  const [version] = await db
-    .insert(quoteVersions)
-    .values(versionData)
-    .returning();
+  const [version] = await db.insert(quoteVersions).values(versionData).returning();
 
   return version;
 }
