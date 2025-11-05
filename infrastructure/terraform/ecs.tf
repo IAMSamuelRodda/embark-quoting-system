@@ -222,8 +222,9 @@ resource "aws_ecs_service" "backend" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    # Use private subnets if they exist, otherwise use public subnets
-    subnets          = length(var.private_subnet_cidrs) > 0 ? aws_subnet.private[*].id : aws_subnet.public[*].id
+    # Use public subnets when ALB is disabled (tasks need direct internet access)
+    # Use private subnets when ALB is enabled (ALB handles internet access)
+    subnets          = var.enable_alb && length(var.private_subnet_cidrs) > 0 ? aws_subnet.private[*].id : aws_subnet.public[*].id
     security_groups  = [aws_security_group.ecs.id]
     assign_public_ip = var.ecs_assign_public_ip
   }

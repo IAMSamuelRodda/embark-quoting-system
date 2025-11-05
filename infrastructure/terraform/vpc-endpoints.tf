@@ -15,8 +15,8 @@ resource "aws_vpc_endpoint" "ecr_api" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
   vpc_endpoint_type   = "Interface"
-  # FIXED: Use same subnets as ECS tasks (private if they exist, otherwise public)
-  subnet_ids          = length(var.private_subnet_cidrs) > 0 ? aws_subnet.private[*].id : aws_subnet.public[*].id
+  # FIXED: Use same subnets as ECS tasks (public when ALB disabled, private when ALB enabled)
+  subnet_ids          = var.enable_alb && length(var.private_subnet_cidrs) > 0 ? aws_subnet.private[*].id : aws_subnet.public[*].id
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
 
@@ -33,8 +33,8 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
   vpc_endpoint_type   = "Interface"
-  # FIXED: Use same subnets as ECS tasks (private if they exist, otherwise public)
-  subnet_ids          = length(var.private_subnet_cidrs) > 0 ? aws_subnet.private[*].id : aws_subnet.public[*].id
+  # FIXED: Use same subnets as ECS tasks (public when ALB disabled, private when ALB enabled)
+  subnet_ids          = var.enable_alb && length(var.private_subnet_cidrs) > 0 ? aws_subnet.private[*].id : aws_subnet.public[*].id
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
 
@@ -51,8 +51,8 @@ resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.main.id
   service_name      = "com.amazonaws.${var.aws_region}.s3"
   vpc_endpoint_type = "Gateway"
-  # FIXED: Attach to private route table if it exists, otherwise public
-  route_table_ids   = length(var.private_subnet_cidrs) > 0 ? [aws_route_table.private[0].id] : [aws_route_table.public.id]
+  # FIXED: Attach to route table matching ECS tasks (public when ALB disabled, private when ALB enabled)
+  route_table_ids   = var.enable_alb && length(var.private_subnet_cidrs) > 0 ? [aws_route_table.private[0].id] : [aws_route_table.public.id]
 
   tags = {
     Name = "${var.project_name}-${var.environment}-s3"
@@ -67,8 +67,8 @@ resource "aws_vpc_endpoint" "secretsmanager" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.secretsmanager"
   vpc_endpoint_type   = "Interface"
-  # FIXED: Use same subnets as ECS tasks (private if they exist, otherwise public)
-  subnet_ids          = length(var.private_subnet_cidrs) > 0 ? aws_subnet.private[*].id : aws_subnet.public[*].id
+  # FIXED: Use same subnets as ECS tasks (public when ALB disabled, private when ALB enabled)
+  subnet_ids          = var.enable_alb && length(var.private_subnet_cidrs) > 0 ? aws_subnet.private[*].id : aws_subnet.public[*].id
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
 
@@ -85,8 +85,8 @@ resource "aws_vpc_endpoint" "logs" {
   vpc_id              = aws_vpc.main.id
   service_name        = "com.amazonaws.${var.aws_region}.logs"
   vpc_endpoint_type   = "Interface"
-  # FIXED: Use same subnets as ECS tasks (private if they exist, otherwise public)
-  subnet_ids          = length(var.private_subnet_cidrs) > 0 ? aws_subnet.private[*].id : aws_subnet.public[*].id
+  # FIXED: Use same subnets as ECS tasks (public when ALB disabled, private when ALB enabled)
+  subnet_ids          = var.enable_alb && length(var.private_subnet_cidrs) > 0 ? aws_subnet.private[*].id : aws_subnet.public[*].id
   security_group_ids  = [aws_security_group.vpc_endpoints.id]
   private_dns_enabled = true
 
