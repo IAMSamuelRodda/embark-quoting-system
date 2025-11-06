@@ -14,8 +14,8 @@ jobs:
   build-backend:
     name: Build Backend Docker Image
     runs-on: ubuntu-latest
-    # Only run if AWS credentials are configured
-    if: ${{ secrets.AWS_ROLE_TO_ASSUME != '' }}
+    # Allow this job to fail if AWS is not configured (expected for local/fork development)
+    continue-on-error: true
 
     permissions:
       id-token: write  # Required for AWS OIDC authentication
