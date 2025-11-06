@@ -4,9 +4,10 @@
  * Orchestrates synchronization between local IndexedDB and remote API
  * Handles push (local → remote) and pull (remote → local) operations
  *
- * Feature 2.6: Basic Sync (Online Only)
- * - No conflict resolution (happy path only)
- * - Manual resolution will be added in Epic 5
+ * Feature 5.1: Enhanced Sync with Priority Queue and Exponential Backoff
+ * - Priority-based queue (critical > high > normal > low)
+ * - Exponential backoff retry logic (1s, 2s, 4s, 8s, 30s, 60s)
+ * - Dead-letter queue for failed items
  */
 
 import { db } from '../../shared/db/indexedDb';
@@ -15,6 +16,7 @@ import { connectionMonitor } from '../../shared/utils/connection';
 import { SyncOperation, SyncStatus } from '../../shared/types/models';
 import type { Quote } from '../../shared/types/models';
 import { markQuoteAsSynced, markQuoteAsSyncError } from '../quotes/quotesDb';
+import * as syncQueue from './syncQueue';
 
 // Type guard for API error response
 interface ApiErrorResponse {
@@ -38,15 +40,10 @@ export interface SyncResult {
 }
 
 /**
- * Maximum retry attempts for failed syncs
+ * Push local changes to remote API using priority queue with exponential backoff
+ * Processes items in priority order (critical > high > normal > low)
  */
-const MAX_RETRY_COUNT = 3;
-
-/**
- * Push local changes to remote API
- * Processes the sync queue in order
- */
-export async function pushChanges(): Promise<{
+export async function pushChanges(batchSize: number = 10): Promise<{
   success: boolean;
   count: number;
   errors: string[];
@@ -60,21 +57,25 @@ export async function pushChanges(): Promise<{
     };
   }
 
-  // Get sync queue items (ordered by timestamp)
-  const queueItems = await db.syncQueue.orderBy('timestamp').toArray();
+  // Get next batch of items ready for sync (priority-ordered, past retry time)
+  const queueItems = await syncQueue.getNextBatch(batchSize);
+
+  if (queueItems.length === 0) {
+    return {
+      success: true,
+      count: 0,
+      errors: [],
+    };
+  }
 
   const errors: string[] = [];
   let successCount = 0;
 
+  console.log(`[SyncService] Processing ${queueItems.length} items from queue`);
+
   // Process each queue item
   for (const item of queueItems) {
     try {
-      // Skip if exceeded retry count
-      if (item.retry_count >= MAX_RETRY_COUNT) {
-        errors.push(`Quote ${item.quote_id}: Max retry count exceeded (${MAX_RETRY_COUNT})`);
-        continue;
-      }
-
       // Execute operation based on type
       switch (item.operation) {
         case SyncOperation.CREATE:
@@ -94,6 +95,7 @@ export async function pushChanges(): Promise<{
       }
 
       // Mark as synced and remove from queue
+      await syncQueue.markSynced(item.id);
       await markQuoteAsSynced(item.quote_id);
       successCount++;
     } catch (error) {
@@ -113,8 +115,12 @@ export async function pushChanges(): Promise<{
 
       errors.push(`Quote ${item.quote_id}: ${errorMessage}`);
 
-      // Mark as error and increment retry count
+      // Mark as failed with exponential backoff
+      await syncQueue.markFailed(item.id, errorMessage);
       await markQuoteAsSyncError(item.quote_id, errorMessage);
+
+      // Auto-prioritize items that keep failing
+      await syncQueue.autoPrioritize(item.id);
     }
   }
 

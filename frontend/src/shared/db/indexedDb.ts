@@ -11,11 +11,11 @@ import type {
   Job,
   Financial,
   QuoteVersion,
-  SyncQueueItem,
   ChangeLogItem,
   PriceSheet,
   PriceItem,
 } from '../types/models';
+import type { EnhancedSyncQueueItem } from '../../features/sync/syncQueue';
 
 /**
  * Embark Quoting System Database
@@ -28,7 +28,7 @@ export class EmbarkDatabase extends Dexie {
   jobs!: Table<Job, string>;
   financials!: Table<Financial, string>;
   quoteVersions!: Table<QuoteVersion, string>;
-  syncQueue!: Table<SyncQueueItem, string>;
+  syncQueue!: Table<EnhancedSyncQueueItem, string>;
   changeLog!: Table<ChangeLogItem, string>;
   priceSheets!: Table<PriceSheet, string>;
   priceItems!: Table<PriceItem, string>;
@@ -111,6 +111,21 @@ export class EmbarkDatabase extends Dexie {
       `,
     });
 
+    // Database version 2 schema: Enhanced sync queue with priority and backoff
+    this.version(2).stores({
+      // Sync queue with priority and dead-letter support
+      // Indexes: priority, dead_letter, next_retry_at, timestamp
+      syncQueue: `
+        id,
+        quote_id,
+        operation,
+        priority,
+        dead_letter,
+        next_retry_at,
+        timestamp
+      `,
+    });
+
     // Hooks: Auto-populate timestamps and IDs
     this.quotes.hook('creating', (_primKey, obj) => {
       if (!obj.created_at) obj.created_at = new Date();
@@ -131,6 +146,8 @@ export class EmbarkDatabase extends Dexie {
       if (!obj.id) obj.id = crypto.randomUUID();
       if (!obj.timestamp) obj.timestamp = new Date();
       if (!obj.retry_count) obj.retry_count = 0;
+      if (obj.priority === undefined) obj.priority = 3; // Default to NORMAL priority
+      if (obj.dead_letter === undefined) obj.dead_letter = false;
     });
 
     this.changeLog.hook('creating', (_primKey, obj) => {
