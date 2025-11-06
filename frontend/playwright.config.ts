@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-export default defineConfig({
+const config: any = {
   testDir: './e2e',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
@@ -21,13 +21,17 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
+};
 
-  // Only start local dev server if testing against localhost (local development)
-  // Skip webServer when E2E_BASE_URL is set (CI/CD against deployed environment)
-  webServer: process.env.E2E_BASE_URL ? undefined : {
+// Only start local dev server if testing against localhost (local development)
+// Skip webServer when E2E_BASE_URL is set (CI/CD against deployed environment)
+if (!process.env.E2E_BASE_URL) {
+  config.webServer = {
     command: 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
-  },
-});
+  };
+}
+
+export default defineConfig(config);
