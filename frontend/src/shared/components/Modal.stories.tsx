@@ -22,7 +22,8 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: (_args) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  render: (_args: any) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <>
@@ -44,7 +45,8 @@ export const Default: Story = {
 };
 
 export const SmallSize: Story = {
-  render: (_args) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  render: (_args: any) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <>
@@ -66,7 +68,8 @@ export const SmallSize: Story = {
 };
 
 export const FormModal: Story = {
-  render: (_args) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  render: (_args: any) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <>

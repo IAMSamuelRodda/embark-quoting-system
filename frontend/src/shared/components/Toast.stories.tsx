@@ -56,7 +56,8 @@ export const Info: Story = {
 };
 
 export const Interactive: Story = {
-  render: (_args) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  render: (_args: any) => {
     const [toasts, setToasts] = useState<
       Array<{
         id: number;
