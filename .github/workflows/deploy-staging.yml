@@ -274,7 +274,6 @@ jobs:
             ${{ secrets.STAGING_FRONTEND_URL }}
             ${{ secrets.STAGING_FRONTEND_URL }}/quotes
           temporaryPublicStorage: true
-          uploadArtifacts: true
 
       - name: Check Lighthouse scores
         run: |
