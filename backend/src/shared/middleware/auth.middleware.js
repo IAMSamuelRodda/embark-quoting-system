@@ -7,12 +7,25 @@
 
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 
-// Cognito JWT Verifier configuration
-const verifier = CognitoJwtVerifier.create({
-  userPoolId: process.env.COGNITO_USER_POOL_ID,
-  tokenUse: 'access',
-  clientId: process.env.COGNITO_CLIENT_ID,
-});
+// Lazy initialization: verifier is created on first use
+let verifier = null;
+
+/**
+ * Get or create the Cognito JWT verifier
+ * Lazy initialization prevents crashes when environment variables are missing
+ *
+ * @returns {CognitoJwtVerifier|null} Verifier instance or null if not configured
+ */
+function getVerifier() {
+  if (!verifier && process.env.COGNITO_USER_POOL_ID && process.env.COGNITO_CLIENT_ID) {
+    verifier = CognitoJwtVerifier.create({
+      userPoolId: process.env.COGNITO_USER_POOL_ID,
+      tokenUse: 'access',
+      clientId: process.env.COGNITO_CLIENT_ID,
+    });
+  }
+  return verifier;
+}
 
 /**
  * Middleware: Verify JWT token and attach user to request
@@ -23,6 +36,15 @@ const verifier = CognitoJwtVerifier.create({
  */
 export async function authenticateToken(req, res, next) {
   try {
+    // Check if authentication is configured
+    const cognitoVerifier = getVerifier();
+    if (!cognitoVerifier) {
+      return res.status(500).json({
+        error: 'Configuration Error',
+        message: 'Authentication service not configured. Missing COGNITO_USER_POOL_ID or COGNITO_CLIENT_ID.',
+      });
+    }
+
     // Extract token from Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -35,7 +57,7 @@ export async function authenticateToken(req, res, next) {
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     // Verify token with Cognito
-    const payload = await verifier.verify(token);
+    const payload = await cognitoVerifier.verify(token);
 
     // Extract user information from token payload
     req.user = {
