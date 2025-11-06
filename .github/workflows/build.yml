@@ -66,8 +66,8 @@ jobs:
 
       - name: Run smoke test on Docker image
         run: |
-          # Use the SHA-specific tag to avoid stale cache issues
-          IMAGE_TAG="${{ format('{0}-{1}', github.ref_name, github.sha) }}"
+          # Use the branch name tag (e.g., 'main') which was just pushed
+          IMAGE_TAG="${{ github.ref_name }}"
           docker run -d --name backend-test -p 3000:3000 \
             -e NODE_ENV=test \
             -e SKIP_DB_CHECK=true \
