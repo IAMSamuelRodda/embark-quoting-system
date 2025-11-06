@@ -7,10 +7,12 @@
 import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
-import { priceSheets } from '../src/shared/db/schema.js';
+import { users, priceSheets } from '../src/shared/db/schema.js';
 import { DEFAULT_SETTINGS } from '../src/features/financials/settings.repository.js';
 
 const { Pool } = pg;
+
+const TEST_USER_ID = '00000000-0000-0000-0000-000000000000';
 
 async function seedTestDatabase() {
   // Support DATABASE_URL (CI) or individual env vars (local)
@@ -27,21 +29,33 @@ async function seedTestDatabase() {
   const pool = new Pool(connectionConfig);
   const db = drizzle(pool);
 
-  console.log('🌱 Seeding test database with default settings...');
+  console.log('🌱 Seeding test database...');
 
   try {
-    // Insert default price sheet with a test user ID
+    // Insert test user (required for foreign key constraints)
+    await db.insert(users).values({
+      id: TEST_USER_ID,
+      cognito_id: 'test_cognito_id',
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'admin',
+      preferences: {},
+    });
+    console.log('  ✓ Test user created');
+
+    // Insert default price sheet
     await db.insert(priceSheets).values({
       version: 1,
-      created_by: '00000000-0000-0000-0000-000000000000', // Test user UUID
+      created_by: TEST_USER_ID,
       defaults: DEFAULT_SETTINGS,
     });
+    console.log('  ✓ Default settings created');
 
     console.log('✅ Test database seeded successfully');
   } catch (error) {
-    // If price sheet already exists, that's OK
+    // If already exists, that's OK (idempotent)
     if (error.code === '23505') {
-      console.log('ℹ️  Default settings already exist');
+      console.log('ℹ️  Seed data already exists');
     } else {
       console.error('❌ Seeding failed:', error.message);
       process.exit(1);
