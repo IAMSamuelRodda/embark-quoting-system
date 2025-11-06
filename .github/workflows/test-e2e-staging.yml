@@ -94,7 +94,7 @@ jobs:
 
       - name: Run E2E tests against staging
         working-directory: ./frontend
-        timeout-minutes: 5
+        timeout-minutes: 2
         run: |
           echo "🔍 E2E Test Configuration:"
           echo "  Frontend URL: $E2E_BASE_URL"

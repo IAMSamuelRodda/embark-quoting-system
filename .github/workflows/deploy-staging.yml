@@ -258,7 +258,7 @@ jobs:
       - name: Run E2E tests against staging
         if: steps.check-e2e-config.outputs.configured == 'true'
         working-directory: ./frontend
-        timeout-minutes: 10
+        timeout-minutes: 2
         run: |
           echo "🔍 E2E Test Configuration:"
           echo "  Frontend URL: $E2E_BASE_URL"

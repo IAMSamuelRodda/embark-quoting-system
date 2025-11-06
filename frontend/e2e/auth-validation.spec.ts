@@ -8,8 +8,8 @@ import { test, expect } from '@playwright/test';
  */
 
 const TEST_CREDENTIALS = {
-  email: 'test.automation@embarkearth.com.au',
-  password: 'AutoTest123!',
+  email: process.env.E2E_TEST_USER_EMAIL || 'test.automation@embarkearth.com.au',
+  password: process.env.E2E_TEST_USER_PASSWORD || 'AutoTest123!',
 };
 
 test.describe('Authentication Validation', () => {
