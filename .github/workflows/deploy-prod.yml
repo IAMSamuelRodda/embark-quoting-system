@@ -7,11 +7,11 @@ on:
   workflow_dispatch:  # Allow manual triggers with approval
 
 env:
-  AWS_REGION: us-east-1  # TODO: Update to your AWS region
+  AWS_REGION: ap-southeast-2  # Sydney region (matches deployed infrastructure)
   ECR_REPOSITORY: embark-quoting-backend
-  ECS_CLUSTER: embark-production
-  ECS_SERVICE: embark-backend-production
-  ECS_TASK_DEFINITION: embark-backend-production
+  ECS_CLUSTER: embark-quoting-cluster
+  ECS_SERVICE: embark-backend-service
+  ECS_TASK_DEFINITION: embark-quoting-backend
   CONTAINER_NAME: embark-backend
 
 jobs:

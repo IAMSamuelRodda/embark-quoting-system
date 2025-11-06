@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 env:
-  AWS_REGION: us-east-1  # TODO: Update to your AWS region
-  ECR_REPOSITORY: embark-quoting-backend  # TODO: Update to your ECR repository name
+  AWS_REGION: ap-southeast-2  # Sydney region (matches deployed infrastructure)
+  ECR_REPOSITORY: embark-quoting-backend
 
 jobs:
   build-backend:
