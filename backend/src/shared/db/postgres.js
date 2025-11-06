@@ -3,22 +3,39 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 
 const { Pool } = pg;
 
+// Support both DATABASE_URL (CI/prod) and individual env vars (local dev)
+function getPoolConfig() {
+  if (process.env.DATABASE_URL) {
+    return {
+      connectionString: process.env.DATABASE_URL,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+      ssl:
+        process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL.includes('localhost')
+          ? { rejectUnauthorized: false }
+          : false,
+    };
+  }
+
+  return {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432'),
+    database: process.env.DB_NAME || 'embark_quoting_staging',
+    user: process.env.DB_USER || 'embark_admin',
+    password: process.env.DB_PASSWORD,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+    ssl:
+      process.env.NODE_ENV === 'production' || process.env.DB_HOST?.includes('rds.amazonaws.com')
+        ? { rejectUnauthorized: false }
+        : false,
+  };
+}
+
 // Create PostgreSQL connection pool
-export const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'embark_quoting_staging',
-  user: process.env.DB_USER || 'embark_admin',
-  password: process.env.DB_PASSWORD,
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Return an error if connection takes longer than 2 seconds
-  // SSL configuration for RDS (required for AWS RDS PostgreSQL)
-  ssl:
-    process.env.NODE_ENV === 'production' || process.env.DB_HOST?.includes('rds.amazonaws.com')
-      ? { rejectUnauthorized: false } // RDS uses Amazon cert, don't reject
-      : false, // Local development doesn't need SSL
-});
+export const pool = new Pool(getPoolConfig());
 
 // Handle pool errors
 pool.on('error', (err) => {
