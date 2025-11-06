@@ -70,7 +70,7 @@ export class ApiError extends Error {
 }
 
 export interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
   body?: unknown;
   requiresAuth?: boolean;
@@ -135,9 +135,26 @@ export async function apiRequest<T = unknown>(
 }
 
 /**
+ * Generic HTTP methods for legacy compatibility
+ * These return ApiResponse<T> to match the signature expected by useJobs
+ */
+const httpMethods = {
+  get: <T = unknown>(url: string): Promise<ApiResponse<T>> => apiRequest<T>(url),
+  post: <T = unknown>(url: string, data?: unknown): Promise<ApiResponse<T>> =>
+    apiRequest<T>(url, { method: 'POST', body: data }),
+  put: <T = unknown>(url: string, data?: unknown): Promise<ApiResponse<T>> =>
+    apiRequest<T>(url, { method: 'PUT', body: data }),
+  delete: <T = unknown>(url: string): Promise<ApiResponse<T>> =>
+    apiRequest<T>(url, { method: 'DELETE' }),
+  patch: <T = unknown>(url: string, data?: unknown): Promise<ApiResponse<T>> =>
+    apiRequest<T>(url, { method: 'PATCH', body: data }),
+};
+
+/**
  * API Client with typed endpoints
  */
 export const api = {
+  ...httpMethods,
   // Quotes
   quotes: {
     getAll: (params?: { status?: string; limit?: number; offset?: number }) => {
@@ -194,3 +211,6 @@ export const api = {
     },
   },
 };
+
+// Export as default for compatibility with existing imports
+export default api;

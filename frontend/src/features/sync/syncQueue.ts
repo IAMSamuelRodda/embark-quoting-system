@@ -21,12 +21,14 @@ import { SyncOperation, type Quote, type Job, type Financial } from '../../share
  * Sync priority levels
  * Lower number = higher priority
  */
-export enum SyncPriority {
-  CRITICAL = 1, // User-initiated sync, quote status changes
-  HIGH = 2, // Customer info updates, financials
-  NORMAL = 3, // Job additions/edits
-  LOW = 4, // Metadata updates, notes
-}
+export const SyncPriority = {
+  CRITICAL: 1, // User-initiated sync, quote status changes
+  HIGH: 2, // Customer info updates, financials
+  NORMAL: 3, // Job additions/edits
+  LOW: 4, // Metadata updates, notes
+} as const;
+
+export type SyncPriority = (typeof SyncPriority)[keyof typeof SyncPriority];
 
 /**
  * Enhanced sync queue item with priority and backoff

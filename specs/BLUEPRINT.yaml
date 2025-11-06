@@ -1578,16 +1578,125 @@ milestones:
             - Print layout
 
       epic_7:
-        name: Settings & Polish
+        name: Design System & Polish
         weeks: 11
-        avg_complexity: 2.5
-        deliverable: Production-ready application
+        avg_complexity: 2.27  # Validated by improving-plans skill (2025-11-06)
+        deliverable: Production-ready application with complete design system implementation
+        # UPDATED 2025-11-06: Integrated design system v2.0 from docs/design/style-guide.md
+        # Epic renamed from "Settings & Polish" to "Design System & Polish"
+        # Broke Feature 7.1 into 5 distinct features following style guide implementation roadmap
+        # VALIDATED 2025-11-06: All 5 features assessed via improving-plans - all scores ≤3.0 ✓
 
         feature_7_1:
-          name: Settings & Polish
+          name: Design System Foundation
+          description: Implement CSS tokens and base styles from style guide v2.0
           complexity:
-            composite: 2.5
-            normalized: 50%
+            composite: 1.5  # Validated by improving-plans
+            normalized: 30%
+            level: low
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 1
+              uncertainty: 1
+              risk: 1
+              testing: 2
+          estimated_days: 3
+          deliverables:
+            - frontend/src/styles/tokens/colors.css (CAT Gold #FFB400, semantic colors)
+            - frontend/src/styles/tokens/typography.css (system font stack, type scale)
+            - frontend/src/styles/tokens/spacing.css (8px grid system)
+            - frontend/src/styles/tokens/shadows.css (subtle elevation system)
+            - frontend/src/styles/base/reset.css (CSS reset)
+            - frontend/src/styles/base/global.css (global styles)
+            - frontend/src/styles/base/accessibility.css (focus states, screen reader utilities)
+          reference:
+            - docs/design/style-guide.md (sections: Colors, Typography, Spacing)
+            - docs/design/STYLE-GUIDE-README.md (Phase 1: Foundation)
+          testing:
+            - CSS variables accessible throughout app
+            - System font stack loads correctly
+            - 8px grid visible in inspector
+
+        feature_7_2:
+          name: Component Library Implementation
+          description: Build UI components following Industrial Clarity design philosophy
+          complexity:
+            composite: 2.67  # Validated by improving-plans
+            normalized: 53.3%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 4
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 5
+          deliverables:
+            - shared/components/Button.tsx (primary, secondary, disabled states with "Confident Affordance")
+            - shared/components/Input.tsx (text, number, validation states)
+            - shared/components/Select.tsx (dropdown with custom styling)
+            - shared/components/Checkbox.tsx (styled per guide)
+            - shared/components/Radio.tsx (styled per guide)
+            - shared/components/Card.tsx (consistent elevation, spacing)
+            - shared/components/Modal.tsx (overlay with purposeful motion)
+            - shared/components/Toast.tsx (helpful, not punitive errors)
+            - Component Storybook/documentation
+          reference:
+            - docs/design/style-guide.md (sections: UI Components, Button Philosophy, Error State Philosophy, Motion Design)
+            - docs/design/STYLE-GUIDE-README.md (Phase 2: Components)
+          design_principles:
+            - Buttons as "industrial push-buttons" (translateY on hover)
+            - Errors that are "Helpful, Not Punitive"
+            - Motion as "Purposeful Choreography" (100ms instant, 200ms fast, 300ms base)
+            - 8px spatial rhythm in all components
+          testing:
+            - All button states (default, hover, active, disabled)
+            - Form validation visual feedback
+            - Modal animations smooth at 60fps
+            - Accessibility (keyboard nav, screen readers)
+
+        feature_7_3:
+          name: Logo Integration & Visual QA
+          description: Integrate brand assets and verify design system implementation
+          complexity:
+            composite: 2.17  # Validated by improving-plans
+            normalized: 43.3%
+            level: medium
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 3
+          deliverables:
+            - Responsive logo implementation (wordmark desktop, icon mobile)
+            - Favicon suite generation (16px → 512px)
+            - PWA manifest with icons
+            - HTML <head> meta tags
+            - Visual QA against checklist (200+ points)
+            - Screenshot documentation capture
+            - Discrepancy fixes
+          reference:
+            - docs/design/style-guide.md (section: Logo Usage)
+            - docs/design/visual-qa-checklist.md (complete verification)
+            - docs/design/assets/ (3 logo variants)
+            - docs/design/STYLE-GUIDE-README.md (Phase 3: Logo Integration)
+          testing:
+            - Logo switches at mobile breakpoint (640px)
+            - Favicon displays correctly all sizes
+            - Visual QA checklist 100% pass rate
+            - CAT Gold #FFB400 verified in all accent uses
+
+        feature_7_4:
+          name: Settings & User Management
+          description: User preferences, profile management, admin CRUD
+          complexity:
+            composite: 2.33  # Validated by improving-plans
+            normalized: 46.7%
             level: medium
             dimensions:
               technical_complexity: 2
@@ -1595,24 +1704,55 @@ milestones:
               dependencies: 2
               uncertainty: 2
               risk: 2
-              testing: 4
+              testing: 3
           estimated_days: 3
           deliverables:
-            - features/settings/SettingsPage.tsx
+            - features/settings/SettingsPage.tsx (styled per design system)
             - Profile editor (name, email)
             - Preferences (theme, notifications, default deposit %)
             - Password change
             - Admin user management CRUD
-            - Mobile responsive refinement
-            - Accessibility audit (WCAG AA)
-            - Performance optimization
-            - Code splitting
-            - Lazy load routes
-            - Bundle size < 500KB gzipped
           testing:
-            - Lighthouse score >90
-            - Mobile usability
-            - Accessibility
+            - Profile updates persist
+            - Password change validation
+            - Admin can create/edit/delete users
+            - Settings page follows design system
+
+        feature_7_5:
+          name: Performance, Accessibility & Polish
+          description: Final optimization and WCAG AA compliance audit
+          complexity:
+            composite: 2.67  # Validated by improving-plans
+            normalized: 53.3%
+            level: medium
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 4
+          estimated_days: 4
+          deliverables:
+            - Mobile responsive refinement (44px touch targets)
+            - Accessibility audit (WCAG AA compliance)
+            - Keyboard navigation complete
+            - Screen reader testing
+            - Performance optimization
+            - Code splitting (route-based)
+            - Lazy load heavy components
+            - Bundle size < 500KB gzipped
+            - Lighthouse score optimization
+          reference:
+            - docs/design/style-guide.md (section: Accessibility Standards)
+            - docs/design/visual-qa-checklist.md (Accessibility section)
+          testing:
+            - Lighthouse score >90 (all categories)
+            - WCAG AA automated tests pass
+            - Manual keyboard navigation test
+            - Screen reader (NVDA/VoiceOver) test
+            - Mobile usability test
+            - Bundle size verification
 
 
 cost_estimate:

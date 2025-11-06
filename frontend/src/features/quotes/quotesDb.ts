@@ -79,8 +79,10 @@ export async function createQuote(data: Partial<Quote>): Promise<Quote> {
     quote_id: quote.id,
     operation: SyncOperation.CREATE,
     data: quote,
+    priority: 1, // SyncPriority.CRITICAL
     timestamp: new Date(),
     retry_count: 0,
+    dead_letter: false,
   });
 
   return quote;
@@ -166,8 +168,10 @@ export async function updateQuote(id: string, updates: Partial<Quote>): Promise<
     quote_id: id,
     operation: SyncOperation.UPDATE,
     data: updatedQuote,
+    priority: 2, // SyncPriority.HIGH
     timestamp: new Date(),
     retry_count: 0,
+    dead_letter: false,
   });
 
   // Create version snapshot with version vector
@@ -203,8 +207,10 @@ export async function deleteQuote(id: string): Promise<void> {
     quote_id: id,
     operation: SyncOperation.DELETE,
     data: { id },
+    priority: 1, // SyncPriority.CRITICAL
     timestamp: new Date(),
     retry_count: 0,
+    dead_letter: false,
   });
 }
 

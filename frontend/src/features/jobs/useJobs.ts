@@ -24,8 +24,8 @@ export const useJobs = create<JobsState>((set) => ({
   loadJobsForQuote: async (quoteId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await apiClient.get(`/jobs/quote/${quoteId}`);
-      set({ jobs: response.data, isLoading: false });
+      const response = await apiClient.get<Job[]>(`/jobs/quote/${quoteId}`);
+      set({ jobs: response.data!, isLoading: false });
     } catch (error) {
       console.error('Failed to load jobs:', error);
       set({
@@ -38,8 +38,8 @@ export const useJobs = create<JobsState>((set) => ({
   createJob: async (jobData: Partial<Job>) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await apiClient.post('/jobs', jobData);
-      const newJob = response.data;
+      const response = await apiClient.post<Job>('/jobs', jobData);
+      const newJob = response.data!;
 
       // Add to local state
       set((state) => ({
@@ -61,8 +61,8 @@ export const useJobs = create<JobsState>((set) => ({
   updateJob: async (jobId: string, updates: Partial<Job>) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await apiClient.put(`/jobs/${jobId}`, updates);
-      const updatedJob = response.data;
+      const response = await apiClient.put<Job>(`/jobs/${jobId}`, updates);
+      const updatedJob = response.data!;
 
       // Update in local state
       set((state) => ({
@@ -104,16 +104,18 @@ export const useJobs = create<JobsState>((set) => ({
   reorderJobs: async (quoteId: string, jobOrders: { id: string; order_index: number }[]) => {
     set({ isLoading: true, error: null });
     try {
-      await apiClient.put(`/jobs/quote/${quoteId}/reorder`, { jobOrders });
+      await apiClient.put<void>(`/jobs/quote/${quoteId}/reorder`, { jobOrders });
 
       // Update local state order
       const orderMap = new Map(jobOrders.map((j) => [j.id, j.order_index]));
       set((state) => ({
         jobs: state.jobs
-          .map((job) => ({
-            ...job,
-            order_index: orderMap.get(job.id) ?? job.order_index,
-          }))
+          .map(
+            (job): Job => ({
+              ...job,
+              order_index: orderMap.get(job.id) ?? job.order_index,
+            }),
+          )
           .sort((a, b) => a.order_index - b.order_index),
         isLoading: false,
       }));

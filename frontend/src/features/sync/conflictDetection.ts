@@ -20,10 +20,12 @@ import { detectConflict, formatVersionVector } from './versionVectors';
  * Critical: Requires manual resolution (customer info, financials, jobs)
  * NonCritical: Can be auto-merged (metadata, location)
  */
-export enum ConflictSeverity {
-  CRITICAL = 'critical',
-  NON_CRITICAL = 'non-critical',
-}
+export const ConflictSeverity = {
+  CRITICAL: 'critical' as const,
+  NON_CRITICAL: 'non-critical' as const,
+};
+
+export type ConflictSeverity = (typeof ConflictSeverity)[keyof typeof ConflictSeverity];
 
 /**
  * Individual field conflict
@@ -171,8 +173,8 @@ function compareQuoteFields(
       continue;
     }
 
-    const localValue = (localQuote as Record<string, unknown>)[field];
-    const remoteValue = (remoteQuote as Record<string, unknown>)[field];
+    const localValue = (localQuote as unknown as Record<string, unknown>)[field];
+    const remoteValue = (remoteQuote as unknown as Record<string, unknown>)[field];
 
     // Skip if values are identical
     if (JSON.stringify(localValue) === JSON.stringify(remoteValue)) {

@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { QuoteStatus, type Quote } from '../../shared/types/models';
+import { QuoteStatus, SyncOperation, type Quote } from '../../shared/types/models';
 import { detectQuoteConflict } from './conflictDetection';
 import { autoMergeQuotes } from './autoMerge';
 import * as syncQueue from './syncQueue';
@@ -334,17 +334,19 @@ describe('Sync Engine Integration', () => {
       });
 
       // Simulate adding to queue
-      await syncQueue.enqueue({
-        quote_id: criticalQuote.id,
-        data: criticalQuote,
-        priority: SyncPriority.CRITICAL, // High priority
-      });
+      await syncQueue.enqueue(
+        criticalQuote.id,
+        SyncOperation.UPDATE,
+        criticalQuote,
+        SyncPriority.CRITICAL, // High priority
+      );
 
-      await syncQueue.enqueue({
-        quote_id: normalQuote.id,
-        data: normalQuote,
-        priority: SyncPriority.NORMAL, // Normal priority
-      });
+      await syncQueue.enqueue(
+        normalQuote.id,
+        SyncOperation.UPDATE,
+        normalQuote,
+        SyncPriority.NORMAL, // Normal priority
+      );
 
       // Verify priority ordering (via queue implementation)
       // In real scenario, getNextBatch() would return critical quote first

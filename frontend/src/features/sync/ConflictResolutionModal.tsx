@@ -80,7 +80,7 @@ export function ConflictResolutionModal({
       const fieldName = conflict.path[0];
       const value = choice === 'local' ? conflict.localValue : conflict.remoteValue;
 
-      (merged as Record<string, unknown>)[fieldName] = value;
+      (merged as unknown as Record<string, unknown>)[fieldName] = value;
 
       console.log(`[ConflictResolution] Field '${fieldName}': chose ${choice} version`);
     }

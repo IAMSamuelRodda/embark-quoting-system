@@ -118,7 +118,7 @@ function applyAutoMerge(
   // Apply auto-merged fields
   for (const field of conflictReport.autoMergedFields) {
     const fieldName = field.path[0]; // Top-level field
-    (merged as Record<string, unknown>)[fieldName] = field.mergedValue;
+    (merged as unknown as Record<string, unknown>)[fieldName] = field.mergedValue;
 
     console.log(
       `[AutoMerge] Field '${fieldName}': ${field.strategy} (chose ${field.chosen} version)`,
