@@ -81,7 +81,8 @@ export const Select = React.forwardRef<HTMLDivElement, SelectProps>(
     const listboxRef = useRef<HTMLUListElement>(null);
 
     // Generate IDs for accessibility
-    const selectId = id || `select-${React.useId()}`;
+    const generatedId = React.useId();
+    const selectId = id || `select-${generatedId}`;
     const helperTextId = `${selectId}-helper`;
     const errorId = `${selectId}-error`;
     const listboxId = `${selectId}-listbox`;

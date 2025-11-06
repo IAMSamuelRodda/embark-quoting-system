@@ -52,7 +52,8 @@ export const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
     ref,
   ) => {
     // Generate IDs for accessibility
-    const radioId = id || `radio-${React.useId()}`;
+    const generatedId = React.useId();
+    const radioId = id || `radio-${generatedId}`;
     const helperTextId = `${radioId}-helper`;
     const errorId = `${radioId}-error`;
 

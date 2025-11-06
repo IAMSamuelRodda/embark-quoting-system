@@ -61,7 +61,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ref,
   ) => {
     // Generate IDs for accessibility
-    const inputId = id || `input-${React.useId()}`;
+    const generatedId = React.useId();
+    const inputId = id || `input-${generatedId}`;
     const helperTextId = `${inputId}-helper`;
     const errorId = `${inputId}-error`;
     const successId = `${inputId}-success`;

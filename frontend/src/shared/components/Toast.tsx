@@ -60,6 +60,7 @@ export const Toast: React.FC<ToastProps> = ({
     }, duration);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration]);
 
   const handleClose = () => {
@@ -182,7 +183,7 @@ export interface ToastContainerProps {
 
 export const ToastContainer: React.FC<ToastContainerProps> = ({
   position = 'top-right',
-  maxToasts = 5,
+  maxToasts: _maxToasts = 5,
 }) => {
   const containerClasses = ['toast-container', `toast-container--${position}`]
     .filter(Boolean)

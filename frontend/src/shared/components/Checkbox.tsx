@@ -52,7 +52,8 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
     ref,
   ) => {
     // Generate IDs for accessibility
-    const checkboxId = id || `checkbox-${React.useId()}`;
+    const generatedId = React.useId();
+    const checkboxId = id || `checkbox-${generatedId}`;
     const helperTextId = `${checkboxId}-helper`;
     const errorId = `${checkboxId}-error`;
 

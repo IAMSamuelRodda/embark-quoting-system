@@ -1,6 +1,6 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices, type PlaywrightTestConfig } from '@playwright/test';
 
-const config: any = {
+const config: Partial<PlaywrightTestConfig> = {
   testDir: './e2e',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
