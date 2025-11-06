@@ -73,8 +73,23 @@ jobs:
             -e SKIP_DB_CHECK=true \
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}
 
-          # Wait for health check
-          timeout 30 bash -c 'until curl -f http://localhost:3000/health; do sleep 1; done'
+          # Give server a moment to start and show early logs
+          sleep 3
+          echo "📋 Container logs (first 3 seconds):"
+          docker logs backend-test
+          echo ""
+
+          # Wait for health check (with timeout)
+          echo "🔍 Waiting for server to respond on /health..."
+          if timeout 30 bash -c 'until curl -f http://localhost:3000/health 2>/dev/null; do sleep 1; done'; then
+            echo "✅ Server responded!"
+          else
+            echo "❌ Server did not respond within 30 seconds"
+            echo "📋 Full container logs:"
+            docker logs backend-test
+            docker stop backend-test
+            exit 1
+          fi
 
           # Verify health check response
           response=$(curl -s http://localhost:3000/health)
@@ -83,7 +98,7 @@ jobs:
           if echo "$response" | grep -q "ok"; then
             echo "✅ Backend smoke test passed"
           else
-            echo "❌ Backend smoke test failed"
+            echo "❌ Backend smoke test failed - unexpected response"
             docker logs backend-test
             exit 1
           fi
