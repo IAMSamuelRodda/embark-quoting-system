@@ -296,6 +296,13 @@ jobs:
           export E2E_TEST_USER_EMAIL
           export E2E_TEST_USER_PASSWORD
 
+          # Debug: Verify env vars are set before running Playwright
+          echo ""
+          echo "🔍 Environment variables before Playwright:"
+          echo "  E2E_BASE_URL=${E2E_BASE_URL}"
+          echo "  E2E_API_URL=${E2E_API_URL}"
+          echo ""
+
           npm run test:e2e
         env:
           E2E_BASE_URL: ${{ secrets.STAGING_FRONTEND_URL }}
