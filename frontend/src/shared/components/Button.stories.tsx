@@ -185,7 +185,7 @@ export const WithIconAfter: Story = {
 
 // Interactive Example
 export const InteractiveExample: Story = {
-  render: () => (
+  render: (_args) => (
     <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
       <Button variant="primary">Get Free Quote</Button>
       <Button variant="secondary">View Details</Button>

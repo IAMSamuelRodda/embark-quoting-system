@@ -56,7 +56,7 @@ export const Info: Story = {
 };
 
 export const Interactive: Story = {
-  render: () => {
+  render: (_args) => {
     const [toasts, setToasts] = useState<
       Array<{
         id: number;
