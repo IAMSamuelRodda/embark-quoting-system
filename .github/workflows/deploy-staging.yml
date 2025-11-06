@@ -10,8 +10,8 @@ env:
   ECR_REPOSITORY: embark-quoting-backend
   ECS_CLUSTER: embark-quoting-staging-cluster
   ECS_SERVICE: embark-quoting-staging-backend-service
-  ECS_TASK_DEFINITION: embark-quoting-backend
-  CONTAINER_NAME: embark-backend
+  ECS_TASK_DEFINITION: embark-quoting-staging-backend
+  CONTAINER_NAME: backend
 
 jobs:
   deploy-backend:
