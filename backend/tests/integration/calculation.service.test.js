@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import * as calculationService from './calculation.service.js';
+import * as calculationService from '../../src/features/financials/calculation.service.js';
 
 describe('Financial Calculation Engine', () => {
   // Tests use actual settings service which returns defaults
