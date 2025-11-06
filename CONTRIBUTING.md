@@ -1,5 +1,7 @@
 # Contributing to Embark Quoting System
 
+> **Before submitting code**: See `DEVELOPMENT.md` for pre-commit checklist, CI/CD expectations, and test organization.
+
 ## Progress Tracking with Hierarchical Sub-Issues
 
 This project uses **GitHub Issues + GitHub Projects v2** with hierarchical sub-issues for progress tracking. All progress is accessible locally via `gh` CLI with automatic roll-up to parent issues.

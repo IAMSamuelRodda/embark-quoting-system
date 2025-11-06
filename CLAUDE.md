@@ -12,9 +12,10 @@ When you need information, check these files in this order:
 1. **`specs/BLUEPRINT.yaml`** → Complete implementation plan (tech stack, database schema, milestones/epics, complexity scores)
 2. **`docs/financial-model.md`** → Financial calculation methodology (Profit-First model)
 3. **`CONTRIBUTING.md`** → Workflow for agents (how to track progress, update issues)
-4. **`README.md`** → Project overview and current status
-5. **`backend/package.json`** → Backend dependencies and versions
-6. **`frontend/package.json`** → Frontend dependencies (once created)
+4. **`DEVELOPMENT.md`** → Pre-commit checklist, CI/CD expectations, test organization (REQUIRED before committing code)
+5. **`README.md`** → Project overview and current status
+6. **`backend/package.json`** → Backend dependencies and versions
+7. **`frontend/package.json`** → Frontend dependencies (once created)
 
 **If specs conflict**: `specs/BLUEPRINT.yaml` is the authoritative source.
 
@@ -281,3 +282,4 @@ feature_2_2:
 | 2025-11-04 | BLUEPRINT.yaml restructured for multiple milestones | Added milestone wrapper to support project planning beyond MVP (YAML structure: milestones.milestone_1.epics.epic_X) |
 | 2025-11-05 | Added GitHub Workflow Standards section | Enforce commit-issue linking as critical practice; establish GitHub as source of truth for progress |
 | 2025-11-05 | Added BLUEPRINT.yaml Change Management section | Document plan changes with concise comments; preserve decision trail when reality diverges from plan |
+| 2025-11-06 | Added DEVELOPMENT.md reference | Created DEVELOPMENT.md for pre-commit workflow; prevent CI failures from agents skipping quality checks |
