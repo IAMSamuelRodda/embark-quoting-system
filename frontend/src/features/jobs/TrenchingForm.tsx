@@ -10,7 +10,7 @@ const trenchingSchema = z.object({
     .positive('Length must be greater than 0')
     .max(1000, 'Maximum length is 1000 meters'),
   width: z.enum(['300', '600', '900'], {
-    errorMap: () => ({ message: 'Width must be 300mm, 600mm, or 900mm' }),
+    message: 'Width must be 300mm, 600mm, or 900mm',
   }),
   depth: z.number().positive('Depth must be greater than 0').max(10, 'Maximum depth is 10 meters'),
   for_stormwater: z.boolean(),

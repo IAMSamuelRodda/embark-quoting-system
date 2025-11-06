@@ -74,6 +74,14 @@ export interface ProfitFirst {
   opex_percentage: number;
 }
 
+// Profit-First breakdown in dollar amounts (from backend calculations)
+export interface ProfitFirstBreakdown {
+  profit: number;
+  owner: number;
+  tax: number;
+  opex: number;
+}
+
 export interface Deposit {
   percentage: number;
   amount: number;
@@ -145,12 +153,15 @@ export interface Financial {
   quote_id: string; // UUID (PK)
   direct_cost: number;
   overhead_multiplier: number;
-  profit_first: ProfitFirst;
+  profit_first: ProfitFirstBreakdown; // Dollar amounts from backend calculation
+  price_ex_gst: number;
   gst_rate: number;
   gst_amount: number;
   total_inc_gst: number;
   rounded_total: number;
   deposit?: Deposit;
+  deposit_options?: Array<{ percentage: number; amount: number }>;
+  deposit_warning?: string | null;
 }
 
 export interface PriceSheet {

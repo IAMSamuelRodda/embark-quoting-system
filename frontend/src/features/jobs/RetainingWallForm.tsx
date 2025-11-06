@@ -7,7 +7,7 @@ import { type Job, JobType } from '../../shared/types/models';
 const retainingWallSchema = z.object({
   bays: z.number().int().min(1, 'Must have at least 1 bay').max(100, 'Maximum 100 bays'),
   height: z.enum(['200', '400', '600', '800', '1000'], {
-    errorMap: () => ({ message: 'Height must be 200-1000mm in 200mm increments' }),
+    message: 'Height must be 200-1000mm in 200mm increments',
   }),
   length: z
     .number()
