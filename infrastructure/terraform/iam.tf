@@ -97,7 +97,16 @@ resource "aws_iam_role_policy" "github_actions_ecs" {
           "ecs:DescribeTaskDefinition",
           "ecs:RegisterTaskDefinition",
           "ecs:ListTaskDefinitions",
-          "ecs:DescribeClusters"
+          "ecs:DescribeClusters",
+          "ecs:ListTasks",
+          "ecs:DescribeTasks"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeNetworkInterfaces"
         ]
         Resource = "*"
       },
