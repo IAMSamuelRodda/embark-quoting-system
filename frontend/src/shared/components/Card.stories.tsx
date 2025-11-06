@@ -224,6 +224,7 @@ export const FullWidth: Story = {
 
 // Quote Card Example
 export const QuoteCard: Story = {
+  args: {},
   render: () => (
     <Card variant="elevated" padding="none" style={{ maxWidth: '400px' }}>
       <CardHeader
@@ -305,6 +306,7 @@ export const QuoteCard: Story = {
 
 // Dashboard Cards
 export const DashboardExample: Story = {
+  args: {},
   render: () => (
     <div
       style={{

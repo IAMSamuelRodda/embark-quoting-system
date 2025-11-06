@@ -21,7 +21,8 @@
 import React from 'react';
 import './Radio.css';
 
-export interface RadioProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+export interface RadioProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> {
   /** Radio button label */
   label?: string;
   /** Helper text (shown below radio when no error) */

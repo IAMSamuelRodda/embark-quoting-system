@@ -22,6 +22,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(false);
     return (
@@ -44,6 +45,7 @@ export const Default: Story = {
 };
 
 export const SmallSize: Story = {
+  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(false);
     return (
@@ -66,6 +68,7 @@ export const SmallSize: Story = {
 };
 
 export const FormModal: Story = {
+  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(false);
     return (

@@ -188,6 +188,7 @@ export const LongList: Story = {
 
 // Interactive Example
 export const InteractiveExample: Story = {
+  args: {},
   render: () => {
     const [jobType, setJobType] = useState('');
     const [priceSheet, setPriceSheet] = useState('');
