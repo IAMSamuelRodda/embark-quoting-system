@@ -34,9 +34,9 @@ test.describe('Authentication Validation', () => {
     console.log('🔐 Submitting login...');
     await page.getByRole('button', { name: /sign in/i }).click();
 
-    // Step 5: Wait for redirect to dashboard (allow time for Cognito)
+    // Step 5: Wait for redirect to dashboard (Cognito auth should be instant)
     console.log('⏳ Waiting for Cognito response...');
-    await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
+    await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
 
     // Step 6: Verify dashboard content
     console.log('✅ Verifying dashboard...');
@@ -53,7 +53,7 @@ test.describe('Authentication Validation', () => {
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);
     await page.getByPlaceholder(/password/i).fill(TEST_CREDENTIALS.password);
     await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
+    await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
 
     console.log('🔄 Refreshing page...');
 
@@ -73,7 +73,7 @@ test.describe('Authentication Validation', () => {
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);
     await page.getByPlaceholder(/password/i).fill(TEST_CREDENTIALS.password);
     await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
+    await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
 
     console.log('🔀 Trying to access login while authenticated...');
 
@@ -92,7 +92,7 @@ test.describe('Authentication Validation', () => {
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);
     await page.getByPlaceholder(/password/i).fill(TEST_CREDENTIALS.password);
     await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
+    await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
 
     console.log('🚪 Signing out...');
 
@@ -123,8 +123,8 @@ test.describe('Authentication Validation', () => {
     await page.getByPlaceholder(/password/i).fill('WrongPassword123!');
     await page.getByRole('button', { name: /sign in/i }).click();
 
-    // Should show error message (wait for Cognito)
-    await expect(page.locator('.bg-red-50')).toBeVisible({ timeout: 10000 });
+    // Should show error message (Cognito errors are instant)
+    await expect(page.locator('.bg-red-50')).toBeVisible({ timeout: 5000 });
 
     // Should stay on login page
     await expect(page).toHaveURL('/login');
@@ -138,7 +138,7 @@ test.describe('Authentication Validation', () => {
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);
     await page.getByPlaceholder(/password/i).fill(TEST_CREDENTIALS.password);
     await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
+    await expect(page).toHaveURL('/dashboard', { timeout: 5000 });
 
     console.log('🔍 Checking PWA indicators...');
 

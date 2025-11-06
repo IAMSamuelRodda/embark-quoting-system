@@ -7,15 +7,15 @@ const config: Partial<PlaywrightTestConfig> = {
   retries: process.env.CI ? 1 : 0,  // Reduced from 2 to 1 to avoid long retry loops
   workers: 1,
   reporter: 'html',
-  timeout: 60000,  // 60 second timeout per test to prevent infinite hangs
+  timeout: 30000,  // 30 second timeout per test (Cognito auth should be instant)
   use: {
     // Use E2E_BASE_URL from environment if set (for CI/CD against deployed environments)
     // Otherwise use localhost for local development
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    actionTimeout: 15000,  // 15 second timeout for actions like click, fill, etc.
-    navigationTimeout: 30000,  // 30 second timeout for page navigation
+    actionTimeout: 10000,  // 10 second timeout for actions like click, fill, etc.
+    navigationTimeout: 10000,  // 10 second timeout for page navigation
   },
 
   projects: [
