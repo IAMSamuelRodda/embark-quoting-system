@@ -252,6 +252,7 @@ jobs:
       - name: Run E2E tests against staging
         if: steps.check-e2e-config.outputs.configured == 'true'
         working-directory: ./frontend
+        timeout-minutes: 10
         run: |
           echo "🔍 E2E Test Configuration:"
           echo "  Frontend URL: $E2E_BASE_URL"
@@ -266,6 +267,7 @@ jobs:
             echo "❌ Frontend is not reachable at $E2E_BASE_URL"
             echo "Attempting to diagnose..."
             curl -v "$E2E_BASE_URL" 2>&1 | head -20
+            exit 1
           fi
           echo ""
 
@@ -274,10 +276,19 @@ jobs:
             echo "✅ API is reachable"
           else
             echo "❌ API is not reachable at $E2E_API_URL"
+            exit 1
           fi
           echo ""
 
           echo "🧪 Running E2E tests..."
+          echo "  Using baseURL: $E2E_BASE_URL"
+
+          # Export environment variables explicitly for npm subprocess
+          export E2E_BASE_URL
+          export E2E_API_URL
+          export E2E_TEST_USER_EMAIL
+          export E2E_TEST_USER_PASSWORD
+
           npm run test:e2e
         env:
           E2E_BASE_URL: ${{ secrets.STAGING_FRONTEND_URL }}
