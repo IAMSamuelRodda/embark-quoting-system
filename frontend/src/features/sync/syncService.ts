@@ -16,6 +16,20 @@ import { SyncOperation, SyncStatus } from '../../shared/types/models';
 import type { Quote } from '../../shared/types/models';
 import { markQuoteAsSynced, markQuoteAsSyncError } from '../quotes/quotesDb';
 
+// Type guard for API error response
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+}
+
+function isApiErrorResponse(response: unknown): response is ApiErrorResponse {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    ('message' in response || 'error' in response)
+  );
+}
+
 export interface SyncResult {
   success: boolean;
   pushedCount: number;
@@ -88,7 +102,11 @@ export async function pushChanges(): Promise<{
       // Handle errors
       let errorMessage = 'Unknown error';
       if (error instanceof ApiError) {
-        errorMessage = (error.response as any)?.message || error.statusText;
+        if (isApiErrorResponse(error.response)) {
+          errorMessage = error.response.message || error.response.error || error.statusText;
+        } else {
+          errorMessage = error.statusText;
+        }
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -184,7 +202,11 @@ export async function pullChanges(): Promise<{
 
     let errorMessage = 'Failed to pull changes from server';
     if (error instanceof ApiError) {
-      errorMessage = (error.response as any)?.message || error.statusText;
+      if (isApiErrorResponse(error.response)) {
+        errorMessage = error.response.message || error.response.error || error.statusText;
+      } else {
+        errorMessage = error.statusText;
+      }
     } else if (error instanceof Error) {
       errorMessage = error.message;
     }

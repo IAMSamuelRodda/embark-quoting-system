@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuotes } from '../features/quotes/useQuotes';
-import { FinancialSummary } from '../features/financials/FinancialSummary';
+import { FinancialSummary, type FinancialData } from '../features/financials/FinancialSummary';
 
 export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -210,7 +210,7 @@ export function QuoteDetailPage() {
         {selectedQuote.financials && (
           <div className="mb-6">
             <FinancialSummary
-              financials={selectedQuote.financials as any}
+              financials={selectedQuote.financials as FinancialData}
               jobs={selectedQuote.jobs || []}
             />
           </div>

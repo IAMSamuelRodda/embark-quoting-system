@@ -13,14 +13,18 @@ describe('Database Integration Tests', () => {
 
   beforeAll(async () => {
     // Create a test database connection
-    // In real tests, you would use a separate test database
-    pool = new Pool({
-      host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT || 5432,
-      database: process.env.DB_NAME || 'embark_quotes',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-    });
+    // Support both DATABASE_URL (CI) and individual env vars (local)
+    const connectionConfig = process.env.DATABASE_URL
+      ? { connectionString: process.env.DATABASE_URL }
+      : {
+          host: process.env.DB_HOST || 'localhost',
+          port: process.env.DB_PORT || 5432,
+          database: process.env.DB_NAME || 'embark_quotes',
+          user: process.env.DB_USER || 'postgres',
+          password: process.env.DB_PASSWORD || 'postgres',
+        };
+
+    pool = new Pool(connectionConfig);
   });
 
   afterAll(async () => {
