@@ -17,6 +17,8 @@ jobs:
   deploy-backend:
     name: Deploy Backend to ECS
     runs-on: ubuntu-latest
+    outputs:
+      backend-url: ${{ steps.verify-backend.outputs.backend-url }}
     environment:
       name: staging
       url: https://staging-api.embark-quoting.com  # TODO: Update to your staging API URL
@@ -74,6 +76,7 @@ jobs:
           wait-for-minutes: 10
 
       - name: Verify deployment
+        id: verify-backend
         run: |
           echo "Waiting for service to stabilize..."
           sleep 30
@@ -116,6 +119,9 @@ jobs:
           fi
 
           echo "Task public IP: $PUBLIC_IP"
+
+          # Export for E2E tests (dynamic IP without NAT Gateway)
+          echo "backend-url=http://${PUBLIC_IP}:3000" >> $GITHUB_OUTPUT
 
           # Health check
           HEALTH_URL="http://${PUBLIC_IP}:3000/health"
@@ -256,7 +262,7 @@ jobs:
         run: |
           echo "🔍 E2E Test Configuration:"
           echo "  Frontend URL: $E2E_BASE_URL"
-          echo "  API URL: $E2E_API_URL"
+          echo "  API URL: $E2E_API_URL (dynamic IP from backend deployment)"
           echo "  Test User: $E2E_TEST_USER_EMAIL"
           echo ""
 
@@ -282,6 +288,7 @@ jobs:
 
           echo "🧪 Running E2E tests..."
           echo "  Using baseURL: $E2E_BASE_URL"
+          echo "  Using API URL: $E2E_API_URL"
 
           # Export environment variables explicitly for npm subprocess
           export E2E_BASE_URL
@@ -292,7 +299,7 @@ jobs:
           npm run test:e2e
         env:
           E2E_BASE_URL: ${{ secrets.STAGING_FRONTEND_URL }}
-          E2E_API_URL: ${{ secrets.STAGING_API_URL }}
+          E2E_API_URL: ${{ needs.deploy-backend.outputs.backend-url }}
           E2E_TEST_USER_EMAIL: ${{ secrets.E2E_TEST_USER_EMAIL }}
           E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}
         # TODO: Set up test user in staging Cognito
