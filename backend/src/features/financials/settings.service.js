@@ -11,7 +11,7 @@ import * as repository from './settings.repository.js';
  * Get current active settings
  */
 export async function getCurrentSettings() {
-  let settings = await repository.getCurrentSettings();
+  const settings = await repository.getCurrentSettings();
 
   // If no settings exist, return defaults (but don't create yet)
   if (!settings) {
@@ -78,7 +78,7 @@ export async function createSettings(defaults, userId, isAdmin) {
   const newSettings = await repository.createSettings(defaults, userId);
 
   console.log(
-    `Created price sheet version ${newSettings.version} by user ${userId}`
+    `Created price sheet version ${newSettings.version} by user ${userId}`,
   );
 
   return newSettings;

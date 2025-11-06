@@ -167,13 +167,13 @@ describe('Financial Calculation Engine', () => {
 
     it('should reject negative materials cost', async () => {
       await expect(
-        calculationService.calculateQuoteFinancials(-100)
+        calculationService.calculateQuoteFinancials(-100),
       ).rejects.toThrow('Raw materials cost must be a positive number');
     });
 
     it('should reject non-number materials cost', async () => {
       await expect(
-        calculationService.calculateQuoteFinancials('900')
+        calculationService.calculateQuoteFinancials('900'),
       ).rejects.toThrow('Raw materials cost must be a positive number');
     });
 
@@ -205,7 +205,7 @@ describe('Financial Calculation Engine', () => {
     it('should apply tight access multiplier (1.1x)', async () => {
       const result = await calculationService.calculateWithModifiers(
         900,
-        { tightAccess: true }
+        { tightAccess: true },
       );
 
       // Base rounded total: $3,300
@@ -219,19 +219,19 @@ describe('Financial Calculation Engine', () => {
     it('should include rock clause disclaimer', async () => {
       const result = await calculationService.calculateWithModifiers(
         900,
-        { rockClause: true }
+        { rockClause: true },
       );
 
       expect(result.rock_clause).toBe(true);
       expect(result.disclaimers).toContain(
-        'This quote assumes normal soil conditions. Additional charges may apply if rock is encountered during excavation.'
+        'This quote assumes normal soil conditions. Additional charges may apply if rock is encountered during excavation.',
       );
     });
 
     it('should apply both modifiers together', async () => {
       const result = await calculationService.calculateWithModifiers(
         900,
-        { tightAccess: true, rockClause: true }
+        { tightAccess: true, rockClause: true },
       );
 
       expect(result.tight_access).toBe(true);
@@ -244,7 +244,7 @@ describe('Financial Calculation Engine', () => {
     it('should not apply modifiers when false', async () => {
       const result = await calculationService.calculateWithModifiers(
         900,
-        { tightAccess: false, rockClause: false }
+        { tightAccess: false, rockClause: false },
       );
 
       expect(result.tight_access).toBe(false);
@@ -305,7 +305,7 @@ describe('Financial Calculation Engine', () => {
 
     it('should reject non-array input', () => {
       expect(() => calculationService.calculateMaterialsCost('not-array')).toThrow(
-        'Jobs must be an array'
+        'Jobs must be an array',
       );
     });
   });
@@ -342,7 +342,7 @@ describe('Financial Calculation Engine', () => {
 
       const result = await calculationService.recalculateQuoteFinancials(
         jobs,
-        { tightAccess: true }
+        { tightAccess: true },
       );
 
       expect(result.final_total).toBe(3630); // With tight access

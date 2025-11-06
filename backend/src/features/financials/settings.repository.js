@@ -141,7 +141,7 @@ export function validateSettings(defaults) {
     const sum = (profit + owner + tax + opex).toFixed(2);
     if (Math.abs(sum - 1.0) > 0.01) {
       errors.push(
-        `Profit-First percentages must sum to 100% (currently ${(sum * 100).toFixed(1)}%)`
+        `Profit-First percentages must sum to 100% (currently ${(sum * 100).toFixed(1)}%)`,
       );
     }
 
@@ -166,7 +166,7 @@ export function validateSettings(defaults) {
   } else {
     // Validate each deposit option
     const invalidDeposits = defaults.deposit_options.filter(
-      (d) => typeof d !== 'number' || d <= 0 || d > 1
+      (d) => typeof d !== 'number' || d <= 0 || d > 1,
     );
     if (invalidDeposits.length > 0) {
       errors.push('All deposit options must be numbers between 0 and 1');

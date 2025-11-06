@@ -68,7 +68,7 @@ describe('Financial Settings Validation', () => {
       };
       const errors = repository.validateSettings(settings);
       expect(errors).toContain(
-        'All profit_first percentages must be positive'
+        'All profit_first percentages must be positive',
       );
     });
 
@@ -115,7 +115,7 @@ describe('Financial Settings Validation', () => {
       };
       const errors = repository.validateSettings(settings);
       expect(errors).toContain(
-        'All deposit options must be numbers between 0 and 1'
+        'All deposit options must be numbers between 0 and 1',
       );
     });
 
@@ -126,7 +126,7 @@ describe('Financial Settings Validation', () => {
       };
       const errors = repository.validateSettings(settings);
       expect(errors).toContain(
-        'All deposit options must be numbers between 0 and 1'
+        'All deposit options must be numbers between 0 and 1',
       );
     });
 
@@ -137,7 +137,7 @@ describe('Financial Settings Validation', () => {
       };
       const errors = repository.validateSettings(settings);
       expect(errors).toContain(
-        'Default deposit must be a number between 0 and 1'
+        'Default deposit must be a number between 0 and 1',
       );
     });
 
@@ -148,7 +148,7 @@ describe('Financial Settings Validation', () => {
       };
       const errors = repository.validateSettings(settings);
       expect(errors).toContain(
-        'Default deposit must be a number between 0 and 1'
+        'Default deposit must be a number between 0 and 1',
       );
     });
 
@@ -212,7 +212,7 @@ describe('Financial Settings Validation', () => {
       expect(errors.length).toBeGreaterThan(3);
       expect(errors).toContain('GST rate must be a number between 0 and 1');
       expect(errors).toContain(
-        'All profit_first percentages must be positive'
+        'All profit_first percentages must be positive',
       );
       expect(errors).toContain('Overhead multiplier must be a number >= 1.0');
       expect(errors).toContain('At least one deposit option is required');

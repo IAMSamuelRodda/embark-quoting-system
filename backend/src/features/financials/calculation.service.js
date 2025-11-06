@@ -58,7 +58,7 @@ export async function calculateQuoteFinancials(rawMaterialsCost, options = {}) {
   const breakdownSum = breakdown.profit + breakdown.owner + breakdown.tax + breakdown.opex;
   if (Math.abs(breakdownSum - priceExGST) > 0.01) {
     console.warn(
-      `Breakdown sum mismatch: ${breakdownSum} !== ${priceExGST} (diff: ${Math.abs(breakdownSum - priceExGST)})`
+      `Breakdown sum mismatch: ${breakdownSum} !== ${priceExGST} (diff: ${Math.abs(breakdownSum - priceExGST)})`,
     );
   }
 
@@ -126,7 +126,7 @@ export async function calculateQuoteFinancials(rawMaterialsCost, options = {}) {
 export async function calculateWithModifiers(
   rawMaterialsCost,
   modifiers = {},
-  options = {}
+  options = {},
 ) {
   const params = await settingsService.getCalculationParameters();
 
@@ -154,7 +154,7 @@ export async function calculateWithModifiers(
   const disclaimers = [];
   if (modifiers.rockClause) {
     disclaimers.push(
-      'This quote assumes normal soil conditions. Additional charges may apply if rock is encountered during excavation.'
+      'This quote assumes normal soil conditions. Additional charges may apply if rock is encountered during excavation.',
     );
   }
 
