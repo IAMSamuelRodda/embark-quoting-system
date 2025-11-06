@@ -9,6 +9,7 @@ import { Router } from 'express';
 import { authenticateToken } from '../../shared/middleware/auth.middleware.js';
 // import { requireAdmin } from '../../shared/middleware/auth.middleware.js'; // Available for admin-only routes
 import * as controller from './quotes.controller.js';
+import * as jobsController from '../jobs/jobs.controller.js';
 
 const router = Router();
 
@@ -68,12 +69,35 @@ router.delete('/:id', controller.deleteQuote);
 // ============================================================================
 
 /**
- * POST /api/quotes/:id/jobs
- * Add a job to a quote
+ * GET /api/quotes/:quoteId/jobs
+ * List all jobs for a quote
+ * Authorization: Quote owner or admin only
+ */
+router.get('/:quoteId/jobs', jobsController.getJobsByQuoteId);
+
+/**
+ * GET /api/quotes/:quoteId/jobs/counts
+ * Get job counts by type for a quote
+ * Authorization: Quote owner or admin only
+ * NOTE: Must be defined before POST /:quoteId/jobs to avoid route conflict
+ */
+router.get('/:quoteId/jobs/counts', jobsController.getJobCountsByType);
+
+/**
+ * POST /api/quotes/:quoteId/jobs
+ * Create a new job for a quote
  * Authorization: Quote owner or admin only
  * Body: { job_type, order_index, parameters, materials, labour, calculations, subtotal }
  */
-router.post('/:id/jobs', controller.addJob);
+router.post('/:quoteId/jobs', jobsController.createJob);
+
+/**
+ * POST /api/quotes/:quoteId/jobs/reorder
+ * Reorder jobs for a quote
+ * Authorization: Quote owner or admin only
+ * Body: [{ id: "job-uuid", order_index: 0 }, ...]
+ */
+router.post('/:quoteId/jobs/reorder', jobsController.reorderJobs);
 
 // ============================================================================
 // FINANCIALS (Sub-resources of quotes)
