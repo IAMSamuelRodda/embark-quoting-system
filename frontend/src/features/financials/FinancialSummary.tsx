@@ -59,7 +59,7 @@ interface FinancialSummaryProps {
 export function FinancialSummary({ financials, jobs, onDepositChange }: FinancialSummaryProps) {
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [selectedDepositPercentage, setSelectedDepositPercentage] = useState(
-    financials.deposit?.percentage || 0.25
+    financials.deposit?.percentage || 0.25,
   );
 
   // Format currency
@@ -124,11 +124,7 @@ export function FinancialSummary({ financials, jobs, onDepositChange }: Financia
           className="flex items-center justify-between w-full py-2 text-sm font-medium text-primary-600 hover:text-primary-700"
         >
           <span>Profit-First Allocation</span>
-          {showBreakdown ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
+          {showBreakdown ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </button>
 
         {showBreakdown && (
@@ -172,9 +168,7 @@ export function FinancialSummary({ financials, jobs, onDepositChange }: Financia
           <span className="font-medium">{formatCurrency(financials.price_ex_gst)}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-600">
-            GST ({formatPercentage(financials.gst_rate)}):
-          </span>
+          <span className="text-gray-600">GST ({formatPercentage(financials.gst_rate)}):</span>
           <span className="text-gray-900">{formatCurrency(financials.gst_amount)}</span>
         </div>
         <div className="border-t border-gray-200 pt-2 mt-2">
@@ -189,7 +183,7 @@ export function FinancialSummary({ financials, jobs, onDepositChange }: Financia
       <div className="border-t border-gray-200 pt-6">
         <h3 className="text-sm font-medium text-gray-700 mb-3">Deposit Options</h3>
         <div className="flex gap-3 mb-4">
-          {[0.20, 0.25, 0.30].map((percentage) => (
+          {[0.2, 0.25, 0.3].map((percentage) => (
             <button
               key={percentage}
               onClick={() => handleDepositChange(percentage)}

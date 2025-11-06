@@ -48,7 +48,10 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
   };
 
   // Handle custom percentage changes
-  const handleCustomPercentageChange = (field: keyof NonNullable<AccessModifiersData['customOverrides']>, stringValue: string) => {
+  const handleCustomPercentageChange = (
+    field: keyof NonNullable<AccessModifiersData['customOverrides']>,
+    stringValue: string,
+  ) => {
     const percentageValue = parseFloat(stringValue);
     if (isNaN(percentageValue)) {
       return;
@@ -79,7 +82,7 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
   const calculateTotal = () => {
     if (!value.customOverrides) return null;
 
-    const { profit = 0.05, owner = 0.50, tax = 0.15, opex = 0.30 } = value.customOverrides;
+    const { profit = 0.05, owner = 0.5, tax = 0.15, opex = 0.3 } = value.customOverrides;
     return ((profit + owner + tax + opex) * 100).toFixed(1);
   };
 
@@ -103,7 +106,10 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
             className="mt-1 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
           />
           <div className="flex-1">
-            <label htmlFor="tightAccess" className="block text-sm font-medium text-gray-700 cursor-pointer">
+            <label
+              htmlFor="tightAccess"
+              className="block text-sm font-medium text-gray-700 cursor-pointer"
+            >
               Tight Access Site
             </label>
             <p className="text-xs text-gray-500 mt-1">
@@ -124,7 +130,10 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
             className="mt-1 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
           />
           <div className="flex-1">
-            <label htmlFor="rockClause" className="block text-sm font-medium text-gray-700 cursor-pointer">
+            <label
+              htmlFor="rockClause"
+              className="block text-sm font-medium text-gray-700 cursor-pointer"
+            >
               Rock Clause
             </label>
             <p className="text-xs text-gray-500 mt-1">
@@ -170,7 +179,10 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
             <div className="grid grid-cols-2 gap-4">
               {/* Profit */}
               <div>
-                <label htmlFor="customProfit" className="block text-xs font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="customProfit"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
                   Profit %
                 </label>
                 <input
@@ -189,7 +201,10 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
 
               {/* Owner Compensation */}
               <div>
-                <label htmlFor="customOwner" className="block text-xs font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="customOwner"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
                   Owner Comp %
                 </label>
                 <input
@@ -198,7 +213,7 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
                   min="0"
                   max="100"
                   step="0.1"
-                  value={((value.customOverrides?.owner || 0.50) * 100).toFixed(1)}
+                  value={((value.customOverrides?.owner || 0.5) * 100).toFixed(1)}
                   onChange={(e) => handleCustomPercentageChange('owner', e.target.value)}
                   disabled={disabled}
                   className="input-field text-sm"
@@ -227,7 +242,10 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
 
               {/* Operating Expenses */}
               <div>
-                <label htmlFor="customOpex" className="block text-xs font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="customOpex"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
                   Operating Exp %
                 </label>
                 <input
@@ -236,7 +254,7 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
                   min="0"
                   max="100"
                   step="0.1"
-                  value={((value.customOverrides?.opex || 0.30) * 100).toFixed(1)}
+                  value={((value.customOverrides?.opex || 0.3) * 100).toFixed(1)}
                   onChange={(e) => handleCustomPercentageChange('opex', e.target.value)}
                   disabled={disabled}
                   className="input-field text-sm"
@@ -261,13 +279,9 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
                 />
                 <div className="text-xs">
                   {isValidTotal ? (
-                    <span className="text-green-800">
-                      ✓ Total: {total}% (Valid)
-                    </span>
+                    <span className="text-green-800">✓ Total: {total}% (Valid)</span>
                   ) : (
-                    <span className="text-red-800">
-                      ⚠ Total: {total}% (Must equal 100%)
-                    </span>
+                    <span className="text-red-800">⚠ Total: {total}% (Must equal 100%)</span>
                   )}
                 </div>
               </div>
@@ -280,9 +294,9 @@ export function AccessModifiers({ value, onChange, disabled = false }: AccessMod
                 <div className="text-xs text-blue-800">
                   <p className="font-medium mb-1">Profit-First Percentages</p>
                   <ul className="space-y-1 list-disc list-inside">
-                    <li>Default ({"<"}$250K): 5/50/15/30</li>
+                    <li>Default ({'<'}$250K): 5/50/15/30</li>
                     <li>Growing ($250K-$500K): 10/40/15/35</li>
-                    <li>Established ({">"}$500K): 15/30/15/40</li>
+                    <li>Established ({'>'}$500K): 15/30/15/40</li>
                   </ul>
                   <p className="mt-2">All percentages must sum to 100%</p>
                 </div>

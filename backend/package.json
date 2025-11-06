@@ -9,6 +9,7 @@
     "start": "node src/index.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node database/migrate.js",
+    "migrate:test": "drizzle-kit push",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",

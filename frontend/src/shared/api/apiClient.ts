@@ -34,7 +34,10 @@ async function getAuthToken(): Promise<string | null> {
         return;
       }
       // Type assertion after null check
-      const validSession = session as { isValid: () => boolean; getIdToken: () => { getJwtToken: () => string } };
+      const validSession = session as {
+        isValid: () => boolean;
+        getIdToken: () => { getJwtToken: () => string };
+      };
       if (!validSession.isValid()) {
         resolve(null);
         return;
