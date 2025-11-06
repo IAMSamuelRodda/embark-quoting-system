@@ -41,7 +41,8 @@ export async function authenticateToken(req, res, next) {
     if (!cognitoVerifier) {
       return res.status(500).json({
         error: 'Configuration Error',
-        message: 'Authentication service not configured. Missing COGNITO_USER_POOL_ID or COGNITO_CLIENT_ID.',
+        message:
+          'Authentication service not configured. Missing COGNITO_USER_POOL_ID or COGNITO_CLIENT_ID.',
       });
     }
 
