@@ -79,10 +79,7 @@ const CRITICAL_FIELDS = new Set([
 /**
  * Non-critical fields that can be auto-merged
  */
-const AUTO_MERGE_FIELDS = new Set([
-  'metadata',
-  'location',
-]);
+const AUTO_MERGE_FIELDS = new Set(['metadata', 'location']);
 
 /**
  * Determine if a field is critical
