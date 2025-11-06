@@ -1,0 +1,266 @@
+/**
+ * Button Styles - Design System v2.0
+ *
+ * Philosophy: "Confident Affordance" - Industrial push-button feel
+ *
+ * Interaction Choreography:
+ * 1. Default: Solid, confident, ready
+ * 2. Hover: Darkens + lifts (translateY -1px)
+ * 3. Active: Returns to baseline (satisfying compression)
+ * 4. Disabled: Faded but maintains structure
+ *
+ * Timing: 100ms instant feedback (like a physical button press)
+ */
+
+.button {
+  /* Reset */
+  all: unset;
+  box-sizing: border-box;
+
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2); /* 8px between icon and text */
+
+  /* Typography */
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  white-space: nowrap;
+
+  /* Interaction */
+  cursor: pointer;
+  user-select: none;
+
+  /* Transition: 100ms instant (industrial responsiveness) */
+  transition: all 100ms ease;
+
+  /* Border radius */
+  border-radius: 0.25rem; /* 4px - subtle rounding */
+
+  /* Focus ring (accessibility) */
+  outline: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
+/* ===== SIZES ===== */
+
+.button--small {
+  height: 32px;
+  padding: 0 var(--spacing-3); /* 0 12px */
+  font-size: var(--font-size-sm); /* 14px */
+}
+
+.button--medium {
+  height: 44px; /* Mobile touch target minimum */
+  padding: 0 var(--spacing-6); /* 0 24px */
+  font-size: var(--font-size-base); /* 16px */
+}
+
+.button--large {
+  height: 56px;
+  padding: 0 var(--spacing-8); /* 0 32px */
+  font-size: var(--font-size-lg); /* 18px */
+}
+
+/* ===== PRIMARY VARIANT (CAT Gold background) ===== */
+
+.button--primary {
+  background-color: var(--color-accent-primary); /* #FFB400 CAT Gold */
+  color: var(--color-text-primary); /* Near-black text on gold */
+  border: 2px solid var(--color-accent-primary);
+}
+
+.button--primary:hover:not(:disabled) {
+  background-color: var(--color-accent-hover); /* #E6A200 darker gold */
+  border-color: var(--color-accent-hover);
+  transform: translateY(-1px); /* Lift effect */
+  box-shadow: var(--shadow-button-hover);
+}
+
+.button--primary:active:not(:disabled) {
+  transform: translateY(0); /* Return to baseline (compression) */
+  box-shadow: none;
+}
+
+/* ===== SECONDARY VARIANT (Outlined) ===== */
+
+.button--secondary {
+  background-color: transparent;
+  color: var(--color-accent-text); /* WCAG AA compliant text color */
+  border: 2px solid var(--color-accent-primary);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background-color: var(--color-accent-light); /* #FFCA4D light gold tint */
+  border-color: var(--color-accent-hover);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-button-hover);
+}
+
+.button--secondary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ===== TERTIARY VARIANT (Text only) ===== */
+
+.button--tertiary {
+  background-color: transparent;
+  color: var(--color-accent-text); /* WCAG AA compliant text color */
+  border: 2px solid transparent; /* Maintains size consistency */
+  padding: 0 var(--spacing-4); /* Less horizontal padding */
+}
+
+.button--tertiary:hover:not(:disabled) {
+  background-color: var(--color-background-secondary); /* Subtle gray */
+  color: var(--color-accent-hover); /* Darker gold on hover */
+}
+
+.button--tertiary:active:not(:disabled) {
+  background-color: var(--color-background-tertiary);
+}
+
+/* ===== DISABLED STATE ===== */
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  /* Maintains structure - no transform on hover */
+}
+
+/* ===== FULL WIDTH ===== */
+
+.button--full-width {
+  width: 100%;
+}
+
+/* ===== LOADING STATE ===== */
+
+.button--loading {
+  position: relative;
+  color: transparent; /* Hide text while loading */
+  pointer-events: none; /* Prevent interaction */
+}
+
+.button__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button__spinner-icon {
+  width: 1.25rem; /* 20px */
+  height: 1.25rem;
+  animation: button-spin 600ms linear infinite;
+}
+
+.button__spinner-circle {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-dasharray: 60;
+  stroke-dashoffset: 45;
+}
+
+@keyframes button-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Adjust spinner color for primary buttons */
+.button--primary.button--loading .button__spinner-icon {
+  color: var(--color-text-primary); /* Dark spinner on gold background */
+}
+
+.button--secondary.button--loading .button__spinner-icon,
+.button--tertiary.button--loading .button__spinner-icon {
+  color: var(--color-accent-text); /* Accessible gold spinner */
+}
+
+/* ===== ICON LAYOUT ===== */
+
+.button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.button__icon svg {
+  width: 1.25rem; /* 20px */
+  height: 1.25rem;
+}
+
+/* Small size adjustments */
+.button--small .button__icon svg {
+  width: 1rem; /* 16px */
+  height: 1rem;
+}
+
+/* Large size adjustments */
+.button--large .button__icon svg {
+  width: 1.5rem; /* 24px */
+  height: 1.5rem;
+}
+
+/* ===== TEXT ===== */
+
+.button__text {
+  /* Text remains visible during loading state transition */
+  display: inline-block;
+}
+
+/**
+ * Usage Example:
+ *
+ * ```tsx
+ * import { Button } from '@/shared/components/Button';
+ *
+ * // Primary CTA
+ * <Button variant="primary" size="large">
+ *   Get Free Quote
+ * </Button>
+ *
+ * // Secondary action
+ * <Button variant="secondary">
+ *   View Details
+ * </Button>
+ *
+ * // With icon
+ * <Button variant="primary" iconBefore={<PlusIcon />}>
+ *   Add Job
+ * </Button>
+ *
+ * // Loading state
+ * <Button variant="primary" loading>
+ *   Saving...
+ * </Button>
+ *
+ * // Disabled
+ * <Button variant="primary" disabled>
+ *   Submit Quote
+ * </Button>
+ * ```
+ *
+ * Design Notes:
+ * - Primary buttons feel like industrial push-buttons (solid, responsive)
+ * - Hover lift (1px) creates satisfying feedback
+ * - Active compression returns to baseline (like pressing a physical button)
+ * - 100ms timing = instant responsiveness (not laggy, not jarring)
+ * - Disabled state maintains visual structure (doesn't collapse)
+ */

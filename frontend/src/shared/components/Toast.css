@@ -1,0 +1,396 @@
+/**
+ * Toast Styles - Design System v2.0
+ *
+ * Philosophy: "Helpful, Not Punitive" feedback messaging
+ *
+ * Motion Choreography:
+ * - Slide-in: 300ms base from right (purposeful entrance)
+ * - Slide-out: 200ms fast to right (snappy exit)
+ * - Fade combined with slide for smooth appearance
+ *
+ * Variants:
+ * - Success: Green (#10B981) - Positive feedback
+ * - Error: Red (#DC2626) - Helpful guidance (not aggressive)
+ * - Warning: Amber (#F59E0B) - Important notice
+ * - Info: Blue (#3B82F6) - Neutral information
+ *
+ * Timing Guidelines (from style guide):
+ * - 200ms: Fast (exit animation)
+ * - 300ms: Base (entrance animation)
+ * - 5000ms: Auto-dismiss default (enough time to read)
+ */
+
+/* ===== TOAST CONTAINER ===== */
+
+.toast-container {
+  position: fixed;
+  z-index: 2000; /* Above modals (1000) */
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3); /* 12px between toasts */
+  pointer-events: none; /* Allow clicks through gaps */
+}
+
+/* Position variants */
+.toast-container--top-right {
+  top: var(--spacing-6); /* 24px */
+  right: var(--spacing-6);
+}
+
+.toast-container--top-center {
+  top: var(--spacing-6);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.toast-container--top-left {
+  top: var(--spacing-6);
+  left: var(--spacing-6);
+}
+
+.toast-container--bottom-right {
+  bottom: var(--spacing-6);
+  right: var(--spacing-6);
+}
+
+.toast-container--bottom-center {
+  bottom: var(--spacing-6);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.toast-container--bottom-left {
+  bottom: var(--spacing-6);
+  left: var(--spacing-6);
+}
+
+/* ===== TOAST ===== */
+
+.toast {
+  /* Layout */
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3); /* 12px between icon and content */
+  min-width: 300px;
+  max-width: 500px;
+  padding: var(--spacing-4); /* 16px */
+
+  /* Appearance */
+  background-color: var(--color-background-primary);
+  border-radius: 0.5rem; /* 8px */
+  box-shadow: var(--shadow-lg);
+  border-left: 4px solid transparent;
+
+  /* Interaction */
+  pointer-events: auto; /* Enable clicks on toast */
+  cursor: default;
+
+  /* Animation: 300ms base slide-in from right */
+  animation: toast-slide-in 300ms ease;
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Exit animation */
+.toast--exiting {
+  animation: toast-slide-out 200ms ease forwards;
+}
+
+@keyframes toast-slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* ===== VARIANTS ===== */
+
+/* Success variant */
+.toast--success {
+  border-left-color: var(--color-success); /* Green */
+}
+
+.toast--success .toast-icon-wrapper {
+  color: var(--color-success);
+}
+
+/* Error variant */
+.toast--error {
+  border-left-color: var(--color-error); /* Red */
+}
+
+.toast--error .toast-icon-wrapper {
+  color: var(--color-error);
+}
+
+/* Warning variant */
+.toast--warning {
+  border-left-color: var(--color-warning); /* Amber */
+}
+
+.toast--warning .toast-icon-wrapper {
+  color: var(--color-warning);
+}
+
+/* Info variant */
+.toast--info {
+  border-left-color: var(--color-info); /* Blue */
+}
+
+.toast--info .toast-icon-wrapper {
+  color: var(--color-info);
+}
+
+/* ===== ICON ===== */
+
+.toast-icon-wrapper {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.toast-icon {
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== CONTENT ===== */
+
+.toast-content {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+.toast-title {
+  font-size: var(--font-size-base); /* 16px */
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-1); /* 4px */
+}
+
+.toast-message {
+  font-size: var(--font-size-sm); /* 14px */
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+/* ===== CLOSE BUTTON ===== */
+
+.toast-close-button {
+  /* Reset */
+  all: unset;
+  box-sizing: border-box;
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+
+  /* Appearance */
+  color: var(--color-text-tertiary);
+  border-radius: 0.25rem;
+
+  /* Interaction */
+  cursor: pointer;
+  transition: all 100ms ease; /* 100ms instant feedback */
+}
+
+.toast-close-button:hover {
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+
+.toast-close-button:active {
+  background-color: var(--color-background-tertiary);
+}
+
+.toast-close-button:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+.toast-close-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  .toast-container {
+    gap: var(--spacing-2); /* Smaller gap on mobile */
+  }
+
+  .toast-container--top-right,
+  .toast-container--top-left,
+  .toast-container--bottom-right,
+  .toast-container--bottom-left {
+    left: var(--spacing-4); /* Center on mobile */
+    right: var(--spacing-4);
+    transform: none;
+  }
+
+  .toast {
+    min-width: unset;
+    max-width: 100%;
+  }
+
+  /* Mobile: Slide from top instead of right */
+  @keyframes toast-slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(-100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .toast--exiting {
+    animation: toast-slide-out-mobile 200ms ease forwards;
+  }
+
+  @keyframes toast-slide-out-mobile {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-100%);
+    }
+  }
+}
+
+/**
+ * Usage Example:
+ *
+ * ```tsx
+ * import { Toast, ToastContainer } from '@/shared/components/Toast';
+ * import { useState } from 'react';
+ *
+ * // In your app root (e.g., App.tsx)
+ * function App() {
+ *   return (
+ *     <>
+ *       <YourAppContent />
+ *       <ToastContainer position="top-right" maxToasts={5} />
+ *     </>
+ *   );
+ * }
+ *
+ * // Using toast (with custom hook - recommended)
+ * function useToast() {
+ *   const [toasts, setToasts] = useState<ToastProps[]>([]);
+ *
+ *   const addToast = (toast: Omit<ToastProps, 'onClose'>) => {
+ *     const id = Date.now();
+ *     setToasts((prev) => [...prev, { ...toast, onClose: () => removeToast(id) }]);
+ *   };
+ *
+ *   const removeToast = (id: number) => {
+ *     setToasts((prev) => prev.filter((_, i) => i !== id));
+ *   };
+ *
+ *   return { toasts, addToast };
+ * }
+ *
+ * // In your component
+ * function QuoteForm() {
+ *   const { addToast } = useToast();
+ *
+ *   const handleSubmit = async () => {
+ *     try {
+ *       await saveQuote();
+ *       addToast({
+ *         variant: 'success',
+ *         title: 'Quote saved',
+ *         message: 'Your quote has been saved successfully',
+ *         duration: 5000,
+ *       });
+ *     } catch (error) {
+ *       addToast({
+ *         variant: 'error',
+ *         title: 'Save failed',
+ *         message: 'Unable to save quote. Please check your connection and try again.',
+ *         duration: 0, // Don't auto-dismiss errors
+ *       });
+ *     }
+ *   };
+ * }
+ *
+ * // Success toast
+ * <Toast
+ *   variant="success"
+ *   title="Quote created"
+ *   message="Quote #EE-2025-0001 has been created successfully"
+ *   duration={5000}
+ * />
+ *
+ * // Error toast (Helpful, Not Punitive)
+ * <Toast
+ *   variant="error"
+ *   title="Unable to save quote"
+ *   message="Please check your internet connection and try again"
+ *   duration={0} // Don't auto-dismiss errors
+ * />
+ *
+ * // Warning toast
+ * <Toast
+ *   variant="warning"
+ *   title="Unsaved changes"
+ *   message="You have unsaved changes. Please save before leaving."
+ *   duration={7000}
+ * />
+ *
+ * // Info toast
+ * <Toast
+ *   variant="info"
+ *   message="Quote prices have been updated based on the latest price sheet"
+ *   duration={5000}
+ * />
+ * ```
+ *
+ * Message Best Practices:
+ * ❌ BAD: "Error occurred"
+ * ✅ GOOD: "Unable to save quote. Please check your connection and try again."
+ *
+ * ❌ BAD: "Success!"
+ * ✅ GOOD: "Quote #EE-2025-0001 has been created successfully"
+ *
+ * ❌ BAD: "Invalid input"
+ * ✅ GOOD: "Email address must include @ symbol"
+ *
+ * Design Notes:
+ * - 300ms entrance = purposeful, confident (not rushed)
+ * - 200ms exit = snappy (faster than entrance)
+ * - Slide from right on desktop, top on mobile
+ * - Border-left color indicates variant (visual hierarchy)
+ * - Icons use variant color (brand consistency)
+ * - Auto-dismiss default: 5000ms (enough time to read)
+ * - Error/Warning toasts should use duration=0 (manual dismiss)
+ * - role="alert" for errors (assertive), role="status" for success/info (polite)
+ * - Max width: 500px (prevents overly wide toasts)
+ * - Min width: 300px (prevents too-narrow toasts)
+ * - Portal rendering (outside normal DOM hierarchy)
+ * - Stack multiple toasts with 12px gap
+ * - Close button optional (showCloseButton prop)
+ */

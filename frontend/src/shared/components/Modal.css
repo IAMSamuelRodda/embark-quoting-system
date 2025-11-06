@@ -1,0 +1,334 @@
+/**
+ * Modal Styles - Design System v2.0
+ *
+ * Philosophy: "Purposeful Choreography" motion design
+ *
+ * Motion Choreography:
+ * 1. Overlay fades in (200ms fast)
+ * 2. Modal scales up + fades in (300ms base, 100ms delay)
+ * 3. Combined effect: Purposeful, confident entrance
+ *
+ * Timing Guidelines (from style guide):
+ * - 100ms: Instant feedback (hover, press)
+ * - 200ms: Fast (validation, state changes)
+ * - 300ms: Base (modal, drawer, transitions) ← Used here
+ *
+ * Exit Animation:
+ * - Reverse timing: Modal scales down + fades out
+ * - Feels snappy but not abrupt
+ */
+
+/* ===== OVERLAY (backdrop) ===== */
+
+.modal-overlay {
+  /* Position */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+
+  /* Appearance */
+  background-color: rgba(26, 26, 26, 0.6); /* Near-black with 60% opacity */
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-6); /* 24px */
+
+  /* Prevent body scroll (mobile) */
+  overflow-y: auto;
+
+  /* Animation: 200ms fast fade-in */
+  animation: modal-overlay-fade-in 200ms ease;
+}
+
+@keyframes modal-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== MODAL CONTENT ===== */
+
+.modal-content {
+  /* Position */
+  position: relative;
+  z-index: 1001;
+
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh; /* Don't exceed viewport height */
+  width: 100%;
+
+  /* Appearance */
+  background-color: var(--color-background-primary);
+  border-radius: 0.5rem; /* 8px */
+  box-shadow: var(--shadow-lg);
+
+  /* Focus */
+  outline: none;
+
+  /* Animation: 300ms base scale-up with 100ms delay (choreography) */
+  animation: modal-content-scale-in 300ms ease 100ms backwards;
+}
+
+@keyframes modal-content-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ===== SIZES ===== */
+
+.modal-content--small {
+  max-width: 400px;
+}
+
+.modal-content--medium {
+  max-width: 600px; /* Default */
+}
+
+.modal-content--large {
+  max-width: 800px;
+}
+
+.modal-content--full {
+  max-width: 95vw;
+  max-height: 95vh;
+}
+
+/* ===== MODAL HEADER ===== */
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-6); /* 24px */
+  border-bottom: 1px solid var(--color-border-default);
+  flex-shrink: 0; /* Don't shrink when content is large */
+}
+
+.modal-title {
+  font-size: var(--font-size-xl); /* 24px */
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* Close button */
+.modal-close-button {
+  /* Reset */
+  all: unset;
+  box-sizing: border-box;
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+
+  /* Appearance */
+  color: var(--color-text-tertiary);
+  border-radius: 0.25rem;
+
+  /* Interaction */
+  cursor: pointer;
+  transition: all 100ms ease; /* 100ms instant feedback */
+}
+
+.modal-close-button:hover {
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+
+.modal-close-button:active {
+  background-color: var(--color-background-tertiary);
+}
+
+.modal-close-button:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
+.modal-close-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ===== MODAL BODY ===== */
+
+.modal-body {
+  padding: var(--spacing-6); /* 24px */
+  overflow-y: auto; /* Scroll if content is too large */
+  flex: 1; /* Take remaining space */
+}
+
+/* ===== MODAL FOOTER ===== */
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-3); /* 12px between buttons */
+  padding: var(--spacing-6); /* 24px */
+  border-top: 1px solid var(--color-border-default);
+  flex-shrink: 0; /* Don't shrink when content is large */
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: var(--spacing-4); /* Smaller padding on mobile */
+  }
+
+  .modal-content {
+    max-height: 95vh; /* More space on mobile */
+  }
+
+  .modal-content--small,
+  .modal-content--medium,
+  .modal-content--large {
+    max-width: 100%; /* Full width on mobile */
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: var(--spacing-4); /* Smaller padding on mobile */
+  }
+
+  .modal-title {
+    font-size: var(--font-size-lg); /* Smaller title on mobile */
+  }
+
+  .modal-footer {
+    flex-direction: column; /* Stack buttons on mobile */
+    align-items: stretch;
+  }
+
+  .modal-footer button {
+    width: 100%; /* Full width buttons on mobile */
+  }
+}
+
+/**
+ * Usage Example:
+ *
+ * ```tsx
+ * import { Modal, ModalFooter } from '@/shared/components/Modal';
+ * import { Button } from '@/shared/components/Button';
+ *
+ * function DeleteQuoteModal() {
+ *   const [isOpen, setIsOpen] = useState(false);
+ *
+ *   return (
+ *     <>
+ *       <Button onClick={() => setIsOpen(true)}>Delete Quote</Button>
+ *
+ *       <Modal
+ *         isOpen={isOpen}
+ *         onClose={() => setIsOpen(false)}
+ *         title="Delete Quote"
+ *         size="small"
+ *       >
+ *         <p>Are you sure you want to delete this quote?</p>
+ *         <p>This action cannot be undone.</p>
+ *
+ *         <ModalFooter>
+ *           <Button variant="secondary" onClick={() => setIsOpen(false)}>
+ *             Cancel
+ *           </Button>
+ *           <Button variant="primary" onClick={handleDelete}>
+ *             Delete
+ *           </Button>
+ *         </ModalFooter>
+ *       </Modal>
+ *     </>
+ *   );
+ * }
+ *
+ * // Form modal (medium size)
+ * <Modal
+ *   isOpen={showForm}
+ *   onClose={() => setShowForm(false)}
+ *   title="Create New Quote"
+ *   size="medium"
+ * >
+ *   <form onSubmit={handleSubmit}>
+ *     <Input label="Customer Name" required />
+ *     <Input label="Job Site Address" required />
+ *     <Select label="Job Type" options={jobTypes} required />
+ *
+ *     <ModalFooter>
+ *       <Button variant="secondary" onClick={() => setShowForm(false)}>
+ *         Cancel
+ *       </Button>
+ *       <Button variant="primary" type="submit">
+ *         Create Quote
+ *       </Button>
+ *     </ModalFooter>
+ *   </form>
+ * </Modal>
+ *
+ * // No title, custom close button
+ * <Modal
+ *   isOpen={isImageOpen}
+ *   onClose={() => setIsImageOpen(false)}
+ *   showCloseButton={true}
+ *   size="large"
+ * >
+ *   <img src={imageSrc} alt="Quote diagram" style={{ width: '100%' }} />
+ * </Modal>
+ *
+ * // Full screen modal
+ * <Modal
+ *   isOpen={isFullScreen}
+ *   onClose={() => setIsFullScreen(false)}
+ *   title="Quote Details (Full View)"
+ *   size="full"
+ * >
+ *   <div>Large content here</div>
+ * </Modal>
+ * ```
+ *
+ * Motion Choreography Notes:
+ * - Overlay fades in first (200ms fast)
+ * - Modal scales up with 100ms delay (creates depth perception)
+ * - Combined animation: 300ms total duration
+ * - Scale starts at 95% (subtle, not dramatic)
+ * - translateY(20px) adds vertical motion (purposeful entrance)
+ * - Exit animation is instant (no delay on close)
+ *
+ * Accessibility Notes:
+ * - Portal rendering (outside normal DOM hierarchy)
+ * - Focus trap (Tab cycles within modal)
+ * - Escape key closes modal (when closeOnEscape=true)
+ * - Click outside closes modal (when closeOnOverlayClick=true)
+ * - Focus returns to trigger element on close
+ * - role="dialog" and aria-modal="true"
+ * - aria-labelledby links to title
+ * - Body scroll disabled when modal is open
+ *
+ * Design Notes:
+ * - 300ms base timing = purposeful, confident (not rushed)
+ * - 100ms delay creates choreographed entrance (overlay → modal)
+ * - Sizes: small (400px), medium (600px), large (800px), full (95vw)
+ * - Mobile responsive (full width, stacked buttons)
+ * - Shadow elevation (var(--shadow-lg)) for depth
+ * - Border radius 8px (larger than buttons for containers)
+ */

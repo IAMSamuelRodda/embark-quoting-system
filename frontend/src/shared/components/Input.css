@@ -1,0 +1,300 @@
+/**
+ * Input Styles - Design System v2.0
+ *
+ * Philosophy: "Helpful, Not Punitive" error messaging
+ *
+ * Validation States:
+ * - Default: Calm, neutral appearance
+ * - Focus: CAT Gold ring (clear visual feedback)
+ * - Error: Red border + helpful message (no shake, no aggression)
+ * - Success: Green border + optional confirmation
+ *
+ * Timing: 200ms fast (state changes feel responsive)
+ */
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2); /* 8px vertical spacing */
+}
+
+.input-container--full-width {
+  width: 100%;
+}
+
+/* ===== LABEL ===== */
+
+.input-label {
+  display: block;
+  font-size: var(--font-size-sm); /* 14px */
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.input-label__required {
+  color: var(--color-error);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ===== INPUT WRAPPER (contains input + icons) ===== */
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* ===== INPUT FIELD ===== */
+
+.input {
+  /* Reset */
+  all: unset;
+  box-sizing: border-box;
+
+  /* Layout */
+  width: 100%;
+  height: 44px; /* Mobile touch target */
+
+  /* Typography */
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-primary);
+
+  /* Appearance */
+  background-color: var(--color-background-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.25rem;
+  padding: 0 var(--spacing-3); /* 0 12px */
+
+  /* Inner shadow for depth */
+  box-shadow: var(--shadow-input);
+
+  /* Transition: 200ms fast (validation feedback) */
+  transition: all 200ms ease;
+}
+
+/* Placeholder */
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Focus state */
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: var(--shadow-focus); /* CAT Gold glow */
+}
+
+/* Hover (subtle) */
+.input:hover:not(:focus):not(:disabled) {
+  border-color: var(--color-text-tertiary);
+}
+
+/* Disabled */
+.input:disabled {
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ===== SIZES ===== */
+
+.input-wrapper--small .input {
+  height: 32px;
+  font-size: var(--font-size-sm);
+  padding: 0 var(--spacing-2);
+}
+
+.input-wrapper--large .input {
+  height: 56px;
+  font-size: var(--font-size-lg);
+  padding: 0 var(--spacing-4);
+}
+
+/* ===== ERROR STATE ===== */
+
+.input-wrapper--error .input {
+  border-color: var(--color-error);
+}
+
+.input-wrapper--error .input:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2); /* Red glow */
+}
+
+/* ===== SUCCESS STATE ===== */
+
+.input-wrapper--success .input {
+  border-color: var(--color-success);
+}
+
+.input-wrapper--success .input:focus {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); /* Green glow */
+}
+
+/* ===== ICONS ===== */
+
+.input-icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  pointer-events: none; /* Click passes through to input */
+}
+
+.input-icon svg {
+  width: 1.25rem; /* 20px */
+  height: 1.25rem;
+}
+
+.input-icon--before {
+  left: var(--spacing-3); /* 12px from left */
+}
+
+.input-icon--after {
+  right: var(--spacing-3); /* 12px from right */
+}
+
+/* Adjust input padding when icons present */
+.input-wrapper--with-icon .input-icon--before ~ .input {
+  padding-left: calc(var(--spacing-3) + 1.25rem + var(--spacing-2)); /* Icon + gap */
+}
+
+.input-wrapper--with-icon .input-icon--after ~ .input {
+  padding-right: calc(var(--spacing-3) + 1.25rem + var(--spacing-2)); /* Icon + gap */
+}
+
+/* ===== HELPER TEXT ===== */
+
+.input-helper-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ===== ERROR MESSAGE (Helpful, Not Punitive) ===== */
+
+.input-error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1); /* 4px */
+  font-size: var(--font-size-sm);
+  color: var(--color-error-dark);
+  margin: 0;
+
+  /* 200ms transition for smooth appearance */
+  animation: input-error-fade-in 200ms ease;
+}
+
+@keyframes input-error-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.input-error__icon {
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+/* ===== SUCCESS MESSAGE ===== */
+
+.input-success {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-success-dark);
+  margin: 0;
+  animation: input-success-fade-in 200ms ease;
+}
+
+@keyframes input-success-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.input-success__icon {
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+/**
+ * Usage Example:
+ *
+ * ```tsx
+ * import { Input } from '@/shared/components/Input';
+ *
+ * // Basic input
+ * <Input
+ *   label="Email Address"
+ *   type="email"
+ *   placeholder="Enter your email"
+ *   required
+ * />
+ *
+ * // With helper text
+ * <Input
+ *   label="Quote Number"
+ *   helperText="Format: EE-YYYY-NNNN (e.g., EE-2025-0001)"
+ * />
+ *
+ * // Error state (Helpful, Not Punitive)
+ * <Input
+ *   label="Email Address"
+ *   type="email"
+ *   value="invalid"
+ *   error="Email address must include @ symbol"
+ * />
+ *
+ * // Success state
+ * <Input
+ *   label="Email Address"
+ *   type="email"
+ *   value="user@example.com"
+ *   success="Email address is valid"
+ * />
+ *
+ * // With icon
+ * <Input
+ *   label="Search Quotes"
+ *   placeholder="Search..."
+ *   iconBefore={<SearchIcon />}
+ * />
+ * ```
+ *
+ * Error Message Best Practices:
+ * ❌ "Invalid input" → Too vague
+ * ✅ "Email address must include @ symbol" → Specific, actionable
+ *
+ * ❌ "Oops! Try again" → Condescending
+ * ✅ "Password must be at least 8 characters" → Calm guidance
+ *
+ * ❌ Shake animation → Aggressive, punitive feel
+ * ✅ Fade-in transition → Calm, helpful appearance
+ *
+ * Design Notes:
+ * - 200ms transition feels responsive (not instant, not slow)
+ * - Inner shadow creates subtle depth (input feels "recessed")
+ * - Focus ring uses CAT Gold for brand consistency
+ * - Error/success fade in (no jarring appearance)
+ * - Icons are purely decorative (aria-hidden, pointer-events: none)
+ * - Label association ensures accessibility (click label focuses input)
+ */

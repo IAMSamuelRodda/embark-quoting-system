@@ -18,7 +18,15 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:a11y": "playwright test tests/accessibility",
+    "test:a11y:report": "tsx scripts/generate-a11y-report.ts",
+    "test:storybook": "test-storybook",
+    "test:storybook:ci": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"npm run build-storybook --quiet && npx http-server storybook-static --port 6006 --silent\" \"wait-on tcp:6006 && npm run test:storybook\"",
+    "test:a11y:all": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"npm run storybook\" \"wait-on tcp:6006 && npm run test:a11y\"",
+    "test:a11y:all:report": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"npm run storybook\" \"wait-on tcp:6006 && npm run test:a11y:report\"",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -40,8 +48,17 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@axe-core/react": "^4.11.0",
+    "@chromatic-com/storybook": "^4.1.2",
     "@eslint/js": "^9.36.0",
     "@playwright/test": "^1.56.1",
+    "@storybook/addon-a11y": "^10.0.5",
+    "@storybook/addon-docs": "^10.0.5",
+    "@storybook/addon-onboarding": "^10.0.5",
+    "@storybook/addon-vitest": "^10.0.5",
+    "@storybook/react-vite": "^10.0.5",
+    "@storybook/test-runner": "^0.24.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -50,15 +67,25 @@
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.4",
     "@vitest/ui": "^4.0.7",
+    "axe-core": "^4.11.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",
+    "eslint-plugin-storybook": "^10.0.5",
     "globals": "^16.4.0",
+    "html-validate": "^10.3.0",
+    "http-server": "^14.1.1",
     "jsdom": "^27.1.0",
+    "pa11y": "^9.0.1",
+    "pa11y-ci": "^4.0.1",
     "prettier": "^3.6.2",
+    "storybook": "^10.0.5",
+    "tsx": "^4.20.6",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.45.0",
     "vite": "^7.1.7",
-    "vitest": "^4.0.7"
+    "vitest": "^4.0.7",
+    "wait-on": "^9.0.1"
   }
 }

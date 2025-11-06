@@ -1,0 +1,75 @@
+/**
+ * Color Tokens - Design System v2.0
+ *
+ * Based on: docs/design/style-guide.md (Color Palette section)
+ * Philosophy: Industrial Clarity - Visual vacuum around CAT Gold accent
+ *
+ * Color Strategy:
+ * - #FFB400 CAT Gold creates instant earthmoving industry recognition
+ * - Chromatic storytelling: limited palette amplifies the golden accent
+ * - White canvas provides breathing room and purity
+ * - Near-black ensures readability and authority
+ */
+
+:root {
+  /* Primary Brand Colors */
+  --color-accent-primary: #ffb400; /* CAT Gold - main brand color, strategic choice */
+  --color-accent-hover: #e6a200; /* Darker gold for hover states */
+  --color-accent-light: #ffca4d; /* Lighter gold for backgrounds/highlights */
+  --color-accent-text: #996600; /* Darker gold for text on white (WCAG AA: 5.2:1 contrast) */
+
+  /* Base Colors */
+  --color-background-primary: #ffffff; /* Pure white canvas */
+  --color-text-primary: #1a1a1a; /* Near-black for structure/authority */
+  --color-text-secondary: #666666; /* Medium gray for secondary text (WCAG AA: 5.74:1) */
+  --color-text-tertiary: #757575; /* Medium-light gray for hints/placeholders (WCAG AA: 4.54:1) */
+
+  /* UI Colors */
+  --color-border-default: #e5e5e5; /* Subtle borders */
+  --color-border-focus: var(--color-accent-primary); /* Focus indicator (CAT Gold) */
+  --color-background-secondary: #f5f5f5; /* Light gray backgrounds (cards, inputs) */
+  --color-background-tertiary: #fafafa; /* Even lighter (alternating rows) */
+
+  /* Semantic Colors - Functional meaning */
+  --color-success: #10b981; /* Green - success states, confirmations */
+  --color-success-light: #d1fae5; /* Light green background */
+  --color-success-dark: #047857; /* Dark green text */
+
+  --color-warning: #f59e0b; /* Orange - warnings, cautions */
+  --color-warning-light: #fef3c7; /* Light orange background */
+  --color-warning-dark: #b45309; /* Dark orange text */
+
+  --color-error: #dc2626; /* Red - errors, destructive actions */
+  --color-error-light: #fee2e2; /* Light red background */
+  --color-error-dark: #991b1b; /* Dark red text */
+
+  --color-info: #3b82f6; /* Blue - informational messages */
+  --color-info-light: #dbeafe; /* Light blue background */
+  --color-info-dark: #1e40af; /* Dark blue text */
+
+  /* Overlay & Shadow Colors */
+  --color-overlay: rgba(26, 26, 26, 0.5); /* Semi-transparent backdrop for modals */
+  --color-shadow: rgba(26, 26, 26, 0.1); /* Subtle shadow color */
+}
+
+/**
+ * Usage Guidelines (from style guide):
+ *
+ * Accent Color (#FFB400):
+ * - Use ONLY for: CTAs, focus states, selected states, key interactions
+ * - Creates visual vacuum effect - use sparingly for maximum impact
+ * - Never use as background for large areas
+ *
+ * Semantic Colors:
+ * - Always pair with appropriate icons
+ * - Use light variants for backgrounds, dark variants for text
+ * - Success: Confirmations, completed actions
+ * - Warning: Cautions, reversible issues
+ * - Error: Failures, destructive actions (with confirmation)
+ * - Info: Helpful tips, non-critical information
+ *
+ * Contrast Requirements (WCAG AA):
+ * - Body text: ≥4.5:1 contrast ratio
+ * - Large text (24px+): ≥3:1 contrast ratio
+ * - Interactive elements: ≥3:1 contrast ratio
+ */

@@ -1,0 +1,93 @@
+/**
+ * Shadow Tokens - Design System v2.0
+ *
+ * Based on: docs/design/style-guide.md (Decorative Elements section)
+ * Philosophy: Subtle elevation system - Swiss precision, not dramatic depth
+ *
+ * Shadow Strategy:
+ * - Minimal, purposeful elevation
+ * - Consistent light source (top-down, slight angle)
+ * - Subtle shadows reinforce hierarchy without distraction
+ * - Industrial Clarity: Function over decoration
+ */
+
+:root {
+  /* Elevation Levels (progressive depth) */
+  --shadow-none: none;
+
+  /* Level 1: Subtle hover (cards on hover, dropdowns) */
+  --shadow-sm: 0 1px 2px 0 rgba(26, 26, 26, 0.05);
+
+  /* Level 2: Floating elements (cards, buttons on hover) */
+  --shadow-md: 0 4px 6px -1px rgba(26, 26, 26, 0.1), 0 2px 4px -1px rgba(26, 26, 26, 0.06);
+
+  /* Level 3: Elevated components (dropdowns, popovers) */
+  --shadow-lg: 0 10px 15px -3px rgba(26, 26, 26, 0.1), 0 4px 6px -2px rgba(26, 26, 26, 0.05);
+
+  /* Level 4: Modal overlays (highest elevation) */
+  --shadow-xl: 0 20px 25px -5px rgba(26, 26, 26, 0.1), 0 10px 10px -5px rgba(26, 26, 26, 0.04);
+
+  /* Special: Inner shadow (inset inputs, wells) */
+  --shadow-inner: inset 0 2px 4px 0 rgba(26, 26, 26, 0.06);
+
+  /* Focus Ring (accessibility - visible keyboard focus) */
+  --shadow-focus: 0 0 0 3px rgba(255, 180, 0, 0.5); /* CAT Gold glow */
+
+  /* Component-Specific Shadows */
+  --shadow-card: var(--shadow-sm); /* Cards default */
+  --shadow-card-hover: var(--shadow-md); /* Cards on hover */
+  --shadow-button-hover: var(--shadow-sm); /* Buttons on hover (subtle lift) */
+  --shadow-dropdown: var(--shadow-lg); /* Dropdowns, select menus */
+  --shadow-modal: var(--shadow-xl); /* Modals, dialogs */
+  --shadow-input: var(--shadow-inner); /* Text inputs, textareas */
+}
+
+/**
+ * Utility Classes for Shadows
+ */
+
+.shadow-none {
+  box-shadow: var(--shadow-none);
+}
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+.shadow-xl {
+  box-shadow: var(--shadow-xl);
+}
+.shadow-inner {
+  box-shadow: var(--shadow-inner);
+}
+
+/**
+ * Usage Guidelines (from style guide):
+ *
+ * Elevation Hierarchy:
+ * - Level 0 (none): Flat elements, backgrounds
+ * - Level 1 (sm): Subtle hover states, low-priority elevation
+ * - Level 2 (md): Interactive cards, buttons on hover
+ * - Level 3 (lg): Dropdowns, tooltips, popovers
+ * - Level 4 (xl): Modals, dialogs (highest elevation)
+ *
+ * Best Practices:
+ * - Use shadows sparingly (Industrial Clarity - not material design depth)
+ * - Consistent light source (top-down, slight angle)
+ * - Never stack multiple high-elevation shadows
+ * - Shadows indicate interactivity (cards that lift on hover are clickable)
+ *
+ * Accessibility:
+ * - Focus ring (--shadow-focus) must be visible against all backgrounds
+ * - CAT Gold (#FFB400) focus glow meets WCAG 2.1 non-text contrast requirements
+ * - Never rely solely on shadow to convey meaning (use with other cues)
+ *
+ * Performance:
+ * - Use box-shadow, not filter: drop-shadow() (better performance)
+ * - Minimize shadow blur radius (smaller = faster to render)
+ * - Avoid animating shadows (transform: translateY() is cheaper)
+ */

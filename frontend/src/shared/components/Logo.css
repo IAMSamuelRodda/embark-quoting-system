@@ -1,0 +1,133 @@
+/**
+ * Logo Styles - Design System v2.0
+ *
+ * Philosophy: "Industrial Clarity" with consistent brand representation
+ *
+ * Logo Variants:
+ * - Colored: Full brand colors (default)
+ * - Black & White: Monochrome version
+ * - Icon: Square format
+ *
+ * Design Principles:
+ * - Maintains aspect ratio (object-fit: contain)
+ * - Responsive sizing
+ * - No distortion or stretching
+ * - Accessible (alt text required)
+ */
+
+.logo {
+  /* Layout */
+  display: inline-block;
+  vertical-align: middle;
+
+  /* Sizing */
+  width: auto; /* Maintain aspect ratio */
+  max-width: 100%; /* Responsive on small screens */
+
+  /* Appearance */
+  object-fit: contain; /* Never stretch or distort */
+
+  /* User interaction */
+  user-select: none;
+  pointer-events: auto;
+}
+
+/* Prevent dragging (better UX) */
+.logo {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+/* ===== VARIANTS ===== */
+
+/* Colored variant (default) */
+.logo--colored {
+  /* No additional styling needed */
+}
+
+/* Black & White variant */
+.logo--bw {
+  /* No additional styling needed - uses different image source */
+}
+
+/* Icon variant (square format) */
+.logo--icon {
+  /* Square format maintains 1:1 aspect ratio */
+  width: auto;
+}
+
+/**
+ * Usage Example:
+ *
+ * ```tsx
+ * import { Logo } from '@/shared/components/Logo';
+ *
+ * // Basic usage (colored, medium)
+ * <Logo />
+ *
+ * // Black & white logo
+ * <Logo variant="bw" />
+ *
+ * // Small size
+ * <Logo size="small" />
+ *
+ * // Large size
+ * <Logo size="large" />
+ *
+ * // Custom size (200px height)
+ * <Logo size={200} />
+ *
+ * // Icon variant
+ * <Logo variant="icon" size="small" />
+ *
+ * // Custom alt text
+ * <Logo alt="Embark Earthworks - Quoting System" />
+ *
+ * // In a navigation bar
+ * <nav>
+ *   <a href="/">
+ *     <Logo size="small" />
+ *   </a>
+ * </nav>
+ *
+ * // In a header
+ * <header>
+ *   <Logo variant="colored" size="medium" />
+ *   <h1>Quoting System</h1>
+ * </header>
+ *
+ * // In a footer (dark background)
+ * <footer style={{ backgroundColor: '#1A1A1A' }}>
+ *   <Logo variant="bw" size="small" />
+ * </footer>
+ * ```
+ *
+ * Logo Guidelines:
+ * - Use colored logo on light backgrounds (default)
+ * - Use black & white logo on dark backgrounds or for print
+ * - Always maintain aspect ratio (never stretch)
+ * - Provide minimum 16px clear space around logo
+ * - Use appropriate size for context (small: nav, medium: header, large: hero)
+ *
+ * Size Reference:
+ * - Small: 80px height (navigation bars, footers)
+ * - Medium: 120px height (headers, default usage)
+ * - Large: 160px height (hero sections, landing pages)
+ * - Custom: Specify exact height in pixels
+ *
+ * Accessibility:
+ * - Always provide meaningful alt text
+ * - Default: "Embark Earthworks"
+ * - Customize for context: "Embark Earthworks - Quoting System"
+ * - Logo is focusable when inside interactive elements (links, buttons)
+ *
+ * Design Notes:
+ * - Pattern-based geometric design (Embark Earthworks brand)
+ * - Transparent background (works on any color)
+ * - High-resolution PNG format
+ * - object-fit: contain prevents distortion
+ * - user-drag: none prevents accidental dragging
+ */

@@ -1,0 +1,158 @@
+name: Accessibility Audit
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/.storybook/**'
+      - 'frontend/tests/accessibility/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/src/**'
+      - 'frontend/.storybook/**'
+      - 'frontend/tests/accessibility/**'
+  workflow_dispatch: # Allow manual runs
+
+jobs:
+  accessibility-tests:
+    name: Run Accessibility Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Storybook
+        working-directory: frontend
+        run: npm run build-storybook
+
+      - name: Run Storybook test runner
+        working-directory: frontend
+        run: npm run test:storybook:ci
+
+      - name: Run Playwright accessibility tests
+        working-directory: frontend
+        run: |
+          npx http-server storybook-static --port 6006 --silent &
+          SERVER_PID=$!
+          npx wait-on tcp:6006
+          npm run test:a11y
+          kill $SERVER_PID
+
+      - name: Generate accessibility report
+        if: always()
+        working-directory: frontend
+        run: |
+          npx http-server storybook-static --port 6006 --silent &
+          SERVER_PID=$!
+          npx wait-on tcp:6006
+          npm run test:a11y:report || true
+          kill $SERVER_PID
+
+      - name: Upload accessibility reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accessibility-reports
+          path: |
+            frontend/accessibility-reports/
+            frontend/playwright-report/
+          retention-days: 30
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: frontend/test-results/
+          retention-days: 7
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'frontend/accessibility-reports/accessibility-report.json';
+
+            if (!fs.existsSync(path)) {
+              console.log('No accessibility report found');
+              return;
+            }
+
+            const report = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const { summary } = report;
+
+            const body = `## 🔍 Accessibility Audit Results
+
+            | Metric | Count |
+            |--------|-------|
+            | Total Stories Tested | ${summary.totalStories} |
+            | ✅ Passed | ${summary.passed} |
+            | ❌ Failed | ${summary.failed} |
+            | 🔴 Total Violations | ${summary.totalViolations} |
+
+            ${summary.failed > 0 ? '⚠️ **Accessibility violations found!** Review the detailed report in the workflow artifacts.' : '✅ **All accessibility tests passed!**'}
+
+            [View detailed HTML report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+  # Job to enforce WCAG compliance (blocks merge if violations found)
+  enforce-compliance:
+    name: Enforce WCAG Compliance
+    runs-on: ubuntu-latest
+    needs: accessibility-tests
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Download accessibility reports
+        uses: actions/download-artifact@v4
+        with:
+          name: accessibility-reports
+          path: accessibility-reports
+
+      - name: Check for violations
+        run: |
+          if [ ! -f "accessibility-reports/accessibility-report.json" ]; then
+            echo "⚠️ No accessibility report found - tests may have failed"
+            exit 1
+          fi
+
+          VIOLATIONS=$(jq '.summary.totalViolations' accessibility-reports/accessibility-report.json)
+
+          echo "Total WCAG violations: $VIOLATIONS"
+
+          if [ "$VIOLATIONS" -gt 0 ]; then
+            echo "❌ WCAG compliance check FAILED"
+            echo "Found $VIOLATIONS accessibility violations"
+            echo "Review the accessibility report for details"
+            exit 1
+          fi
+
+          echo "✅ WCAG compliance check PASSED"
+          echo "No accessibility violations found"

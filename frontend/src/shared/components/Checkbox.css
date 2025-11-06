@@ -1,0 +1,305 @@
+/**
+ * Checkbox Styles - Design System v2.0
+ *
+ * Philosophy: "Industrial Clarity" with "Confident Affordance"
+ *
+ * Interaction States:
+ * - Unchecked: Empty box with border
+ * - Checked: CAT Gold background with white checkmark
+ * - Focus: CAT Gold ring (clear visual feedback)
+ * - Hover: Subtle darkening
+ * - Disabled: Faded but maintains structure
+ * - Error: Red border + helpful message
+ *
+ * Timing: 100ms instant feedback (industrial responsiveness)
+ */
+
+.checkbox-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2); /* 8px vertical spacing */
+}
+
+.checkbox-container--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== WRAPPER (checkbox + label) ===== */
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2); /* 8px between checkbox and label */
+  position: relative;
+}
+
+/* ===== NATIVE INPUT (hidden but accessible) ===== */
+
+.checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* ===== CUSTOM CHECKBOX BOX ===== */
+
+.checkbox-box {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  /* Size (medium default) */
+  width: 20px;
+  height: 20px;
+
+  /* Appearance */
+  background-color: var(--color-background-primary);
+  border: 2px solid var(--color-border-default);
+  border-radius: 0.25rem; /* 4px - subtle rounding */
+
+  /* Transition: 100ms instant (industrial responsiveness) */
+  transition: all 100ms ease;
+
+  /* Interaction */
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Hover state (when not disabled) */
+.checkbox-container:not(.checkbox-container--disabled) .checkbox-input:hover + .checkbox-box {
+  border-color: var(--color-text-tertiary);
+}
+
+/* Focus state */
+.checkbox-input:focus + .checkbox-box {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: var(--shadow-focus); /* CAT Gold glow */
+}
+
+/* Checked state */
+.checkbox-input:checked + .checkbox-box {
+  background-color: var(--color-accent-primary); /* CAT Gold */
+  border-color: var(--color-accent-primary);
+}
+
+/* Checked + Hover */
+.checkbox-container:not(.checkbox-container--disabled)
+  .checkbox-input:checked:hover
+  + .checkbox-box {
+  background-color: var(--color-accent-hover); /* Darker gold */
+  border-color: var(--color-accent-hover);
+}
+
+/* Disabled state */
+.checkbox-container--disabled .checkbox-box {
+  background-color: var(--color-background-secondary);
+  border-color: var(--color-border-default);
+  cursor: not-allowed;
+}
+
+.checkbox-container--disabled .checkbox-input:checked + .checkbox-box {
+  background-color: var(--color-text-tertiary);
+  border-color: var(--color-text-tertiary);
+}
+
+/* ===== CHECKMARK ICON ===== */
+
+.checkbox-checkmark {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-primary); /* Dark checkmark on gold background */
+  animation: checkbox-checkmark-scale 100ms ease;
+}
+
+@keyframes checkbox-checkmark-scale {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ===== SIZES ===== */
+
+.checkbox-container--small .checkbox-box {
+  width: 16px;
+  height: 16px;
+}
+
+.checkbox-container--small .checkbox-checkmark {
+  width: 10px;
+  height: 10px;
+}
+
+.checkbox-container--large .checkbox-box {
+  width: 24px;
+  height: 24px;
+}
+
+.checkbox-container--large .checkbox-checkmark {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== LABEL ===== */
+
+.checkbox-label {
+  font-size: var(--font-size-base); /* 16px */
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-container--small .checkbox-label {
+  font-size: var(--font-size-sm); /* 14px */
+}
+
+.checkbox-container--large .checkbox-label {
+  font-size: var(--font-size-lg); /* 18px */
+}
+
+.checkbox-label__required {
+  color: var(--color-error);
+  font-weight: var(--font-weight-bold);
+}
+
+.checkbox-container--disabled .checkbox-label {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+/* ===== ERROR STATE ===== */
+
+.checkbox-container--error .checkbox-box {
+  border-color: var(--color-error);
+}
+
+.checkbox-container--error .checkbox-input:focus + .checkbox-box {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2); /* Red glow */
+}
+
+/* ===== HELPER TEXT ===== */
+
+.checkbox-helper-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  margin-left: calc(20px + var(--spacing-2)); /* Align with label */
+}
+
+.checkbox-container--small .checkbox-helper-text {
+  margin-left: calc(16px + var(--spacing-2));
+}
+
+.checkbox-container--large .checkbox-helper-text {
+  margin-left: calc(24px + var(--spacing-2));
+}
+
+/* ===== ERROR MESSAGE (Helpful, Not Punitive) ===== */
+
+.checkbox-error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1); /* 4px */
+  font-size: var(--font-size-sm);
+  color: var(--color-error-dark);
+  margin: 0;
+  margin-left: calc(20px + var(--spacing-2)); /* Align with label */
+
+  /* 200ms transition for smooth appearance */
+  animation: checkbox-error-fade-in 200ms ease;
+}
+
+@keyframes checkbox-error-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.checkbox-container--small .checkbox-error {
+  margin-left: calc(16px + var(--spacing-2));
+}
+
+.checkbox-container--large .checkbox-error {
+  margin-left: calc(24px + var(--spacing-2));
+}
+
+.checkbox-error__icon {
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+/**
+ * Usage Example:
+ *
+ * ```tsx
+ * import { Checkbox } from '@/shared/components/Checkbox';
+ *
+ * // Basic checkbox
+ * <Checkbox
+ *   label="I agree to the terms and conditions"
+ *   checked={agreedToTerms}
+ *   onChange={(e) => setAgreedToTerms(e.target.checked)}
+ * />
+ *
+ * // With helper text
+ * <Checkbox
+ *   label="Email me quote updates"
+ *   helperText="Receive notifications when quote status changes"
+ *   checked={emailNotifications}
+ *   onChange={(e) => setEmailNotifications(e.target.checked)}
+ * />
+ *
+ * // Error state (Helpful, Not Punitive)
+ * <Checkbox
+ *   label="I agree to the terms and conditions"
+ *   checked={false}
+ *   error="You must accept the terms and conditions to continue"
+ *   required
+ * />
+ *
+ * // Disabled
+ * <Checkbox
+ *   label="Locked feature (Premium only)"
+ *   checked={false}
+ *   disabled
+ * />
+ *
+ * // Different sizes
+ * <Checkbox size="small" label="Small checkbox" />
+ * <Checkbox size="medium" label="Medium checkbox (default)" />
+ * <Checkbox size="large" label="Large checkbox" />
+ * ```
+ *
+ * Error Message Best Practices:
+ * ❌ "Required" → Too vague
+ * ✅ "You must accept the terms and conditions to continue" → Specific, actionable
+ *
+ * ❌ "Invalid" → Abrupt, unhelpful
+ * ✅ "Please confirm you've read the safety guidelines" → Calm guidance
+ *
+ * Design Notes:
+ * - 100ms timing = instant responsiveness (like physical button press)
+ * - CAT Gold background when checked (brand consistency)
+ * - Checkmark scales in with 100ms animation (satisfying feedback)
+ * - Focus ring uses CAT Gold for accessibility
+ * - Disabled state maintains visual structure (doesn't collapse)
+ * - Error fade in (no shake animation)
+ * - Hidden native input for accessibility (keyboard + screen readers)
+ * - Label click toggles checkbox (larger click target)
+ */

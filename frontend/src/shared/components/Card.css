@@ -1,0 +1,258 @@
+/**
+ * Card Styles - Design System v2.0
+ *
+ * Philosophy: "Industrial Clarity" with consistent elevation
+ *
+ * Card Variants:
+ * - Flat: No shadow, simple background
+ * - Elevated: Subtle shadow for depth (default)
+ * - Outlined: Border instead of shadow
+ *
+ * Interactive Cards:
+ * - Hover: Lift effect (translateY -2px) + stronger shadow
+ * - 200ms transition (fast, responsive)
+ *
+ * Timing: 200ms fast (state changes feel responsive)
+ */
+
+.card {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  /* Appearance */
+  background-color: var(--color-background-primary);
+  border-radius: 0.5rem; /* 8px - larger than buttons for containers */
+
+  /* Transition: 200ms fast */
+  transition: all 200ms ease;
+}
+
+/* ===== VARIANTS ===== */
+
+/* Flat variant (no shadow) */
+.card--flat {
+  box-shadow: none;
+}
+
+/* Elevated variant (subtle shadow - default) */
+.card--elevated {
+  box-shadow: var(--shadow-md);
+}
+
+/* Outlined variant (border instead of shadow) */
+.card--outlined {
+  border: 1px solid var(--color-border-default);
+  box-shadow: none;
+}
+
+/* ===== PADDING SIZES ===== */
+
+.card--padding-none {
+  padding: 0;
+}
+
+.card--padding-small {
+  padding: var(--spacing-3); /* 12px */
+}
+
+.card--padding-medium {
+  padding: var(--spacing-6); /* 24px - default */
+}
+
+.card--padding-large {
+  padding: var(--spacing-8); /* 32px */
+}
+
+/* ===== INTERACTIVE STATE ===== */
+
+.card--interactive {
+  cursor: pointer;
+  user-select: none;
+}
+
+.card--interactive:hover {
+  transform: translateY(-2px); /* Lift effect */
+}
+
+.card--interactive.card--elevated:hover {
+  box-shadow: var(--shadow-lg); /* Stronger shadow on hover */
+}
+
+.card--interactive.card--outlined:hover {
+  border-color: var(--color-text-tertiary);
+}
+
+/* Active state (subtle compression) */
+.card--interactive:active {
+  transform: translateY(0);
+}
+
+/* Focus state (keyboard navigation) */
+.card--interactive:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+}
+
+/* ===== FULL WIDTH ===== */
+
+.card--full-width {
+  width: 100%;
+}
+
+/* ===== CARD HEADER ===== */
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4); /* 16px gap between content and action */
+}
+
+/* When card has padding, header is part of card content */
+.card--padding-small .card-header {
+  margin-bottom: var(--spacing-2); /* 8px */
+}
+
+.card--padding-medium .card-header {
+  margin-bottom: var(--spacing-4); /* 16px */
+}
+
+.card--padding-large .card-header {
+  margin-bottom: var(--spacing-6); /* 24px */
+}
+
+/* When card has no padding, header gets its own padding */
+.card--padding-none .card-header {
+  padding: var(--spacing-6); /* 24px */
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.card-header__content {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+.card-header__title {
+  font-size: var(--font-size-lg); /* 18px */
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.card-header__subtitle {
+  font-size: var(--font-size-sm); /* 14px */
+  color: var(--color-text-secondary);
+  margin: var(--spacing-1) 0 0 0; /* 4px top margin */
+}
+
+.card-header__action {
+  flex-shrink: 0;
+}
+
+/* ===== CARD BODY ===== */
+
+.card-body {
+  flex: 1;
+}
+
+/* When card has no padding, body gets its own padding */
+.card--padding-none .card-body {
+  padding: var(--spacing-6); /* 24px */
+}
+
+/* ===== CARD FOOTER ===== */
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3); /* 12px gap between footer items */
+}
+
+/* When card has padding, footer is part of card content */
+.card--padding-small .card-footer {
+  margin-top: var(--spacing-2); /* 8px */
+}
+
+.card--padding-medium .card-footer {
+  margin-top: var(--spacing-4); /* 16px */
+}
+
+.card--padding-large .card-footer {
+  margin-top: var(--spacing-6); /* 24px */
+}
+
+/* When card has no padding, footer gets its own padding */
+.card--padding-none .card-footer {
+  padding: var(--spacing-6); /* 24px */
+  border-top: 1px solid var(--color-border-default);
+}
+
+/**
+ * Usage Example:
+ *
+ * ```tsx
+ * import { Card, CardHeader, CardBody, CardFooter } from '@/shared/components/Card';
+ * import { Button } from '@/shared/components/Button';
+ *
+ * // Simple card
+ * <Card>
+ *   <h3>Quote #EE-2025-0001</h3>
+ *   <p>Retaining wall installation</p>
+ * </Card>
+ *
+ * // Card with header, body, footer
+ * <Card variant="elevated" padding="none">
+ *   <CardHeader
+ *     title="Quote #EE-2025-0001"
+ *     subtitle="Created on 2025-11-06"
+ *     action={<Button variant="tertiary" size="small">Edit</Button>}
+ *   />
+ *   <CardBody>
+ *     <p>Customer: John Smith</p>
+ *     <p>Job Type: Retaining Wall</p>
+ *     <p>Total: $12,500</p>
+ *   </CardBody>
+ *   <CardFooter>
+ *     <Button variant="primary" size="small">View Details</Button>
+ *     <Button variant="secondary" size="small">Download PDF</Button>
+ *   </CardFooter>
+ * </Card>
+ *
+ * // Interactive card (clickable)
+ * <Card
+ *   variant="outlined"
+ *   interactive
+ *   onClick={() => handleSelectJobType('retaining_wall')}
+ * >
+ *   <h4>Retaining Wall</h4>
+ *   <p>Structural walls for elevation changes</p>
+ * </Card>
+ *
+ * // Flat card (no shadow)
+ * <Card variant="flat" padding="small">
+ *   <p>Simple container with no elevation</p>
+ * </Card>
+ *
+ * // Custom composition
+ * <Card padding="medium" fullWidth>
+ *   <div style={{ display: 'flex', gap: 'var(--spacing-4)' }}>
+ *     <div>Column 1</div>
+ *     <div>Column 2</div>
+ *   </div>
+ * </Card>
+ * ```
+ *
+ * Design Notes:
+ * - Cards create visual hierarchy through elevation (shadow depth)
+ * - Interactive cards lift 2px on hover (subtle feedback)
+ * - 200ms transition timing feels responsive (not slow, not jarring)
+ * - Border radius is 8px (larger than buttons for containers)
+ * - Padding options: none (sections), small, medium (default), large
+ * - Header/Footer get borders when card has no padding (visual separation)
+ * - Focus ring uses CAT Gold for keyboard navigation
+ * - Variants: flat (no shadow), elevated (default), outlined (border)
+ * - Header supports title/subtitle OR custom children
+ */

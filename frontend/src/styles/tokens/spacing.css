@@ -1,0 +1,219 @@
+/**
+ * Spacing Tokens - Design System v2.0
+ *
+ * Based on: docs/design/style-guide.md (Spatial Rhythm: "Breathing Architecture")
+ * Philosophy: 8px grid system - structural integrity through consistent intervals
+ *
+ * Why 8px Grid?
+ * - Divisible by 2 and 4 (easy mental math, consistent halving/doubling)
+ * - Aligns with most screen densities (works cleanly at 1x, 1.5x, 2x pixel ratios)
+ * - Sufficient granularity (fine enough for precision, coarse enough to prevent micro-adjustments)
+ *
+ * Like rebar spacing in concrete, the 8px grid creates structural integrity
+ * through consistent intervals.
+ */
+
+:root {
+  /* Spacing Scale (multiples of 8px) */
+  --spacing-0: 0; /* 0px - No spacing */
+  --spacing-1: 0.25rem; /* 4px - Micro-rhythm (half-step) */
+  --spacing-2: 0.5rem; /* 8px - Baseline unit */
+  --spacing-3: 0.75rem; /* 12px - Micro-rhythm (1.5×) */
+  --spacing-4: 1rem; /* 16px - Meso-rhythm (2×) */
+  --spacing-5: 1.25rem; /* 20px - Meso-rhythm (2.5×) */
+  --spacing-6: 1.5rem; /* 24px - Meso-rhythm (3×) */
+  --spacing-8: 2rem; /* 32px - Meso-rhythm (4×) */
+  --spacing-10: 2.5rem; /* 40px - Meso-rhythm (5×) */
+  --spacing-12: 3rem; /* 48px - Macro-rhythm (6×) */
+  --spacing-16: 4rem; /* 64px - Macro-rhythm (8×) */
+  --spacing-20: 5rem; /* 80px - Macro-rhythm (10×) */
+  --spacing-24: 6rem; /* 96px - Macro-rhythm (12×) */
+
+  /* Semantic Spacing (component-specific) */
+  --spacing-component-padding: var(--spacing-4); /* 16px - Default component internal padding */
+  --spacing-component-gap: var(--spacing-6); /* 24px - Gap between components */
+  --spacing-section-gap: var(--spacing-12); /* 48px - Gap between sections */
+
+  /* Form Spacing */
+  --spacing-form-field-gap: var(--spacing-4); /* 16px - Between form fields */
+  --spacing-form-label-gap: var(--spacing-2); /* 8px - Label to input */
+  --spacing-form-input-padding: var(--spacing-3); /* 12px - Input internal padding */
+
+  /* Card/Container Spacing */
+  --spacing-card-padding: var(--spacing-6); /* 24px - Card internal padding */
+  --spacing-card-gap: var(--spacing-4); /* 16px - Gap between cards */
+
+  /* Button Spacing */
+  --spacing-button-padding-y: var(--spacing-3); /* 12px - Vertical button padding */
+  --spacing-button-padding-x: var(--spacing-6); /* 24px - Horizontal button padding */
+  --spacing-button-gap: var(--spacing-3); /* 12px - Gap between buttons */
+
+  /* Responsive Gutters (page margins) */
+  --gutter-mobile: 6vw; /* Mobile: 6% viewport width */
+  --gutter-tablet: 5vw; /* Tablet: 5% viewport width */
+  --gutter-desktop: 4vw; /* Desktop: 4% viewport width */
+
+  /* Breakpoints (for reference in media queries) */
+  --breakpoint-mobile: 640px; /* Mobile/tablet boundary */
+  --breakpoint-tablet: 768px; /* Tablet/laptop boundary */
+  --breakpoint-laptop: 1024px; /* Laptop/desktop boundary */
+  --breakpoint-desktop: 1280px; /* Desktop/large desktop boundary */
+
+  /* Container Max Widths */
+  --container-sm: 640px; /* Small container */
+  --container-md: 768px; /* Medium container */
+  --container-lg: 1024px; /* Large container */
+  --container-xl: 1280px; /* Extra large container */
+  --container-2xl: 1536px; /* 2XL container */
+}
+
+/**
+ * Spatial Hierarchy (from style guide):
+ *
+ * Micro-rhythm (4px, 8px, 12px):
+ * - Fine-grained adjustments
+ * - Icon-to-text spacing
+ * - Compact UI elements
+ *
+ * Meso-rhythm (16px, 24px, 32px, 40px):
+ * - Component internal spacing
+ * - Form field gaps
+ * - Card padding
+ *
+ * Macro-rhythm (48px, 64px, 96px):
+ * - Section separation
+ * - Page layout
+ * - Major visual breaks
+ */
+
+/**
+ * Utility Classes for Spacing
+ */
+
+/* Margin utilities */
+.m-0 {
+  margin: var(--spacing-0);
+}
+.m-1 {
+  margin: var(--spacing-1);
+}
+.m-2 {
+  margin: var(--spacing-2);
+}
+.m-3 {
+  margin: var(--spacing-3);
+}
+.m-4 {
+  margin: var(--spacing-4);
+}
+.m-6 {
+  margin: var(--spacing-6);
+}
+.m-8 {
+  margin: var(--spacing-8);
+}
+.m-12 {
+  margin: var(--spacing-12);
+}
+
+/* Padding utilities */
+.p-0 {
+  padding: var(--spacing-0);
+}
+.p-1 {
+  padding: var(--spacing-1);
+}
+.p-2 {
+  padding: var(--spacing-2);
+}
+.p-3 {
+  padding: var(--spacing-3);
+}
+.p-4 {
+  padding: var(--spacing-4);
+}
+.p-6 {
+  padding: var(--spacing-6);
+}
+.p-8 {
+  padding: var(--spacing-8);
+}
+.p-12 {
+  padding: var(--spacing-12);
+}
+
+/* Gap utilities (for flexbox/grid) */
+.gap-2 {
+  gap: var(--spacing-2);
+}
+.gap-3 {
+  gap: var(--spacing-3);
+}
+.gap-4 {
+  gap: var(--spacing-4);
+}
+.gap-6 {
+  gap: var(--spacing-6);
+}
+.gap-8 {
+  gap: var(--spacing-8);
+}
+
+/**
+ * Container Classes
+ */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--gutter-mobile);
+  padding-right: var(--gutter-mobile);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: var(--gutter-tablet);
+    padding-right: var(--gutter-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: var(--gutter-desktop);
+    padding-right: var(--gutter-desktop);
+  }
+}
+
+.container-sm {
+  max-width: var(--container-sm);
+}
+.container-md {
+  max-width: var(--container-md);
+}
+.container-lg {
+  max-width: var(--container-lg);
+}
+.container-xl {
+  max-width: var(--container-xl);
+}
+.container-2xl {
+  max-width: var(--container-2xl);
+}
+
+/**
+ * Usage Guidelines (from style guide):
+ *
+ * Grid System:
+ * - All spacing must be multiple of 8px (or 4px for micro-adjustments)
+ * - Use semantic spacing variables when possible (e.g., --spacing-card-padding)
+ * - Never use arbitrary values like 13px or 27px
+ *
+ * Responsive Gutters:
+ * - Mobile (< 640px): 6vw gutters (more screen space on small devices)
+ * - Tablet (640px-1023px): 5vw gutters
+ * - Desktop (≥1024px): 4vw gutters (wider content area)
+ *
+ * Touch Targets:
+ * - Minimum 44px × 44px for interactive elements (mobile)
+ * - Use --spacing-component-padding (16px) minimum for buttons/links
+ */

@@ -1,0 +1,147 @@
+/**
+ * Typography Tokens - Design System v2.0
+ *
+ * Based on: docs/design/style-guide.md (Typography as Voice section)
+ * Philosophy: Performance > Brand Vanity - System fonts for instant load
+ *
+ * Why System Fonts?
+ * - Instant load (no font download ~200KB saved)
+ * - Universal compatibility (fonts already installed)
+ * - Zero licensing concerns
+ * - Consistent rendering across all devices
+ * - Critical for offline-first field app
+ *
+ * The neutral font stack allows content to speak without typographic performance.
+ */
+
+:root {
+  /* Font Families */
+  --font-family-base:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+
+  --font-family-mono: 'Courier New', Courier, monospace; /* For code/data display */
+
+  /* Font Weights */
+  --font-weight-regular: 400; /* Body text, labels */
+  --font-weight-medium: 500; /* Emphasized text, navigation */
+  --font-weight-semibold: 600; /* Subheadings, buttons */
+  --font-weight-bold: 700; /* Headings, strong emphasis */
+
+  /* Type Scale (modular scale with 8px baseline) */
+  --font-size-xs: 0.75rem; /* 12px - Small labels, captions */
+  --font-size-sm: 0.875rem; /* 14px - Secondary text, helper text */
+  --font-size-base: 1rem; /* 16px - Body text (baseline) */
+  --font-size-lg: 1.125rem; /* 18px - Large body text */
+  --font-size-xl: 1.5rem; /* 24px - H3, card titles */
+  --font-size-2xl: 2rem; /* 32px - H2, page titles */
+  --font-size-3xl: 3rem; /* 48px - H1, hero headings */
+
+  /* Line Heights (breathing room for readability) */
+  --line-height-tight: 1.25; /* Headings, compact UI */
+  --line-height-normal: 1.5; /* Body text (default) */
+  --line-height-relaxed: 1.75; /* Long-form content */
+
+  /* Letter Spacing (subtle adjustments) */
+  --letter-spacing-tight: -0.01em; /* Large headings */
+  --letter-spacing-normal: 0; /* Body text (default) */
+  --letter-spacing-wide: 0.025em; /* Small caps, labels */
+}
+
+/**
+ * Typographic Hierarchy Classes
+ *
+ * Use these semantic classes rather than raw font sizes:
+ * .text-h1, .text-h2, .text-h3 - Headings
+ * .text-body, .text-body-lg, .text-body-sm - Body text
+ * .text-label, .text-caption - UI elements
+ */
+
+/* Heading Styles */
+.text-h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.text-h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.text-h3 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+/* Body Text Styles */
+.text-body {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+.text-body-lg {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+.text-body-sm {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+/* UI Element Styles */
+.text-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.text-caption {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
+}
+
+/* Utility Classes */
+.text-semibold {
+  font-weight: var(--font-weight-semibold);
+}
+
+.text-bold {
+  font-weight: var(--font-weight-bold);
+}
+
+.text-mono {
+  font-family: var(--font-family-mono);
+}
+
+/**
+ * Usage Guidelines (from style guide):
+ *
+ * Hierarchy:
+ * - H1: Page titles, hero headings (48px, bold)
+ * - H2: Section headings (32px, bold)
+ * - H3: Card titles, subsections (24px, semibold)
+ * - Body: Default text (16px, regular)
+ *
+ * Accessibility:
+ * - Minimum 16px for body text (baseline)
+ * - Line height ≥1.5 for body text (readability)
+ * - Sufficient contrast with background (WCAG AA)
+ *
+ * Performance:
+ * - System fonts = 0ms load time
+ * - No FOIT (Flash of Invisible Text)
+ * - No FOUT (Flash of Unstyled Text)
+ * - Works perfectly offline
+ */

@@ -1,0 +1,116 @@
+/**
+ * Design System v2.0 - Main Entry Point
+ *
+ * Embark Quoting System
+ * Based on: docs/design/style-guide.md (Industrial Clarity design philosophy)
+ *
+ * Import Order:
+ * 1. Tokens (CSS custom properties) - Define design system variables
+ * 2. Base Styles - Apply tokens to HTML elements
+ *
+ * Philosophy: Industrial Clarity
+ * - Brutalist honesty + Swiss precision
+ * - CAT Gold (#FFB400) accent creates visual vacuum effect
+ * - System fonts for instant load (performance > brand vanity)
+ * - 8px grid for structural integrity
+ * - WCAG AA accessibility compliance
+ */
+
+/* ===== TOKENS ===== */
+/* Design system variables (CSS custom properties) */
+
+@import './tokens/colors.css'; /* Color palette - CAT Gold accent, semantic colors */
+@import './tokens/typography.css'; /* Font stacks, type scale, weights, line heights */
+@import './tokens/spacing.css'; /* 8px grid system, spacing scale, breakpoints */
+@import './tokens/shadows.css'; /* Elevation levels, focus rings */
+
+/* ===== BASE STYLES ===== */
+/* Apply tokens to HTML elements */
+
+@import './base/reset.css'; /* CSS reset - clean slate */
+@import './base/global.css'; /* Global element styles */
+@import './base/accessibility.css'; /* WCAG AA compliance, focus states, screen reader support */
+
+/**
+ * Usage:
+ *
+ * Import this file in your main application entry point:
+ * ```tsx
+ * // src/main.tsx or src/index.tsx
+ * import './styles/index.css';
+ * ```
+ *
+ * CSS Variables Available:
+ *
+ * Colors:
+ * - var(--color-accent-primary)      // #FFB400 CAT Gold
+ * - var(--color-text-primary)        // #1A1A1A near-black
+ * - var(--color-background-primary)  // #FFFFFF pure white
+ * - var(--color-success)             // #10B981 green
+ * - var(--color-error)               // #DC2626 red
+ * - ... (see tokens/colors.css for full list)
+ *
+ * Typography:
+ * - var(--font-family-base)          // System font stack
+ * - var(--font-size-base)            // 1rem (16px)
+ * - var(--font-weight-semibold)      // 600
+ * - ... (see tokens/typography.css for full list)
+ *
+ * Spacing:
+ * - var(--spacing-2)                 // 0.5rem (8px)
+ * - var(--spacing-4)                 // 1rem (16px)
+ * - var(--spacing-6)                 // 1.5rem (24px)
+ * - ... (see tokens/spacing.css for full list)
+ *
+ * Shadows:
+ * - var(--shadow-sm)                 // Subtle elevation
+ * - var(--shadow-focus)              // CAT Gold focus ring
+ * - ... (see tokens/shadows.css for full list)
+ *
+ * Utility Classes:
+ *
+ * Typography:
+ * .text-h1, .text-h2, .text-h3      // Heading styles
+ * .text-body, .text-body-sm          // Body text styles
+ * .text-label, .text-caption         // UI element styles
+ *
+ * Spacing:
+ * .m-4, .p-6, .gap-2                 // Margin, padding, gap utilities
+ * .container, .container-lg          // Container widths
+ *
+ * Shadows:
+ * .shadow-sm, .shadow-md, .shadow-lg // Elevation levels
+ *
+ * Accessibility:
+ * .sr-only                           // Screen reader only
+ * .skip-to-content                   // Skip navigation link
+ * .error-message, .success-message   // Form feedback
+ *
+ * Example Component:
+ * ```tsx
+ * function QuoteCard() {
+ *   return (
+ *     <div className="p-6 shadow-md" style={{
+ *       backgroundColor: 'var(--color-background-primary)',
+ *       borderRadius: '0.5rem'
+ *     }}>
+ *       <h3 className="text-h3" style={{ color: 'var(--color-text-primary)' }}>
+ *         Quote #EE-2025-0001
+ *       </h3>
+ *       <p className="text-body" style={{ color: 'var(--color-text-secondary)' }}>
+ *         Retaining wall installation
+ *       </p>
+ *       <button style={{
+ *         backgroundColor: 'var(--color-accent-primary)',
+ *         color: 'var(--color-text-primary)',
+ *         padding: 'var(--spacing-3) var(--spacing-6)',
+ *         borderRadius: '0.25rem',
+ *         fontWeight: 'var(--font-weight-semibold)'
+ *       }}>
+ *         View Quote
+ *       </button>
+ *     </div>
+ *   );
+ * }
+ * ```
+ */

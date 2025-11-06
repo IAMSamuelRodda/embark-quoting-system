@@ -1,0 +1,349 @@
+/**
+ * Select Styles - Design System v2.0
+ *
+ * Philosophy: "Helpful, Not Punitive" error messaging
+ *
+ * Interaction States:
+ * - Default: Calm, neutral appearance
+ * - Focus: CAT Gold ring (clear visual feedback)
+ * - Open: Dropdown appears with 200ms fade-in
+ * - Error: Red border + helpful message (no shake, no aggression)
+ * - Hover: Subtle highlight on options
+ *
+ * Timing: 200ms fast (state changes feel responsive)
+ */
+
+.select-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2); /* 8px vertical spacing */
+}
+
+.select-container--full-width {
+  width: 100%;
+}
+
+/* ===== LABEL ===== */
+
+.select-label {
+  display: block;
+  font-size: var(--font-size-sm); /* 14px */
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.select-label__required {
+  color: var(--color-error);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ===== WRAPPER (contains trigger + dropdown) ===== */
+
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* ===== TRIGGER (clickable button) ===== */
+
+.select-trigger {
+  /* Reset */
+  all: unset;
+  box-sizing: border-box;
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 44px; /* Mobile touch target */
+
+  /* Typography */
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-primary);
+
+  /* Appearance */
+  background-color: var(--color-background-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.25rem;
+  padding: 0 var(--spacing-3); /* 0 12px */
+
+  /* Inner shadow for depth */
+  box-shadow: var(--shadow-input);
+
+  /* Interaction */
+  cursor: pointer;
+  user-select: none;
+
+  /* Transition: 200ms fast (validation feedback) */
+  transition: all 200ms ease;
+}
+
+/* Placeholder */
+.select-trigger__placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* Value */
+.select-trigger__value {
+  color: var(--color-text-primary);
+}
+
+/* Icon (dropdown arrow) */
+.select-trigger__icon {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+  margin-left: var(--spacing-2);
+}
+
+/* Focus state */
+.select-trigger:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: var(--shadow-focus); /* CAT Gold glow */
+}
+
+/* Hover (subtle) */
+.select-trigger:hover:not(.select-trigger--disabled):not(:focus) {
+  border-color: var(--color-text-tertiary);
+}
+
+/* Open state (rotate arrow) */
+.select-trigger--open .select-trigger__icon {
+  transform: rotate(180deg);
+}
+
+/* Disabled */
+.select-trigger--disabled {
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ===== SIZES ===== */
+
+.select-trigger--small {
+  height: 32px;
+  font-size: var(--font-size-sm);
+  padding: 0 var(--spacing-2);
+}
+
+.select-trigger--large {
+  height: 56px;
+  font-size: var(--font-size-lg);
+  padding: 0 var(--spacing-4);
+}
+
+/* ===== ERROR STATE ===== */
+
+.select-trigger--error {
+  border-color: var(--color-error);
+}
+
+.select-trigger--error:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2); /* Red glow */
+}
+
+/* ===== DROPDOWN LISTBOX ===== */
+
+.select-listbox {
+  /* Reset */
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-1) 0; /* 4px top/bottom */
+
+  /* Position */
+  position: absolute;
+  top: calc(100% + var(--spacing-1)); /* 4px gap from trigger */
+  left: 0;
+  right: 0;
+  z-index: 1000;
+
+  /* Appearance */
+  background-color: var(--color-background-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.25rem;
+  box-shadow: var(--shadow-md);
+
+  /* Scrolling */
+  max-height: 280px; /* ~6-7 options visible */
+  overflow-y: auto;
+
+  /* Animation: 200ms fade-in */
+  animation: select-listbox-fade-in 200ms ease;
+}
+
+@keyframes select-listbox-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== OPTIONS ===== */
+
+.select-option {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-2) var(--spacing-3); /* 8px 12px */
+
+  /* Typography */
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+
+  /* Interaction */
+  cursor: pointer;
+  user-select: none;
+
+  /* Transition */
+  transition: background-color 100ms ease;
+}
+
+/* Hover state */
+.select-option:hover:not(.select-option--disabled) {
+  background-color: var(--color-background-secondary);
+}
+
+/* Focused state (keyboard navigation) */
+.select-option--focused:not(.select-option--disabled) {
+  background-color: var(--color-accent-light); /* Light gold tint */
+  color: var(--color-text-primary);
+}
+
+/* Selected state */
+.select-option--selected {
+  font-weight: var(--font-weight-semibold);
+  background-color: var(--color-background-secondary);
+}
+
+/* Selected + Focused */
+.select-option--selected.select-option--focused {
+  background-color: var(--color-accent-light);
+}
+
+/* Disabled option */
+.select-option--disabled {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Checkmark icon */
+.select-option__checkmark {
+  font-size: var(--font-size-sm);
+  color: var(--color-accent-primary); /* CAT Gold */
+  font-weight: var(--font-weight-bold);
+  margin-left: var(--spacing-2);
+}
+
+/* ===== HELPER TEXT ===== */
+
+.select-helper-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ===== ERROR MESSAGE (Helpful, Not Punitive) ===== */
+
+.select-error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1); /* 4px */
+  font-size: var(--font-size-sm);
+  color: var(--color-error-dark);
+  margin: 0;
+
+  /* 200ms transition for smooth appearance */
+  animation: select-error-fade-in 200ms ease;
+}
+
+@keyframes select-error-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.select-error__icon {
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+/**
+ * Usage Example:
+ *
+ * ```tsx
+ * import { Select } from '@/shared/components/Select';
+ *
+ * // Basic select
+ * <Select
+ *   label="Job Type"
+ *   placeholder="Select a job type..."
+ *   options={[
+ *     { value: 'retaining_wall', label: 'Retaining Wall' },
+ *     { value: 'driveway', label: 'Driveway' },
+ *     { value: 'trenching', label: 'Trenching' },
+ *   ]}
+ *   value={selectedJobType}
+ *   onChange={setSelectedJobType}
+ *   required
+ * />
+ *
+ * // With helper text
+ * <Select
+ *   label="Price Sheet"
+ *   helperText="Select the pricing structure for this quote"
+ *   options={priceSheetOptions}
+ * />
+ *
+ * // Error state (Helpful, Not Punitive)
+ * <Select
+ *   label="Job Type"
+ *   options={jobTypeOptions}
+ *   error="Please select a job type to continue"
+ * />
+ *
+ * // With disabled option
+ * <Select
+ *   label="Region"
+ *   options={[
+ *     { value: 'metro', label: 'Metro Area' },
+ *     { value: 'regional', label: 'Regional (Coming Soon)', disabled: true },
+ *   ]}
+ * />
+ * ```
+ *
+ * Error Message Best Practices:
+ * ❌ "Invalid selection" → Too vague
+ * ✅ "Please select a job type to continue" → Specific, actionable
+ *
+ * ❌ "Required field" → Abrupt, unhelpful
+ * ✅ "Customer name is required to create a quote" → Calm guidance
+ *
+ * Design Notes:
+ * - 200ms transition feels responsive (not instant, not slow)
+ * - Dropdown appears with fade-in (calm, not jarring)
+ * - Focus ring uses CAT Gold for brand consistency
+ * - Keyboard navigation: Arrow keys, Enter, Escape, Home, End
+ * - Selected options show gold checkmark
+ * - Error fade in (no shake animation)
+ * - Accessible: ARIA attributes, keyboard support, screen reader announcements
+ */
