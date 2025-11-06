@@ -42,7 +42,8 @@ jobs:
       - name: Get latest image from ECR
         id: get-image
         run: |
-          IMAGE_TAG="${{ github.sha }}"
+          # Use 'latest' tag for main branch deployments
+          IMAGE_TAG="latest"
           IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
           echo "image-uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
           echo "Deploying image: ${IMAGE_URI}"
