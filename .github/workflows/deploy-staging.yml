@@ -242,7 +242,15 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: ./frontend
-        run: npx playwright install --with-deps chromium
+        env:
+          # Disable man-db triggers - saves 80+ seconds
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          # Skip man page updates during package installation (saves ~80 seconds)
+          sudo mkdir -p /etc/dpkg/dpkg.cfg.d
+          echo 'path-exclude=/usr/share/man/*' | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
+
+          npx playwright install --with-deps chromium
 
       - name: Check if E2E staging environment is configured
         id: check-e2e-config
