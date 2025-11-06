@@ -252,7 +252,33 @@ jobs:
       - name: Run E2E tests against staging
         if: steps.check-e2e-config.outputs.configured == 'true'
         working-directory: ./frontend
-        run: npm run test:e2e
+        run: |
+          echo "🔍 E2E Test Configuration:"
+          echo "  Frontend URL: $E2E_BASE_URL"
+          echo "  API URL: $E2E_API_URL"
+          echo "  Test User: $E2E_TEST_USER_EMAIL"
+          echo ""
+
+          echo "🌐 Testing frontend connectivity..."
+          if curl -f -s -o /dev/null -w "HTTP %{http_code} in %{time_total}s\n" "$E2E_BASE_URL"; then
+            echo "✅ Frontend is reachable"
+          else
+            echo "❌ Frontend is not reachable at $E2E_BASE_URL"
+            echo "Attempting to diagnose..."
+            curl -v "$E2E_BASE_URL" 2>&1 | head -20
+          fi
+          echo ""
+
+          echo "🌐 Testing API connectivity..."
+          if curl -f -s -o /dev/null -w "HTTP %{http_code} in %{time_total}s\n" "$E2E_API_URL/health"; then
+            echo "✅ API is reachable"
+          else
+            echo "❌ API is not reachable at $E2E_API_URL"
+          fi
+          echo ""
+
+          echo "🧪 Running E2E tests..."
+          npm run test:e2e
         env:
           E2E_BASE_URL: ${{ secrets.STAGING_FRONTEND_URL }}
           E2E_API_URL: ${{ secrets.STAGING_API_URL }}
