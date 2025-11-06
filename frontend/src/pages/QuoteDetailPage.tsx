@@ -1,24 +1,60 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuotes } from '../features/quotes/useQuotes';
+import { useJobs } from '../features/jobs/useJobs';
+import { JobSelector } from '../features/jobs/JobSelector';
 import { FinancialSummary, type FinancialData } from '../features/financials/FinancialSummary';
+import { type Job } from '../shared/types/models';
 
 export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedQuote, isLoading, error, loadQuoteDetails, clearSelectedQuote } = useQuotes();
+  const { jobs, loadJobsForQuote, createJob, deleteJob, clearJobs } = useJobs();
+  const [isAddingJob, setIsAddingJob] = useState(false);
 
   useEffect(() => {
     if (id) {
       loadQuoteDetails(id);
+      loadJobsForQuote(id);
     }
     return () => {
       clearSelectedQuote();
+      clearJobs();
     };
-  }, [id, loadQuoteDetails, clearSelectedQuote]);
+  }, [id, loadQuoteDetails, loadJobsForQuote, clearSelectedQuote, clearJobs]);
 
   const handleBack = () => {
     navigate('/dashboard');
+  };
+
+  const handleSaveJob = async (jobData: Partial<Job>) => {
+    try {
+      await createJob(jobData);
+      setIsAddingJob(false);
+      // Reload quote to get updated financials
+      if (id) {
+        await loadQuoteDetails(id);
+      }
+    } catch (error) {
+      console.error('Failed to save job:', error);
+      alert('Failed to save job. Please try again.');
+    }
+  };
+
+  const handleDeleteJob = async (jobId: string) => {
+    if (confirm('Are you sure you want to delete this job?')) {
+      try {
+        await deleteJob(jobId);
+        // Reload quote to get updated financials
+        if (id) {
+          await loadQuoteDetails(id);
+        }
+      } catch (error) {
+        console.error('Failed to delete job:', error);
+        alert('Failed to delete job. Please try again.');
+      }
+    }
   };
 
   if (isLoading) {
@@ -186,22 +222,79 @@ export function QuoteDetailPage() {
 
         {/* Jobs Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Jobs</h2>
-          {selectedQuote.jobs && selectedQuote.jobs.length > 0 ? (
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Jobs</h2>
+            {!isAddingJob && (
+              <button
+                onClick={() => setIsAddingJob(true)}
+                className="btn-primary text-sm flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Add Job
+              </button>
+            )}
+          </div>
+
+          {isAddingJob ? (
+            <JobSelector
+              quoteId={id!}
+              onSave={handleSaveJob}
+              onCancel={() => setIsAddingJob(false)}
+            />
+          ) : jobs.length > 0 ? (
             <div className="space-y-4">
-              {selectedQuote.jobs.map((job, index) => (
+              {jobs.map((job, index) => (
                 <div key={job.id} className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-medium text-gray-900 mb-2">
-                    Job {index + 1}: {job.job_type.replace('_', ' ').toUpperCase()}
-                  </h3>
-                  <p className="text-sm text-gray-600">Subtotal: {formatCurrency(job.subtotal)}</p>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900 mb-2">
+                        Job {index + 1}: {job.job_type.replace(/_/g, ' ').toUpperCase()}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Subtotal: {formatCurrency(job.subtotal)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteJob(job.id)}
+                      className="text-red-600 hover:text-red-700 p-2"
+                      title="Delete job"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-8 text-gray-500">
               <p>No jobs added yet</p>
-              <p className="text-sm mt-2">Add jobs to calculate the quote total</p>
+              <p className="text-sm mt-2">Click "Add Job" to add work to this quote</p>
             </div>
           )}
         </div>
@@ -237,14 +330,6 @@ export function QuoteDetailPage() {
               <p className="mt-1 text-gray-900">{formatDate(selectedQuote.updated_at)}</p>
             </div>
           </div>
-        </div>
-
-        {/* Coming Soon */}
-        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-          <p className="text-yellow-800 font-medium">🚧 Job Editor Coming Soon</p>
-          <p className="text-sm text-yellow-600 mt-2">
-            Epic 3 will add job creation, material selection, and financial calculations
-          </p>
         </div>
       </div>
     </div>
