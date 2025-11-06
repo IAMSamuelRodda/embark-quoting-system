@@ -78,15 +78,54 @@ jobs:
           echo "Waiting for service to stabilize..."
           sleep 30
 
-          # Get ALB URL
-          ALB_URL="${{ secrets.STAGING_API_URL }}"
+          # Get the running task ARN
+          TASK_ARN=$(aws ecs list-tasks \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service-name ${{ env.ECS_SERVICE }} \
+            --region ${{ env.AWS_REGION }} \
+            --query 'taskArns[0]' \
+            --output text)
+
+          if [ -z "$TASK_ARN" ] || [ "$TASK_ARN" = "None" ]; then
+            echo "❌ No running tasks found!"
+            exit 1
+          fi
+
+          echo "Found task: $TASK_ARN"
+
+          # Get the network interface ID from the task
+          ENI_ID=$(aws ecs describe-tasks \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --tasks $TASK_ARN \
+            --region ${{ env.AWS_REGION }} \
+            --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
+            --output text)
+
+          echo "Network interface: $ENI_ID"
+
+          # Get the public IP address
+          PUBLIC_IP=$(aws ec2 describe-network-interfaces \
+            --network-interface-ids $ENI_ID \
+            --region ${{ env.AWS_REGION }} \
+            --query 'NetworkInterfaces[0].Association.PublicIp' \
+            --output text)
+
+          if [ -z "$PUBLIC_IP" ] || [ "$PUBLIC_IP" = "None" ]; then
+            echo "❌ Could not get public IP address!"
+            exit 1
+          fi
+
+          echo "Task public IP: $PUBLIC_IP"
 
           # Health check
-          echo "Running health check on ${ALB_URL}/health"
-          response=$(curl -s -o /dev/null -w "%{http_code}" ${ALB_URL}/health)
+          HEALTH_URL="http://${PUBLIC_IP}:3000/health"
+          echo "Running health check on ${HEALTH_URL}"
+
+          response=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
 
           if [ "$response" = "200" ]; then
             echo "✅ Deployment successful! Health check passed."
+            echo "Backend is accessible at: $HEALTH_URL"
           else
             echo "❌ Deployment failed! Health check returned: $response"
             exit 1
