@@ -3,6 +3,8 @@
  *
  * Data access layer for quotes in IndexedDB
  * Provides CRUD operations, search, filtering, and sync management
+ *
+ * Epic 5: Version vector tracking for conflict detection
  */
 
 import { db, getDeviceId } from '../../shared/db/indexedDb';
@@ -14,6 +16,7 @@ import {
   type QuoteWithDetails,
   type QuoteListItem,
 } from '../../shared/types/models';
+import { createVersionVector, incrementVersion } from '../sync/versionVectors';
 
 /**
  * Generate next quote number in format EE-YYYY-NNNN
@@ -47,10 +50,13 @@ async function generateQuoteNumber(): Promise<string> {
  * Create a new quote
  */
 export async function createQuote(data: Partial<Quote>): Promise<Quote> {
+  const deviceId = getDeviceId();
+
   const quote: Quote = {
     id: crypto.randomUUID(),
     quote_number: await generateQuoteNumber(),
     version: 1,
+    versionVector: createVersionVector(deviceId), // Epic 5: Initialize version vector
     status: data.status || QuoteStatus.DRAFT,
     user_id: data.user_id || '',
     customer_name: data.customer_name || '',
@@ -62,7 +68,7 @@ export async function createQuote(data: Partial<Quote>): Promise<Quote> {
     created_at: new Date(),
     updated_at: new Date(),
     sync_status: SyncStatus.PENDING,
-    device_id: getDeviceId(),
+    device_id: deviceId,
   };
 
   await db.quotes.add(quote);
@@ -138,10 +144,16 @@ export async function updateQuote(id: string, updates: Partial<Quote>): Promise<
   const quote = await db.quotes.get(id);
   if (!quote) throw new Error(`Quote ${id} not found`);
 
+  const deviceId = getDeviceId();
+
+  // Increment version vector for this device
+  const newVersionVector = incrementVersion(quote.versionVector || {}, deviceId);
+
   // Update version and sync status
   const updatedQuote = {
     ...updates,
     version: quote.version + 1,
+    versionVector: newVersionVector, // Epic 5: Increment version vector
     updated_at: new Date(),
     sync_status: SyncStatus.PENDING,
   };
@@ -158,14 +170,15 @@ export async function updateQuote(id: string, updates: Partial<Quote>): Promise<
     retry_count: 0,
   });
 
-  // Create version snapshot
+  // Create version snapshot with version vector
   await db.quoteVersions.add({
     id: crypto.randomUUID(),
     quote_id: id,
     version: updatedQuote.version,
+    versionVector: newVersionVector,
     data: { ...quote, ...updatedQuote },
     user_id: quote.user_id,
-    device_id: getDeviceId(),
+    device_id: deviceId,
     created_at: new Date(),
   });
 }

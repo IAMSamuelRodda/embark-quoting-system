@@ -97,6 +97,7 @@ export interface Quote {
   id: string; // UUID
   quote_number: string; // e.g., "EE-2025-0001"
   version: number;
+  versionVector?: Record<string, number>; // Epic 5: Version vector for conflict detection
   status: QuoteStatus;
   user_id: string; // UUID
   customer_name: string;
@@ -174,6 +175,7 @@ export interface QuoteVersion {
   id: string; // UUID
   quote_id: string; // UUID
   version: number;
+  versionVector: Record<string, number>; // Epic 5: Version vector for conflict detection
   data: Record<string, unknown>;
   user_id: string; // UUID
   device_id: string;
