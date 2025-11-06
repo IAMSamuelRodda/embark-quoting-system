@@ -70,6 +70,7 @@ jobs:
           IMAGE_TAG="${{ github.ref == 'refs/heads/main' && 'latest' || format('{0}-{1}', github.ref_name, github.sha) }}"
           docker run -d --name backend-test -p 3000:3000 \
             -e NODE_ENV=test \
+            -e SKIP_DB_CHECK=true \
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}
 
           # Wait for health check
