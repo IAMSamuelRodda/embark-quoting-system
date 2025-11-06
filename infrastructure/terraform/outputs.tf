@@ -123,6 +123,23 @@ output "cognito_domain" {
   value       = aws_cognito_user_pool_domain.main.domain
 }
 
+output "e2e_test_user_email" {
+  description = "E2E test user email (add to E2E_TEST_USER_EMAIL secret)"
+  value       = aws_cognito_user.e2e_test_user.username
+}
+
+output "e2e_test_user_password" {
+  description = "E2E test user password (add to E2E_TEST_USER_PASSWORD secret)"
+  value       = random_password.e2e_test_user.result
+  sensitive   = true
+}
+
+output "e2e_test_credentials_secret_arn" {
+  description = "Secrets Manager ARN for E2E test credentials"
+  value       = aws_secretsmanager_secret.e2e_test_credentials.arn
+  sensitive   = true
+}
+
 # ===================================================================
 # RDS (Database)
 # ===================================================================
@@ -206,6 +223,11 @@ output "setup_summary" {
     ------------------------
     ${upper(var.environment)}_COGNITO_USER_POOL_ID:      ${aws_cognito_user_pool.main.id}
     ${upper(var.environment)}_COGNITO_CLIENT_ID:         ${aws_cognito_user_pool_client.frontend.id}
+
+    E2E Testing:
+    -----------
+    E2E_TEST_USER_EMAIL:                ${aws_cognito_user.e2e_test_user.username}
+    E2E_TEST_USER_PASSWORD:             (run 'terraform output e2e_test_user_password' to retrieve)
 
     Database (for reference, accessed via Secrets Manager):
     ------------------------------------------------------

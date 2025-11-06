@@ -264,3 +264,64 @@ resource "aws_cognito_user_pool_domain" "main" {
   domain       = "${var.project_name}-${var.environment}"
   user_pool_id = aws_cognito_user_pool.main.id
 }
+
+# ===================================================================
+# E2E Test User
+# ===================================================================
+
+# Generate random password for test user
+resource "random_password" "e2e_test_user" {
+  length  = 16
+  special = true
+  # Ensure password meets Cognito requirements
+  min_lower   = 1
+  min_upper   = 1
+  min_numeric = 1
+  min_special = 1
+}
+
+# Create test user in Cognito
+resource "aws_cognito_user" "e2e_test_user" {
+  user_pool_id = aws_cognito_user_pool.main.id
+  username     = "e2e-test@embark-quoting.local"
+
+  attributes = {
+    email          = "e2e-test@embark-quoting.local"
+    email_verified = "true"
+    name           = "E2E Test User"
+  }
+
+  # Set permanent password (bypasses temporary password flow)
+  password = random_password.e2e_test_user.result
+
+  lifecycle {
+    ignore_changes = [password]
+  }
+}
+
+# Add test user to field_workers group
+resource "aws_cognito_user_in_group" "e2e_test_user_group" {
+  user_pool_id = aws_cognito_user_pool.main.id
+  group_name   = aws_cognito_user_group.field_workers.name
+  username     = aws_cognito_user.e2e_test_user.username
+}
+
+# Store test user credentials in Secrets Manager
+resource "aws_secretsmanager_secret" "e2e_test_credentials" {
+  name        = "${var.project_name}/${var.environment}/e2e-test-credentials"
+  description = "E2E test user credentials for automated testing"
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-e2e-credentials"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "e2e_test_credentials" {
+  secret_id = aws_secretsmanager_secret.e2e_test_credentials.id
+
+  secret_string = jsonencode({
+    username = aws_cognito_user.e2e_test_user.username
+    password = random_password.e2e_test_user.result
+    email    = "e2e-test@embark-quoting.local"
+  })
+}
