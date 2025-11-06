@@ -187,9 +187,8 @@ export const LongList: Story = {
 };
 
 // Interactive Example
-export const InteractiveExample: Story = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  render: (_args: any) => {
+export const InteractiveExample = {
+  render: () => {
     const [jobType, setJobType] = useState('');
     const [priceSheet, setPriceSheet] = useState('');
 

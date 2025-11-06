@@ -223,9 +223,8 @@ export const FullWidth: Story = {
 };
 
 // Quote Card Example
-export const QuoteCard: Story = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  render: (_args: any) => (
+export const QuoteCard = {
+  render: () => (
     <Card variant="elevated" padding="none" style={{ maxWidth: '400px' }}>
       <CardHeader
         title="Quote #EE-2025-0001"
@@ -305,9 +304,8 @@ export const QuoteCard: Story = {
 };
 
 // Dashboard Cards
-export const DashboardExample: Story = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  render: (_args: any) => (
+export const DashboardExample = {
+  render: () => (
     <div
       style={{
         display: 'grid',

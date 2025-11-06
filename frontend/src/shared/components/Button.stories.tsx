@@ -184,9 +184,8 @@ export const WithIconAfter: Story = {
 };
 
 // Interactive Example
-export const InteractiveExample: Story = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  render: (_args: any) => (
+export const InteractiveExample = {
+  render: () => (
     <div style={{ display: 'flex', gap: 'var(--spacing-3)', flexWrap: 'wrap' }}>
       <Button variant="primary">Get Free Quote</Button>
       <Button variant="secondary">View Details</Button>
