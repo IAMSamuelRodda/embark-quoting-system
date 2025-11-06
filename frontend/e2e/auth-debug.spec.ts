@@ -22,7 +22,7 @@ test('debug login with console logs', async ({ page }) => {
   });
 
   // Navigate to login
-  await page.goto('http://localhost:3000/login');
+  await page.goto('/login');
 
   // Fill credentials (using yesterday's working password)
   await page.getByPlaceholder(/email/i).fill('test.worker@embarkearth.com.au');

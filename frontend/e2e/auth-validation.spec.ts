@@ -16,10 +16,10 @@ test.describe('Authentication Validation', () => {
 
   test('should complete full authentication flow', async ({ page }) => {
     // Step 1: Navigate to app root
-    await page.goto('http://localhost:3000');
+    await page.goto('/');
 
     // Should redirect to /login
-    await expect(page).toHaveURL('http://localhost:3000/login');
+    await expect(page).toHaveURL('/login');
 
     // Step 2: Verify login page renders
     await expect(page.getByRole('heading', { name: /embark quoting/i })).toBeVisible();
@@ -36,7 +36,7 @@ test.describe('Authentication Validation', () => {
 
     // Step 5: Wait for redirect to dashboard (allow time for Cognito)
     console.log('⏳ Waiting for Cognito response...');
-    await expect(page).toHaveURL('http://localhost:3000/dashboard', { timeout: 15000 });
+    await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
 
     // Step 6: Verify dashboard content
     console.log('✅ Verifying dashboard...');
@@ -49,11 +49,11 @@ test.describe('Authentication Validation', () => {
 
   test('should persist authentication after refresh', async ({ page }) => {
     // Login first
-    await page.goto('http://localhost:3000/login');
+    await page.goto('/login');
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);
     await page.getByPlaceholder(/password/i).fill(TEST_CREDENTIALS.password);
     await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('http://localhost:3000/dashboard', { timeout: 15000 });
+    await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
 
     console.log('🔄 Refreshing page...');
 
@@ -61,7 +61,7 @@ test.describe('Authentication Validation', () => {
     await page.reload();
 
     // Should still be on dashboard
-    await expect(page).toHaveURL('http://localhost:3000/dashboard');
+    await expect(page).toHaveURL('/dashboard');
     await expect(page.getByRole('heading', { name: /embark quoting system/i })).toBeVisible();
 
     console.log('✅ Authentication persisted!');
@@ -69,30 +69,30 @@ test.describe('Authentication Validation', () => {
 
   test('should redirect authenticated users away from login', async ({ page }) => {
     // Login first
-    await page.goto('http://localhost:3000/login');
+    await page.goto('/login');
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);
     await page.getByPlaceholder(/password/i).fill(TEST_CREDENTIALS.password);
     await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('http://localhost:3000/dashboard', { timeout: 15000 });
+    await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
 
     console.log('🔀 Trying to access login while authenticated...');
 
     // Try to go to login
-    await page.goto('http://localhost:3000/login');
+    await page.goto('/login');
 
     // Should redirect to dashboard
-    await expect(page).toHaveURL('http://localhost:3000/dashboard');
+    await expect(page).toHaveURL('/dashboard');
 
     console.log('✅ Redirect working correctly!');
   });
 
   test('should sign out and clear authentication', async ({ page }) => {
     // Login first
-    await page.goto('http://localhost:3000/login');
+    await page.goto('/login');
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);
     await page.getByPlaceholder(/password/i).fill(TEST_CREDENTIALS.password);
     await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('http://localhost:3000/dashboard', { timeout: 15000 });
+    await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
 
     console.log('🚪 Signing out...');
 
@@ -100,21 +100,21 @@ test.describe('Authentication Validation', () => {
     await page.getByRole('button', { name: /sign out/i }).click();
 
     // Should redirect to login
-    await expect(page).toHaveURL('http://localhost:3000/login', { timeout: 5000 });
+    await expect(page).toHaveURL('/login', { timeout: 5000 });
 
     console.log('🔒 Verifying protected route access...');
 
     // Try to access dashboard
-    await page.goto('http://localhost:3000/dashboard');
+    await page.goto('/dashboard');
 
     // Should redirect to login
-    await expect(page).toHaveURL('http://localhost:3000/login');
+    await expect(page).toHaveURL('/login');
 
     console.log('✅ Sign out successful!');
   });
 
   test('should show error for invalid credentials', async ({ page }) => {
-    await page.goto('http://localhost:3000/login');
+    await page.goto('/login');
 
     console.log('❌ Testing invalid credentials...');
 
@@ -127,18 +127,18 @@ test.describe('Authentication Validation', () => {
     await expect(page.locator('.bg-red-50')).toBeVisible({ timeout: 10000 });
 
     // Should stay on login page
-    await expect(page).toHaveURL('http://localhost:3000/login');
+    await expect(page).toHaveURL('/login');
 
     console.log('✅ Error handling working correctly!');
   });
 
   test('should display PWA and offline indicators', async ({ page }) => {
     // Login first
-    await page.goto('http://localhost:3000/login');
+    await page.goto('/login');
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);
     await page.getByPlaceholder(/password/i).fill(TEST_CREDENTIALS.password);
     await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('http://localhost:3000/dashboard', { timeout: 15000 });
+    await expect(page).toHaveURL('/dashboard', { timeout: 15000 });
 
     console.log('🔍 Checking PWA indicators...');
 
