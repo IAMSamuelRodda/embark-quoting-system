@@ -50,7 +50,7 @@ describe('Financial Calculation Engine', () => {
       // Materials: $900 → Quote ex GST: $3,000
       const result = await calculationService.calculateQuoteFinancials(900);
 
-      expect(result.gst_rate).toBe(0.10);
+      expect(result.gst_rate).toBe(0.1);
       expect(result.gst_amount).toBe(300); // 10% of $3,000
       expect(result.total_inc_gst).toBe(3300); // $3,000 + $300
     });
@@ -81,9 +81,9 @@ describe('Financial Calculation Engine', () => {
 
       // Rounded total: $3,300
       expect(result.deposit_options).toEqual([
-        { percentage: 0.20, amount: 660 }, // 20%
+        { percentage: 0.2, amount: 660 }, // 20%
         { percentage: 0.25, amount: 825 }, // 25%
-        { percentage: 0.30, amount: 990 }, // 30%
+        { percentage: 0.3, amount: 990 }, // 30%
       ]);
     });
 
@@ -128,8 +128,8 @@ describe('Financial Calculation Engine', () => {
     it('should accept custom profit-first config', async () => {
       // Custom config for $250K-$500K business
       const customConfig = {
-        profit: 0.10,
-        owner: 0.40,
+        profit: 0.1,
+        owner: 0.4,
         tax: 0.15,
         opex: 0.35,
       };
@@ -166,15 +166,15 @@ describe('Financial Calculation Engine', () => {
     });
 
     it('should reject negative materials cost', async () => {
-      await expect(
-        calculationService.calculateQuoteFinancials(-100),
-      ).rejects.toThrow('Raw materials cost must be a positive number');
+      await expect(calculationService.calculateQuoteFinancials(-100)).rejects.toThrow(
+        'Raw materials cost must be a positive number',
+      );
     });
 
     it('should reject non-number materials cost', async () => {
-      await expect(
-        calculationService.calculateQuoteFinancials('900'),
-      ).rejects.toThrow('Raw materials cost must be a positive number');
+      await expect(calculationService.calculateQuoteFinancials('900')).rejects.toThrow(
+        'Raw materials cost must be a positive number',
+      );
     });
 
     it('should handle zero materials cost', async () => {
@@ -187,7 +187,7 @@ describe('Financial Calculation Engine', () => {
     });
 
     it('should handle small materials cost (< $1)', async () => {
-      const result = await calculationService.calculateQuoteFinancials(0.50);
+      const result = await calculationService.calculateQuoteFinancials(0.5);
 
       // $0.50 ÷ 0.30 = $1.67
       expect(result.price_ex_gst).toBeCloseTo(1.67, 2);
@@ -203,10 +203,7 @@ describe('Financial Calculation Engine', () => {
 
   describe('calculateWithModifiers', () => {
     it('should apply tight access multiplier (1.1x)', async () => {
-      const result = await calculationService.calculateWithModifiers(
-        900,
-        { tightAccess: true },
-      );
+      const result = await calculationService.calculateWithModifiers(900, { tightAccess: true });
 
       // Base rounded total: $3,300
       // With tight access: $3,300 × 1.1 = $3,630
@@ -217,10 +214,7 @@ describe('Financial Calculation Engine', () => {
     });
 
     it('should include rock clause disclaimer', async () => {
-      const result = await calculationService.calculateWithModifiers(
-        900,
-        { rockClause: true },
-      );
+      const result = await calculationService.calculateWithModifiers(900, { rockClause: true });
 
       expect(result.rock_clause).toBe(true);
       expect(result.disclaimers).toContain(
@@ -229,10 +223,10 @@ describe('Financial Calculation Engine', () => {
     });
 
     it('should apply both modifiers together', async () => {
-      const result = await calculationService.calculateWithModifiers(
-        900,
-        { tightAccess: true, rockClause: true },
-      );
+      const result = await calculationService.calculateWithModifiers(900, {
+        tightAccess: true,
+        rockClause: true,
+      });
 
       expect(result.tight_access).toBe(true);
       expect(result.rock_clause).toBe(true);
@@ -242,10 +236,10 @@ describe('Financial Calculation Engine', () => {
     });
 
     it('should not apply modifiers when false', async () => {
-      const result = await calculationService.calculateWithModifiers(
-        900,
-        { tightAccess: false, rockClause: false },
-      );
+      const result = await calculationService.calculateWithModifiers(900, {
+        tightAccess: false,
+        rockClause: false,
+      });
 
       expect(result.tight_access).toBe(false);
       expect(result.rock_clause).toBe(false);
@@ -340,10 +334,9 @@ describe('Financial Calculation Engine', () => {
         },
       ];
 
-      const result = await calculationService.recalculateQuoteFinancials(
-        jobs,
-        { tightAccess: true },
-      );
+      const result = await calculationService.recalculateQuoteFinancials(jobs, {
+        tightAccess: true,
+      });
 
       expect(result.final_total).toBe(3630); // With tight access
     });

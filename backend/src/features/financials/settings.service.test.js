@@ -45,10 +45,10 @@ describe('Financial Settings Validation', () => {
       const settings = {
         ...repository.DEFAULT_SETTINGS,
         profit_first: {
-          profit: 0.10, // 10%
-          owner: 0.40, // 40%
+          profit: 0.1, // 10%
+          owner: 0.4, // 40%
           tax: 0.15, // 15%
-          opex: 0.30, // 30%
+          opex: 0.3, // 30%
           // Total: 95% (not 100%)
         },
       };
@@ -63,13 +63,11 @@ describe('Financial Settings Validation', () => {
           profit: -0.05,
           owner: 0.55,
           tax: 0.15,
-          opex: 0.30,
+          opex: 0.3,
         },
       };
       const errors = repository.validateSettings(settings);
-      expect(errors).toContain(
-        'All profit_first percentages must be positive',
-      );
+      expect(errors).toContain('All profit_first percentages must be positive');
     });
 
     it('should reject overhead multiplier < 1.0', () => {
@@ -111,23 +109,19 @@ describe('Financial Settings Validation', () => {
     it('should reject invalid deposit options (> 1)', () => {
       const settings = {
         ...repository.DEFAULT_SETTINGS,
-        deposit_options: [0.20, 1.5, 0.30],
+        deposit_options: [0.2, 1.5, 0.3],
       };
       const errors = repository.validateSettings(settings);
-      expect(errors).toContain(
-        'All deposit options must be numbers between 0 and 1',
-      );
+      expect(errors).toContain('All deposit options must be numbers between 0 and 1');
     });
 
     it('should reject invalid deposit options (negative)', () => {
       const settings = {
         ...repository.DEFAULT_SETTINGS,
-        deposit_options: [0.20, -0.25, 0.30],
+        deposit_options: [0.2, -0.25, 0.3],
       };
       const errors = repository.validateSettings(settings);
-      expect(errors).toContain(
-        'All deposit options must be numbers between 0 and 1',
-      );
+      expect(errors).toContain('All deposit options must be numbers between 0 and 1');
     });
 
     it('should reject invalid default_deposit (> 1)', () => {
@@ -136,9 +130,7 @@ describe('Financial Settings Validation', () => {
         default_deposit: 1.5,
       };
       const errors = repository.validateSettings(settings);
-      expect(errors).toContain(
-        'Default deposit must be a number between 0 and 1',
-      );
+      expect(errors).toContain('Default deposit must be a number between 0 and 1');
     });
 
     it('should reject invalid default_deposit (zero)', () => {
@@ -147,9 +139,7 @@ describe('Financial Settings Validation', () => {
         default_deposit: 0,
       };
       const errors = repository.validateSettings(settings);
-      expect(errors).toContain(
-        'Default deposit must be a number between 0 and 1',
-      );
+      expect(errors).toContain('Default deposit must be a number between 0 and 1');
     });
 
     it('should reject negative rounding increment', () => {
@@ -173,16 +163,16 @@ describe('Financial Settings Validation', () => {
     it('should accept valid custom settings (revised TAPs)', () => {
       // Example: Business between $250K-$500K revenue
       const settings = {
-        gst: 0.10,
+        gst: 0.1,
         profit_first: {
-          profit: 0.10, // 10%
-          owner: 0.40, // 40%
+          profit: 0.1, // 10%
+          owner: 0.4, // 40%
           tax: 0.15, // 15%
           opex: 0.35, // 35%
         },
         overhead_multiplier: 1.05,
-        deposit_options: [0.30, 0.40, 0.50],
-        default_deposit: 0.40,
+        deposit_options: [0.3, 0.4, 0.5],
+        default_deposit: 0.4,
         rounding_increment: 50,
         travel_cost_per_km: 2.5,
         dumping_per_load: 180.0,
@@ -198,9 +188,9 @@ describe('Financial Settings Validation', () => {
         gst: -0.5, // Invalid
         profit_first: {
           profit: -0.05, // Negative
-          owner: 0.50,
+          owner: 0.5,
           tax: 0.15,
-          opex: 0.30,
+          opex: 0.3,
         },
         overhead_multiplier: 0.5, // < 1.0
         deposit_options: [], // Empty
@@ -211,9 +201,7 @@ describe('Financial Settings Validation', () => {
       const errors = repository.validateSettings(settings);
       expect(errors.length).toBeGreaterThan(3);
       expect(errors).toContain('GST rate must be a number between 0 and 1');
-      expect(errors).toContain(
-        'All profit_first percentages must be positive',
-      );
+      expect(errors).toContain('All profit_first percentages must be positive');
       expect(errors).toContain('Overhead multiplier must be a number >= 1.0');
       expect(errors).toContain('At least one deposit option is required');
     });
@@ -241,11 +229,11 @@ describe('Financial Settings Validation', () => {
     it('should have correct values for <$250K business', () => {
       const settings = repository.DEFAULT_SETTINGS;
 
-      expect(settings.gst).toBe(0.10);
+      expect(settings.gst).toBe(0.1);
       expect(settings.profit_first.profit).toBe(0.05); // 5%
-      expect(settings.profit_first.owner).toBe(0.50); // 50%
+      expect(settings.profit_first.owner).toBe(0.5); // 50%
       expect(settings.profit_first.tax).toBe(0.15); // 15%
-      expect(settings.profit_first.opex).toBe(0.30); // 30%
+      expect(settings.profit_first.opex).toBe(0.3); // 30%
       expect(settings.overhead_multiplier).toBe(1.0);
       expect(settings.default_deposit).toBe(0.25); // 25%
       expect(settings.rounding_increment).toBe(10);

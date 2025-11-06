@@ -41,7 +41,11 @@ export async function createJob(jobData) {
  * @returns {Promise<Array>} Array of jobs ordered by order_index
  */
 export async function getJobsByQuoteId(quoteId) {
-  return await db.select().from(jobs).where(eq(jobs.quote_id, quoteId)).orderBy(asc(jobs.order_index));
+  return await db
+    .select()
+    .from(jobs)
+    .where(eq(jobs.quote_id, quoteId))
+    .orderBy(asc(jobs.order_index));
 }
 
 /**

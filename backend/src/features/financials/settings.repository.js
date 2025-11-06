@@ -14,15 +14,15 @@ import { eq, desc, sql } from 'drizzle-orm';
  * Source: docs/financial-model.md
  */
 export const DEFAULT_SETTINGS = {
-  gst: 0.10, // 10% GST (Australia)
+  gst: 0.1, // 10% GST (Australia)
   profit_first: {
     profit: 0.05, // 5%
-    owner: 0.50, // 50%
+    owner: 0.5, // 50%
     tax: 0.15, // 15%
-    opex: 0.30, // 30%
+    opex: 0.3, // 30%
   },
   overhead_multiplier: 1.0, // No markup by default
-  deposit_options: [0.20, 0.25, 0.30], // 20%, 25%, 30%
+  deposit_options: [0.2, 0.25, 0.3], // 20%, 25%, 30%
   default_deposit: 0.25, // 25%
   rounding_increment: 10, // Round to nearest $10
   travel_cost_per_km: 2.0, // $2 per km
@@ -34,11 +34,7 @@ export const DEFAULT_SETTINGS = {
  * Get the current active price sheet (highest version)
  */
 export async function getCurrentSettings() {
-  const result = await db
-    .select()
-    .from(priceSheets)
-    .orderBy(desc(priceSheets.version))
-    .limit(1);
+  const result = await db.select().from(priceSheets).orderBy(desc(priceSheets.version)).limit(1);
 
   if (result.length === 0) {
     return null;
@@ -51,11 +47,7 @@ export async function getCurrentSettings() {
  * Get price sheet by ID
  */
 export async function getSettingsById(id) {
-  const result = await db
-    .select()
-    .from(priceSheets)
-    .where(eq(priceSheets.id, id))
-    .limit(1);
+  const result = await db.select().from(priceSheets).where(eq(priceSheets.id, id)).limit(1);
 
   if (result.length === 0) {
     return null;
@@ -151,17 +143,11 @@ export function validateSettings(defaults) {
     }
   }
 
-  if (
-    typeof defaults.overhead_multiplier !== 'number' ||
-    defaults.overhead_multiplier < 1
-  ) {
+  if (typeof defaults.overhead_multiplier !== 'number' || defaults.overhead_multiplier < 1) {
     errors.push('Overhead multiplier must be a number >= 1.0');
   }
 
-  if (
-    !Array.isArray(defaults.deposit_options) ||
-    defaults.deposit_options.length === 0
-  ) {
+  if (!Array.isArray(defaults.deposit_options) || defaults.deposit_options.length === 0) {
     errors.push('At least one deposit option is required');
   } else {
     // Validate each deposit option
@@ -181,10 +167,7 @@ export function validateSettings(defaults) {
     errors.push('Default deposit must be a number between 0 and 1');
   }
 
-  if (
-    typeof defaults.rounding_increment !== 'number' ||
-    defaults.rounding_increment <= 0
-  ) {
+  if (typeof defaults.rounding_increment !== 'number' || defaults.rounding_increment <= 0) {
     errors.push('Rounding increment must be a positive number');
   }
 

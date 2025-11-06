@@ -29,13 +29,10 @@ export async function calculateQuoteFinancials(rawMaterialsCost, options = {}) {
   // Get calculation parameters from settings (use overrides if provided)
   const params = await settingsService.getCalculationParameters();
 
-  const profitFirst =
-    options.profitFirst || params.profit_first;
+  const profitFirst = options.profitFirst || params.profit_first;
   const gstRate = options.gstRate !== undefined ? options.gstRate : params.gst;
   const roundingIncrement =
-    options.roundingIncrement !== undefined
-      ? options.roundingIncrement
-      : params.rounding_increment;
+    options.roundingIncrement !== undefined ? options.roundingIncrement : params.rounding_increment;
   const overheadMultiplier =
     options.overheadMultiplier !== undefined
       ? options.overheadMultiplier
@@ -123,11 +120,7 @@ export async function calculateQuoteFinancials(rawMaterialsCost, options = {}) {
  * @param {Object} [options] - Additional calculation options
  * @returns {Promise<Object>} Financial breakdown with modifiers
  */
-export async function calculateWithModifiers(
-  rawMaterialsCost,
-  modifiers = {},
-  options = {},
-) {
+export async function calculateWithModifiers(rawMaterialsCost, modifiers = {}, options = {}) {
   const params = await settingsService.getCalculationParameters();
 
   // Calculate base financials

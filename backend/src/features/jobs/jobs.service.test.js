@@ -251,11 +251,7 @@ describe('Job Type Counting', () => {
 
 describe('Job Reordering', () => {
   it('should validate all jobs are included in reorder', () => {
-    const existingJobs = [
-      { id: 'job-1' },
-      { id: 'job-2' },
-      { id: 'job-3' },
-    ];
+    const existingJobs = [{ id: 'job-1' }, { id: 'job-2' }, { id: 'job-3' }];
 
     const reorderData = [
       { id: 'job-1', order_index: 2 },
@@ -268,11 +264,7 @@ describe('Job Reordering', () => {
   });
 
   it('should detect missing jobs in reorder', () => {
-    const existingJobs = [
-      { id: 'job-1' },
-      { id: 'job-2' },
-      { id: 'job-3' },
-    ];
+    const existingJobs = [{ id: 'job-1' }, { id: 'job-2' }, { id: 'job-3' }];
 
     const reorderData = [
       { id: 'job-1', order_index: 0 },

@@ -13,13 +13,7 @@ import { z } from 'zod';
 // VALIDATION SCHEMAS
 // ============================================================================
 
-const jobTypeEnum = z.enum([
-  'retaining_wall',
-  'driveway',
-  'trenching',
-  'stormwater',
-  'site_prep',
-]);
+const jobTypeEnum = z.enum(['retaining_wall', 'driveway', 'trenching', 'stormwater', 'site_prep']);
 
 // Base job schema
 const createJobSchema = z.object({

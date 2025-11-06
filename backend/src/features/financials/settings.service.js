@@ -77,9 +77,7 @@ export async function createSettings(defaults, userId, isAdmin) {
   // Create new version
   const newSettings = await repository.createSettings(defaults, userId);
 
-  console.log(
-    `Created price sheet version ${newSettings.version} by user ${userId}`,
-  );
+  console.log(`Created price sheet version ${newSettings.version} by user ${userId}`);
 
   return newSettings;
 }
