@@ -313,7 +313,7 @@ jobs:
           echo "  E2E_API_URL=${E2E_API_URL}"
           echo ""
 
-          npm run test:e2e
+          npm run test:e2e:validation
         env:
           E2E_BASE_URL: ${{ secrets.STAGING_FRONTEND_URL }}
           E2E_API_URL: ${{ needs.deploy-backend.outputs.backend-url }}
