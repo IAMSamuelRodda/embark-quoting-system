@@ -17,10 +17,13 @@ test.describe('Sync Engine E2E', () => {
   // ============================================================================
 
   // Helper to login on a page
-  async function login(page: Page, email: string) {
+  async function login(page: Page) {
+    const email = process.env.E2E_TEST_USER_EMAIL || 'e2e-test@embark-quoting.local';
+    const password = process.env.E2E_TEST_USER_PASSWORD || 'fallback-password';
+
     await page.goto('/login');
     await page.getByLabel(/email/i).fill(email);
-    await page.getByLabel(/password/i).fill('Test123!');
+    await page.getByLabel(/password/i).fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
     await page.waitForURL('/dashboard');
   }
@@ -60,7 +63,7 @@ test.describe('Sync Engine E2E', () => {
 
     try {
       // Step 1: Login
-      await login(page, 'test@example.com');
+      await login(page);
 
       // Step 2: Go offline
       await goOffline(page);
@@ -116,8 +119,8 @@ test.describe('Sync Engine E2E', () => {
 
     try {
       // Step 1: Login on both devices
-      await login(page1, 'test@example.com');
-      await login(page2, 'test@example.com');
+      await login(page1);
+      await login(page2);
 
       // Step 2: Device 1 creates a quote
       await createQuote(page1, 'Conflict Test Customer');
@@ -180,7 +183,7 @@ test.describe('Sync Engine E2E', () => {
 
     try {
       // Step 1: Login
-      await login(page, 'test@example.com');
+      await login(page);
 
       // Step 2: Create quote online
       await createQuote(page, 'Retry Test Customer');
@@ -222,7 +225,7 @@ test.describe('Sync Engine E2E', () => {
     const page = await context.newPage();
 
     try {
-      await login(page, 'test@example.com');
+      await login(page);
 
       // Rapidly toggle online/offline state
       for (let i = 0; i < 5; i++) {
@@ -253,7 +256,7 @@ test.describe('Sync Engine E2E', () => {
     const page = await context.newPage();
 
     try {
-      await login(page, 'test@example.com');
+      await login(page);
 
       // Go offline
       await goOffline(page);
@@ -282,7 +285,7 @@ test.describe('Sync Engine E2E', () => {
     const page = await context.newPage();
 
     try {
-      await login(page, 'test@example.com');
+      await login(page);
 
       // Create quote
       await createQuote(page, 'Version Vector Test');
