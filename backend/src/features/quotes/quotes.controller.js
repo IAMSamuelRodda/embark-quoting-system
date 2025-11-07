@@ -354,3 +354,118 @@ export async function upsertFinancials(req, res) {
     });
   }
 }
+
+// ============================================================================
+// OUTPUTS (PDF & EMAIL)
+// ============================================================================
+
+/**
+ * GET /api/quotes/:id/pdf
+ * Generate and download PDF for a quote
+ */
+export async function generateQuotePDF(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.sub;
+    const isAdmin = req.user.role === 'admin';
+
+    // Get quote with full details
+    const quote = await service.getQuoteById(id, userId, isAdmin);
+
+    if (!quote) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not found',
+        message: 'Quote not found',
+      });
+    }
+
+    // Generate PDF
+    const pdfBuffer = await service.generateQuotePDF(quote);
+
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${quote.quote_number}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Generate quote PDF error:', error);
+
+    if (error.message.startsWith('NOT_FOUND')) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not found',
+        message: error.message.replace('NOT_FOUND: ', ''),
+      });
+    }
+
+    if (error.message.startsWith('FORBIDDEN')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden',
+        message: error.message.replace('FORBIDDEN: ', ''),
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message,
+    });
+  }
+}
+
+/**
+ * POST /api/quotes/:id/send-email
+ * Send quote to customer via email with PDF attachment
+ */
+export async function sendQuoteEmail(req, res) {
+  try {
+    const { id } = req.params;
+    const { email: customEmail } = req.body; // Optional custom email override
+    const userId = req.user.sub;
+    const isAdmin = req.user.role === 'admin';
+
+    // Send email with PDF
+    const result = await service.sendQuoteEmail(id, userId, isAdmin, customEmail);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: `Quote sent to ${result.to}`,
+    });
+  } catch (error) {
+    console.error('Send quote email error:', error);
+
+    if (error.message.startsWith('NOT_FOUND')) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not found',
+        message: error.message.replace('NOT_FOUND: ', ''),
+      });
+    }
+
+    if (error.message.startsWith('FORBIDDEN')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden',
+        message: error.message.replace('FORBIDDEN: ', ''),
+      });
+    }
+
+    if (error.message.startsWith('INVALID_EMAIL')) {
+      return res.status(400).json({
+        success: false,
+        error: 'Bad request',
+        message: error.message.replace('INVALID_EMAIL: ', ''),
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message,
+    });
+  }
+}

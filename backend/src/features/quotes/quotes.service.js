@@ -339,3 +339,103 @@ export async function upsertFinancials(quoteId, financialData, userId, isAdmin) 
     });
   }
 }
+
+// ============================================================================
+// OUTPUTS (PDF & EMAIL)
+// ============================================================================
+
+/**
+ * Generate PDF for a quote
+ * @param {Object} quote - Quote with all related data
+ * @returns {Promise<Buffer>} PDF file buffer
+ */
+export async function generateQuotePDF(quote) {
+  const { generateQuotePDF: pdfGenerator } = await import('../../shared/services/pdfService.js');
+  return await pdfGenerator(quote);
+}
+
+/**
+ * Send quote via email with PDF attachment
+ * @param {string} quoteId - Quote ID
+ * @param {string} userId - User ID
+ * @param {boolean} isAdmin - Whether user is admin
+ * @param {string} customEmail - Optional custom email override
+ * @returns {Promise<Object>} Email send result
+ */
+export async function sendQuoteEmail(quoteId, userId, isAdmin, customEmail) {
+  // Import email service
+  const { sendQuoteEmail: emailSender } = await import('../../shared/services/emailService.js');
+  const { generateQuotePDF: pdfGenerator } = await import('../../shared/services/pdfService.js');
+
+  // Get quote with full details (includes authorization check)
+  const quote = await getQuoteById(quoteId, userId, isAdmin);
+
+  if (!quote) {
+    throw new Error('NOT_FOUND: Quote not found');
+  }
+
+  // Determine recipient email
+  const recipientEmail = customEmail || quote.customer_email;
+
+  if (!recipientEmail) {
+    throw new Error(
+      'INVALID_EMAIL: No customer email on file and no custom email provided',
+    );
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(recipientEmail)) {
+    throw new Error('INVALID_EMAIL: Invalid email address format');
+  }
+
+  // Generate PDF
+  const pdfBuffer = await pdfGenerator(quote);
+
+  // Prepare email parameters
+  const depositAmount = quote.financials?.deposit
+    ? formatCurrency(quote.financials.deposit.amount)
+    : null;
+  const depositPercentage = quote.financials?.deposit?.percentage || null;
+
+  const emailParams = {
+    to: recipientEmail,
+    customerName: quote.customer_name,
+    quoteNumber: quote.quote_number,
+    totalAmount: formatCurrency(quote.financials?.rounded_total || 0),
+    quoteDate: formatDate(quote.created_at),
+    jobCount: quote.jobs?.length || 0,
+    depositAmount,
+    depositPercentage,
+    pdfAttachment: pdfBuffer,
+    pdfFilename: `${quote.quote_number}.pdf`,
+  };
+
+  // Send email
+  const result = await emailSender(emailParams);
+
+  // Update quote status to 'sent'
+  await repository.updateQuote(quoteId, { status: 'sent' });
+
+  return {
+    ...result,
+    quoteId,
+    quoteNumber: quote.quote_number,
+  };
+}
+
+// Helper functions for formatting
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: 'AUD',
+  }).format(amount);
+}
+
+function formatDate(date) {
+  return new Intl.DateTimeFormat('en-AU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(date));
+}

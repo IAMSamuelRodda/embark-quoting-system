@@ -111,4 +111,25 @@ router.post('/:quoteId/jobs/reorder', jobsController.reorderJobs);
  */
 router.put('/:id/financials', controller.upsertFinancials);
 
+// ============================================================================
+// OUTPUTS (PDF & Email)
+// ============================================================================
+
+/**
+ * POST /api/quotes/:id/send-email
+ * Send quote to customer via email with PDF attachment
+ * Authorization: Quote owner or admin only
+ * Updates quote status to 'sent'
+ * Body: (optional) Custom email address to override customer_email
+ */
+router.post('/:id/send-email', controller.sendQuoteEmail);
+
+/**
+ * GET /api/quotes/:id/pdf
+ * Generate and download PDF for a quote
+ * Authorization: Quote owner or admin only
+ * Returns PDF file
+ */
+router.get('/:id/pdf', controller.generateQuotePDF);
+
 export default router;
