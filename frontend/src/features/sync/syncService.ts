@@ -232,12 +232,35 @@ export async function pullChanges(): Promise<{
             // Critical conflicts - requires manual resolution
             console.log(`[Sync] Critical conflict detected for quote ${remoteQuote.id}`);
             conflictsDetected++;
-            // Mark quote as having conflict for user to resolve
+
+            // Store conflict data in metadata for later resolution
+            // Feature 5.5: ConflictResolver component will use this data
             await db.quotes.update(remoteQuote.id, {
               sync_status: SyncStatus.CONFLICT,
               last_synced_at: new Date(),
+              metadata: {
+                ...(localQuote.metadata || {}),
+                conflictData: {
+                  remoteQuote: {
+                    ...remoteQuote,
+                    // Convert dates to ISO strings for storage
+                    created_at: remoteQuote.created_at.toISOString(),
+                    updated_at: remoteQuote.updated_at.toISOString(),
+                    last_synced_at: remoteQuote.last_synced_at?.toISOString(),
+                  },
+                  conflictReport: {
+                    ...conflictReport,
+                    // Convert date fields in conflicting fields
+                    conflictingFields: conflictReport.conflictingFields.map((field) => ({
+                      ...field,
+                      localTimestamp: field.localTimestamp.toISOString(),
+                      remoteTimestamp: field.remoteTimestamp.toISOString(),
+                    })),
+                  },
+                  detectedAt: new Date().toISOString(),
+                },
+              },
             });
-            // TODO: Feature 5.5 - Show conflict resolution UI
           }
         }
       } catch (error) {
