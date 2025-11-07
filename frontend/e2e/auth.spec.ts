@@ -38,7 +38,7 @@ test.describe('Authentication Flow', () => {
 
     // Check for login form elements
     console.log('DEBUG: Checking for heading');
-    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /embark quoting/i })).toBeVisible();
     console.log('DEBUG: Checking for email field');
     await expect(page.getByPlaceholder(/email/i)).toBeVisible();
     console.log('DEBUG: Checking for password field');
@@ -158,7 +158,7 @@ test.describe('Authentication Flow', () => {
     await page.goto('/login');
 
     // Check that form is still visible and usable
-    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /embark quoting/i })).toBeVisible();
     await expect(page.getByPlaceholder(/email/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
   });
