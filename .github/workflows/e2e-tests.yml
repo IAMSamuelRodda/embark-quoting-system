@@ -38,12 +38,12 @@ on:
   workflow_call:
     inputs:
       base-url:
-        description: 'Frontend URL to test against'
-        required: true
+        description: 'Frontend URL to test against (leave blank to use secret)'
+        required: false
         type: string
       api-url:
-        description: 'Backend API URL to test against'
-        required: true
+        description: 'Backend API URL to test against (leave blank to use secret)'
+        required: false
         type: string
       environment:
         description: 'Environment name (staging/production/local)'
@@ -56,6 +56,12 @@ on:
         type: string
         default: ''
     secrets:
+      base-url-secret:
+        description: 'Frontend URL from secrets (if not provided as input)'
+        required: false
+      api-url-secret:
+        description: 'Backend API URL from secrets (if not provided as input)'
+        required: false
       test-user-email:
         description: 'E2E test user email'
         required: true
@@ -72,21 +78,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Resolve URLs (for manual triggers)
+      - name: Resolve URLs (for manual triggers and reusable workflow calls)
         id: resolve-urls
         run: |
-          # For manual triggers without URLs, use staging defaults from secrets
+          # Priority: 1) input parameter, 2) secret parameter, 3) staging defaults
           BASE_URL="${{ inputs.base-url }}"
           API_URL="${{ inputs.api-url }}"
 
+          # If not provided as input, try secret parameter
+          if [ -z "$BASE_URL" ]; then
+            BASE_URL="${{ secrets.base-url-secret }}"
+            echo "Using frontend URL from secrets parameter"
+          fi
+
+          if [ -z "$API_URL" ]; then
+            API_URL="${{ secrets.api-url-secret }}"
+            echo "Using API URL from secrets parameter"
+          fi
+
+          # Fallback to staging defaults for manual triggers
           if [ -z "$BASE_URL" ]; then
             BASE_URL="${{ secrets.STAGING_FRONTEND_URL }}"
-            echo "Using staging frontend URL from secrets"
+            echo "Using staging frontend URL from secrets (fallback)"
           fi
 
           if [ -z "$API_URL" ]; then
             API_URL="${{ secrets.STAGING_API_URL }}"
-            echo "Using staging API URL from secrets"
+            echo "Using staging API URL from secrets (fallback)"
           fi
 
           echo "base-url=${BASE_URL}" >> $GITHUB_OUTPUT

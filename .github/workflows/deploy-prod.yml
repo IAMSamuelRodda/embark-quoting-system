@@ -50,6 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [pre-deployment-checks]
     environment:
+      # Note: Create 'production' environment in GitHub repo settings to enable manual approvals
+      # Settings > Environments > New environment > Name: production
       name: production
       url: https://api.embark-quoting.com  # TODO: Update to your production API URL
 
@@ -183,6 +185,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-backend]  # Wait for backend to be healthy first
     environment:
+      # Note: Uses same 'production' environment as deploy-backend job
       name: production
       url: https://embark-quoting.com  # TODO: Update to your production frontend URL
 
@@ -283,13 +286,14 @@ jobs:
     needs: [deploy-backend, deploy-frontend]
     uses: ./.github/workflows/e2e-tests.yml
     with:
-      base-url: ${{ secrets.PROD_FRONTEND_URL }}
-      api-url: ${{ secrets.PROD_API_URL }}
       environment: production
       # Run ONLY authentication validation tests (fast smoke test)
       # Full test suite already validated on staging
       test-pattern: 'e2e/auth.spec.ts'
     secrets:
+      # Pass URLs through secrets section (cannot use secrets.* in with: section)
+      base-url-secret: ${{ secrets.PROD_FRONTEND_URL }}
+      api-url-secret: ${{ secrets.PROD_API_URL }}
       test-user-email: ${{ secrets.E2E_PROD_USER_EMAIL }}
       test-user-password: ${{ secrets.E2E_PROD_USER_PASSWORD }}
 
