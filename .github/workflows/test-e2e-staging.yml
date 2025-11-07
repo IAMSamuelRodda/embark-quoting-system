@@ -134,7 +134,7 @@ jobs:
           echo "  Using baseURL: $E2E_BASE_URL"
           echo "  Using API URL: $E2E_API_URL"
 
-          npm run test:e2e
+          npm run test:e2e:validation
         env:
           E2E_BASE_URL: ${{ secrets.STAGING_FRONTEND_URL }}
           E2E_API_URL: ${{ steps.get-backend-ip.outputs.backend-url }}
