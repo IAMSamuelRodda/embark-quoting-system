@@ -4,6 +4,7 @@ import { LoginPage } from './features/auth/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { QuoteDetailPage } from './pages/QuoteDetailPage';
 import { QuoteEditor } from './features/quotes/QuoteEditor';
+import { SettingsPage } from './features/settings/SettingsPage';
 import { useAuth } from './features/auth/useAuth';
 
 function App() {
@@ -47,6 +48,10 @@ function App() {
         <Route
           path="/quotes/:id"
           element={isAuthenticated ? <QuoteDetailPage /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/settings"
+          element={isAuthenticated ? <SettingsPage /> : <Navigate to="/login" replace />}
         />
 
         {/* Default redirect */}

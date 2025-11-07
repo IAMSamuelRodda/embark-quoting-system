@@ -1,0 +1,465 @@
+/**
+ * Settings Page Styles - Design System v2.0
+ *
+ * Philosophy: "Industrial Clarity" with responsive settings interface
+ *
+ * Design Principles:
+ * - 8px spatial rhythm (all spacing uses --spacing-* tokens)
+ * - CAT Gold (#FFB400) primary accent
+ * - System font stack (readable, professional)
+ * - Motion timing: 100ms instant, 200ms fast, 300ms base
+ * - Responsive layout (mobile-first)
+ * - Accessible tab navigation
+ */
+
+.settings-page {
+  /* Layout */
+  min-height: 100vh;
+  padding: var(--spacing-8); /* 32px */
+  background-color: var(--color-background-primary);
+}
+
+.settings-container {
+  /* Layout */
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.settings-title {
+  /* Typography */
+  font-size: var(--font-size-6); /* 48px */
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-8); /* 32px bottom */
+}
+
+/* ===== TAB NAVIGATION ===== */
+
+.settings-tabs {
+  /* Layout */
+  display: flex;
+  gap: var(--spacing-2); /* 8px */
+  margin-bottom: var(--spacing-6); /* 24px */
+  border-bottom: 2px solid var(--color-border-default);
+  overflow-x: auto; /* Horizontal scroll on mobile */
+
+  /* Responsive */
+  -webkit-overflow-scrolling: touch;
+}
+
+.settings-tab {
+  /* Layout */
+  padding: var(--spacing-3) var(--spacing-4); /* 12px 16px */
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+
+  /* Typography */
+  font-size: var(--font-size-3); /* 18px */
+  font-weight: 500;
+  color: var(--color-text-secondary);
+
+  /* Transition */
+  transition:
+    color 200ms ease,
+    background-color 200ms ease;
+
+  /* Remove default button styles */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.settings-tab::after {
+  /* Active indicator bar */
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: transparent;
+  transition: background-color 200ms ease;
+}
+
+.settings-tab:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-background-hover);
+}
+
+.settings-tab:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.settings-tab--active {
+  color: var(--color-primary); /* CAT Gold */
+  font-weight: 600;
+}
+
+.settings-tab--active::after {
+  background-color: var(--color-primary); /* CAT Gold */
+}
+
+/* ===== TAB CONTENT ===== */
+
+.settings-content {
+  /* Layout */
+  padding: var(--spacing-6) 0; /* 24px vertical */
+}
+
+.settings-section {
+  /* Animation */
+  animation: fadeIn 300ms ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-section__header {
+  /* Layout */
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4); /* 16px */
+  margin-bottom: var(--spacing-6); /* 24px */
+  flex-wrap: wrap; /* Wrap on mobile */
+}
+
+.settings-section__title {
+  /* Typography */
+  font-size: var(--font-size-4); /* 24px */
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-2); /* 8px bottom */
+}
+
+.settings-section__description {
+  /* Typography */
+  font-size: var(--font-size-2); /* 16px */
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-6); /* 24px bottom */
+  line-height: 1.5;
+}
+
+/* ===== FORMS ===== */
+
+.settings-form {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5); /* 20px */
+  max-width: 500px;
+}
+
+.settings-checkbox {
+  /* Layout */
+  padding: var(--spacing-4); /* 16px */
+  border: 1px solid var(--color-border-default);
+  border-radius: 4px;
+  background-color: var(--color-background-secondary);
+}
+
+.settings-checkbox label {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3); /* 12px */
+  cursor: pointer;
+
+  /* Typography */
+  font-size: var(--font-size-2); /* 16px */
+  color: var(--color-text-primary);
+}
+
+.settings-checkbox input[type='checkbox'] {
+  /* Sizing */
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+
+  /* Accent color (CAT Gold) */
+  accent-color: var(--color-primary);
+}
+
+.settings-success {
+  /* Layout */
+  padding: var(--spacing-3); /* 12px */
+  border-radius: 4px;
+  background-color: var(--color-success-background);
+  border: 1px solid var(--color-success);
+
+  /* Typography */
+  font-size: var(--font-size-2); /* 16px */
+  color: var(--color-success);
+  margin: 0;
+}
+
+.settings-error {
+  /* Layout */
+  padding: var(--spacing-3); /* 12px */
+  border-radius: 4px;
+  background-color: var(--color-error-background);
+  border: 1px solid var(--color-error);
+
+  /* Typography */
+  font-size: var(--font-size-2); /* 16px */
+  color: var(--color-error);
+  margin: 0;
+}
+
+/* ===== PASSWORD STRENGTH ===== */
+
+.password-strength {
+  /* Layout */
+  margin-top: calc(var(--spacing-2) * -1); /* -8px (pull up closer to input) */
+  margin-bottom: var(--spacing-2); /* 8px */
+}
+
+.password-strength__bar {
+  /* Layout */
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--color-border-default);
+  margin-bottom: var(--spacing-2); /* 8px */
+  position: relative;
+  overflow: hidden;
+}
+
+.password-strength__bar::after {
+  /* Strength indicator */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  transition:
+    width 200ms ease,
+    background-color 200ms ease;
+}
+
+.password-strength--weak .password-strength__bar::after {
+  width: 33%;
+  background-color: var(--color-error);
+}
+
+.password-strength--medium .password-strength__bar::after {
+  width: 66%;
+  background-color: var(--color-warning);
+}
+
+.password-strength--strong .password-strength__bar::after {
+  width: 100%;
+  background-color: var(--color-success);
+}
+
+.password-strength__label {
+  /* Typography */
+  font-size: var(--font-size-1); /* 14px */
+  color: var(--color-text-secondary);
+  text-transform: capitalize;
+}
+
+/* ===== USERS TABLE ===== */
+
+.users-table {
+  /* Layout */
+  overflow-x: auto;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  background-color: var(--color-background-secondary);
+}
+
+.users-table table {
+  /* Layout */
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table thead {
+  /* Appearance */
+  background-color: var(--color-background-tertiary);
+  border-bottom: 2px solid var(--color-border-default);
+}
+
+.users-table th {
+  /* Layout */
+  padding: var(--spacing-4); /* 16px */
+  text-align: left;
+
+  /* Typography */
+  font-size: var(--font-size-2); /* 16px */
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.users-table td {
+  /* Layout */
+  padding: var(--spacing-4); /* 16px */
+  border-top: 1px solid var(--color-border-default);
+
+  /* Typography */
+  font-size: var(--font-size-2); /* 16px */
+  color: var(--color-text-primary);
+}
+
+.users-table tbody tr {
+  /* Transition */
+  transition: background-color 200ms ease;
+}
+
+.users-table tbody tr:hover {
+  background-color: var(--color-background-hover);
+}
+
+.users-table__actions {
+  /* Layout */
+  display: flex;
+  gap: var(--spacing-2); /* 8px */
+}
+
+.role-badge {
+  /* Layout */
+  display: inline-block;
+  padding: var(--spacing-1) var(--spacing-2); /* 4px 8px */
+  border-radius: 4px;
+
+  /* Typography */
+  font-size: var(--font-size-1); /* 14px */
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.role-badge--admin {
+  background-color: var(--color-primary-background);
+  color: var(--color-primary);
+}
+
+.role-badge--user {
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.action-button {
+  /* Layout */
+  padding: var(--spacing-2) var(--spacing-3); /* 8px 12px */
+  border: 1px solid var(--color-border-default);
+  border-radius: 4px;
+  background-color: var(--color-background-primary);
+  cursor: pointer;
+
+  /* Typography */
+  font-size: var(--font-size-1); /* 14px */
+  font-weight: 500;
+  color: var(--color-text-primary);
+
+  /* Transition */
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    transform 100ms ease;
+}
+
+.action-button:hover:not(:disabled) {
+  background-color: var(--color-background-hover);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.action-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.action-button--danger:hover:not(:disabled) {
+  background-color: var(--color-error-background);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.action-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ===== MODAL ===== */
+
+.modal-form {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4); /* 16px */
+}
+
+.modal-content {
+  /* Typography */
+  font-size: var(--font-size-2); /* 16px */
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+.warning-message {
+  /* Layout */
+  padding: var(--spacing-4); /* 16px */
+  border-radius: 4px;
+  background-color: var(--color-warning-background);
+  border: 1px solid var(--color-warning);
+
+  /* Typography */
+  font-size: var(--font-size-2); /* 16px */
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-4); /* 16px bottom */
+}
+
+.modal-actions {
+  /* Layout */
+  display: flex;
+  gap: var(--spacing-3); /* 12px */
+  justify-content: flex-end;
+  margin-top: var(--spacing-4); /* 16px */
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 640px) {
+  .settings-page {
+    padding: var(--spacing-4); /* 16px */
+  }
+
+  .settings-title {
+    font-size: var(--font-size-5); /* 32px */
+    margin-bottom: var(--spacing-6); /* 24px */
+  }
+
+  .settings-section__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .users-table__actions {
+    flex-direction: column;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}
