@@ -177,14 +177,9 @@ jobs:
           export E2E_TEST_USER_EMAIL
           export E2E_TEST_USER_PASSWORD
 
-          # Run tests with optional pattern
-          if [ -n "${{ inputs.test-pattern }}" ]; then
-            echo "Running specific test pattern: ${{ inputs.test-pattern }}"
-            npx playwright test ${{ inputs.test-pattern }}
-          else
-            echo "Running all E2E tests"
-            npm run test:e2e
-          fi
+          # Run all E2E tests
+          echo "Running all E2E tests"
+          npm run test:e2e
         env:
           E2E_BASE_URL: ${{ steps.resolve-urls.outputs.base-url }}
           E2E_API_URL: ${{ steps.resolve-urls.outputs.api-url }}
