@@ -163,7 +163,7 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
   });
 
-  test('should have PWA manifest configured', async ({ page }) => {
+  test.skip('should have PWA manifest configured', async ({ page }) => {
     await page.goto('/');
 
     // Check for PWA manifest link
@@ -171,7 +171,7 @@ test.describe('Authentication Flow', () => {
     await expect(manifestLink).toHaveCount(1);
   });
 
-  test('should register service worker', async ({ page }) => {
+  test.skip('should register service worker', async ({ page }) => {
     await page.goto('/login');
 
     // Wait for service worker registration

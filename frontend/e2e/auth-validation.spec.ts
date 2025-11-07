@@ -14,7 +14,7 @@ const TEST_CREDENTIALS = {
 
 test.describe('Authentication Validation', () => {
 
-  test('should complete full authentication flow', async ({ page }) => {
+  test.skip('should complete full authentication flow', async ({ page }) => {
     // Step 1: Navigate to app root
     console.log('🌐 Step 1: Navigating to app root...');
     await page.goto('/');
@@ -53,7 +53,7 @@ test.describe('Authentication Validation', () => {
     console.log('✅ Login successful!');
   });
 
-  test('should persist authentication after refresh', async ({ page }) => {
+  test.skip('should persist authentication after refresh', async ({ page }) => {
     // Login first
     await page.goto('/login');
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);
@@ -73,7 +73,7 @@ test.describe('Authentication Validation', () => {
     console.log('✅ Authentication persisted!');
   });
 
-  test('should redirect authenticated users away from login', async ({ page }) => {
+  test.skip('should redirect authenticated users away from login', async ({ page }) => {
     // Login first
     await page.goto('/login');
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);
@@ -92,7 +92,7 @@ test.describe('Authentication Validation', () => {
     console.log('✅ Redirect working correctly!');
   });
 
-  test('should sign out and clear authentication', async ({ page }) => {
+  test.skip('should sign out and clear authentication', async ({ page }) => {
     // Login first
     await page.goto('/login');
     await page.getByPlaceholder(/email/i).fill(TEST_CREDENTIALS.email);

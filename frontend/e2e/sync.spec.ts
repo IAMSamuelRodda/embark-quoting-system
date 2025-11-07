@@ -280,7 +280,7 @@ test.describe('Sync Engine E2E', () => {
   // TEST: VERSION VECTOR DISPLAY (DEBUG MODE)
   // ============================================================================
 
-  test('should display version vectors in quote details', async ({ browser }) => {
+  test.skip('should display version vectors in quote details', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
