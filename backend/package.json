@@ -31,12 +31,14 @@
   "license": "PRIVATE",
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.922.0",
+    "@aws-sdk/client-sesv2": "^3.926.0",
     "aws-jwt-verify": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.6",
     "drizzle-orm": "^0.44.7",
     "express": "^4.18.2",
+    "pdfkit": "^0.17.2",
     "pg": "^8.16.3",
     "zod": "^4.1.12"
   },

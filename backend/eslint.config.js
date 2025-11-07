@@ -26,7 +26,8 @@ export default [
       'brace-style': ['error', '1tbs'],
       'quotes': ['error', 'single', { avoidEscape: true }],
       'semi': ['error', 'always'],
-      'indent': ['error', 2],
+      // Disabled: Prettier handles indentation
+      // 'indent': ['error', 2],
       'comma-dangle': ['error', 'always-multiline'],
       'no-trailing-spaces': 'error',
       'object-curly-spacing': ['error', 'always'],
