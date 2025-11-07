@@ -318,13 +318,14 @@ export const SettingsPage: React.FC = () => {
                 <Select
                   label="Theme"
                   value={theme}
-                  onChange={(e) => setTheme(e.target.value as 'light' | 'dark' | 'system')}
+                  onChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
+                  options={[
+                    { value: 'light', label: 'Light' },
+                    { value: 'dark', label: 'Dark' },
+                    { value: 'system', label: 'System (Auto)' },
+                  ]}
                   fullWidth
-                >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="system">System (Auto)</option>
-                </Select>
+                />
 
                 <div className="settings-checkbox">
                   <label>
@@ -340,15 +341,16 @@ export const SettingsPage: React.FC = () => {
                 <Select
                   label="Default Deposit Percentage"
                   value={defaultDeposit}
-                  onChange={(e) => setDefaultDeposit(e.target.value as '10' | '20' | '30' | '50')}
+                  onChange={(value) => setDefaultDeposit(value as '10' | '20' | '30' | '50')}
+                  options={[
+                    { value: '10', label: '10%' },
+                    { value: '20', label: '20%' },
+                    { value: '30', label: '30%' },
+                    { value: '50', label: '50%' },
+                  ]}
                   fullWidth
                   helperText="Default deposit percentage for new quotes"
-                >
-                  <option value="10">10%</option>
-                  <option value="20">20%</option>
-                  <option value="30">30%</option>
-                  <option value="50">50%</option>
-                </Select>
+                />
 
                 {prefsSuccess && (
                   <p className="settings-success" role="status">
@@ -535,12 +537,13 @@ export const SettingsPage: React.FC = () => {
           <Select
             label="Role"
             value={newUserRole}
-            onChange={(e) => setNewUserRole(e.target.value as 'admin' | 'user')}
+            onChange={(value) => setNewUserRole(value as 'admin' | 'user')}
+            options={[
+              { value: 'user', label: 'User' },
+              { value: 'admin', label: 'Admin' },
+            ]}
             fullWidth
-          >
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </Select>
+          />
 
           <div className="modal-actions">
             <Button onClick={() => setShowCreateModal(false)} variant="secondary">
@@ -582,17 +585,18 @@ export const SettingsPage: React.FC = () => {
             <Select
               label="Role"
               value={selectedUser.role}
-              onChange={(e) =>
+              onChange={(value) =>
                 setSelectedUser({
                   ...selectedUser,
-                  role: e.target.value as 'admin' | 'user',
+                  role: value as 'admin' | 'user',
                 })
               }
+              options={[
+                { value: 'user', label: 'User' },
+                { value: 'admin', label: 'Admin' },
+              ]}
               fullWidth
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </Select>
+            />
 
             <div className="modal-actions">
               <Button onClick={() => setShowEditModal(false)} variant="secondary">
@@ -634,7 +638,7 @@ export const SettingsPage: React.FC = () => {
 
       {/* Toast Notification */}
       {showToast && (
-        <Toast message={toastMessage} type={toastType} onClose={() => setShowToast(false)} />
+        <Toast message={toastMessage} variant={toastType} onClose={() => setShowToast(false)} />
       )}
     </div>
   );
