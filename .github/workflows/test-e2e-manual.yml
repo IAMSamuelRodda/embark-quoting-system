@@ -2,6 +2,20 @@ name: Manual E2E Tests
 
 # Standalone E2E testing workflow - no deployment required
 # Run tests against existing deployed environments
+#
+# IMPORTANT: Staging API URL Limitation
+# ======================================
+# Staging uses dynamic ECS public IPs (no ALB/NAT for cost optimization).
+# The IP changes whenever the ECS task is replaced (deployment, restart, scaling).
+#
+# If this workflow fails with "API is not reachable":
+# 1. Get current IP: aws ecs describe-tasks + aws ec2 describe-network-interfaces
+# 2. Update secret: gh secret set STAGING_API_URL --body "http://<new-ip>:3000"
+#
+# Note: deploy-staging.yml auto-updates the secret, so deployment-triggered
+# E2E tests always work. Only manual tests may need IP refresh.
+#
+# Production uses ALB with stable DNS endpoint - no IP management needed.
 
 on:
   workflow_dispatch:
