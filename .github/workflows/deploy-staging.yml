@@ -139,6 +139,16 @@ jobs:
             exit 1
           fi
 
+      - name: Update STAGING_API_URL secret
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "📝 Updating STAGING_API_URL secret with current backend IP..."
+          gh secret set STAGING_API_URL \
+            --body "${{ steps.verify-backend.outputs.backend-url }}" \
+            --repo ${{ github.repository }}
+          echo "✅ STAGING_API_URL updated: ${{ steps.verify-backend.outputs.backend-url }}"
+
   deploy-frontend:
     name: Deploy Frontend to S3/CloudFront
     runs-on: ubuntu-latest
