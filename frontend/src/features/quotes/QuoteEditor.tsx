@@ -449,3 +449,5 @@ export function QuoteEditor() {
     </div>
   );
 }
+
+export default QuoteEditor;
