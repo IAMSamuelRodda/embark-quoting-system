@@ -92,7 +92,6 @@ describe('Sync Engine: Network Edge Cases', () => {
         next_retry_at: new Date(),
         timestamp: new Date(),
         dead_letter: false,
-        dead_letter: false,
       };
 
       vi.spyOn(syncQueue, 'getNextBatch').mockResolvedValue([mockQueueItem]);
@@ -157,7 +156,6 @@ describe('Sync Engine: Network Edge Cases', () => {
         next_retry_at: new Date(),
         timestamp: new Date(),
         dead_letter: false,
-        dead_letter: false,
       };
 
       // Mock getNextBatch
@@ -217,36 +215,39 @@ describe('Sync Engine: Network Edge Cases', () => {
 
       // Simulate rapid online/offline transitions
       mockIsOnline.mockReturnValue(true);
-      if (stateCallback)
+      if (stateCallback) {
         stateCallback({
           isOnline: true,
           status: 'online',
           lastOnline: new Date(),
           lastOffline: null,
         });
+      }
 
       // Wait a tiny bit
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       mockIsOnline.mockReturnValue(false);
-      if (stateCallback)
+      if (stateCallback) {
         stateCallback({
           isOnline: false,
           status: 'offline',
           lastOnline: null,
           lastOffline: new Date(),
         });
+      }
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       mockIsOnline.mockReturnValue(true);
-      if (stateCallback)
+      if (stateCallback) {
         stateCallback({
           isOnline: true,
           status: 'online',
           lastOnline: new Date(),
           lastOffline: null,
         });
+      }
 
       // Should handle gracefully without crashing
       expect(true).toBe(true); // If we reach here, no crash occurred
