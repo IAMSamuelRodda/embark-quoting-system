@@ -17,7 +17,7 @@
  */
 
 import { useMemo } from 'react';
-import type { QuoteWithDetails, Job, Material, Labour } from '../../shared/types/models';
+import type { QuoteWithDetails, Job, Material } from '../../shared/types/models';
 import { JobType } from '../../shared/types/models';
 
 interface QuoteViewerProps {

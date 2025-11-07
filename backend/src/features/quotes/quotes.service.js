@@ -378,9 +378,7 @@ export async function sendQuoteEmail(quoteId, userId, isAdmin, customEmail) {
   const recipientEmail = customEmail || quote.customer_email;
 
   if (!recipientEmail) {
-    throw new Error(
-      'INVALID_EMAIL: No customer email on file and no custom email provided',
-    );
+    throw new Error('INVALID_EMAIL: No customer email on file and no custom email provided');
   }
 
   // Validate email format

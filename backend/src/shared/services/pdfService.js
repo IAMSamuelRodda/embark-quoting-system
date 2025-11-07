@@ -70,9 +70,7 @@ export async function generateQuotePDF(quote) {
 
       const requiresRockClause =
         quote.jobs &&
-        quote.jobs.some(
-          (job) => job.job_type === 'retaining_wall' || job.job_type === 'trenching',
-        );
+        quote.jobs.some((job) => job.job_type === 'retaining_wall' || job.job_type === 'trenching');
       if (requiresRockClause) {
         addRockClause(doc, quote);
       }
@@ -226,12 +224,13 @@ function addJobBreakdown(doc, quote) {
 
     // Job parameters
     if (job.parameters && Object.keys(job.parameters).length > 0) {
-      doc.fontSize(10).font('Helvetica-Bold').text('Specifications:', PDF_CONFIG.margins.left + 10);
+      doc
+        .fontSize(10)
+        .font('Helvetica-Bold')
+        .text('Specifications:', PDF_CONFIG.margins.left + 10);
       doc.font('Helvetica');
       Object.entries(job.parameters).forEach(([key, value]) => {
-        const label = key
-          .replace(/_/g, ' ')
-          .replace(/\b\w/g, (l) => l.toUpperCase());
+        const label = key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
         doc.fontSize(9).text(`${label}: ${value}`, PDF_CONFIG.margins.left + 20, doc.y);
       });
       doc.moveDown(0.3);
@@ -376,7 +375,10 @@ function addFinancialSummary(doc, quote) {
   yPos += 25;
 
   // Profit-First breakdown
-  doc.fontSize(9).font('Helvetica-Bold').text('Profit-First Allocation:', boxLeft + 10, yPos);
+  doc
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .text('Profit-First Allocation:', boxLeft + 10, yPos);
 
   yPos += 15;
   doc
@@ -431,12 +433,9 @@ function addFinancialSummary(doc, quote) {
     doc
       .fontSize(10)
       .font('Helvetica')
-      .text(
-        `Deposit Required (${quote.financials.deposit.percentage}%):`,
-        boxLeft + 10,
-        doc.y,
-        { continued: true },
-      )
+      .text(`Deposit Required (${quote.financials.deposit.percentage}%):`, boxLeft + 10, doc.y, {
+        continued: true,
+      })
       .font('Helvetica-Bold')
       .text(formatCurrency(quote.financials.deposit.amount), { align: 'right' });
 
@@ -468,11 +467,7 @@ function addRockClause(doc, _quote) {
   doc.fillColor('#fef9c3').rect(boxLeft, boxTop, boxWidth, 80).fill();
 
   // Yellow border
-  doc
-    .strokeColor('#facc15')
-    .lineWidth(2)
-    .rect(boxLeft, boxTop, boxWidth, 80)
-    .stroke();
+  doc.strokeColor('#facc15').lineWidth(2).rect(boxLeft, boxTop, boxWidth, 80).stroke();
 
   doc
     .fillColor(PDF_CONFIG.colors.text)

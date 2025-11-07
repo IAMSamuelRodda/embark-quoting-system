@@ -61,9 +61,7 @@ export async function sendQuoteEmail(params) {
 
   // Validate required parameters
   if (!to || !customerName || !quoteNumber || !pdfAttachment) {
-    throw new Error(
-      'Missing required parameters: to, customerName, quoteNumber, pdfAttachment',
-    );
+    throw new Error('Missing required parameters: to, customerName, quoteNumber, pdfAttachment');
   }
 
   // Generate email content
