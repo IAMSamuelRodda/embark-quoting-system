@@ -141,7 +141,7 @@ jobs:
 
       - name: Update STAGING_API_URL secret
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           echo "📝 Updating STAGING_API_URL secret with current backend IP..."
           gh secret set STAGING_API_URL \
