@@ -213,41 +213,38 @@ describe('Sync Engine: Network Edge Cases', () => {
       const { enableAutoSync } = await import('./syncService');
       enableAutoSync();
 
+      // Ensure callback was captured
+      expect(stateCallback).toBeDefined();
+
       // Simulate rapid online/offline transitions
       mockIsOnline.mockReturnValue(true);
-      if (stateCallback) {
-        stateCallback({
-          isOnline: true,
-          status: 'online',
-          lastOnline: new Date(),
-          lastOffline: null,
-        });
-      }
+      stateCallback!({
+        isOnline: true,
+        status: 'online',
+        lastOnline: new Date(),
+        lastOffline: null,
+      });
 
       // Wait a tiny bit
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       mockIsOnline.mockReturnValue(false);
-      if (stateCallback) {
-        stateCallback({
-          isOnline: false,
-          status: 'offline',
-          lastOnline: null,
-          lastOffline: new Date(),
-        });
-      }
+      stateCallback!({
+        isOnline: false,
+        status: 'offline',
+        lastOnline: null,
+        lastOffline: new Date(),
+      });
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       mockIsOnline.mockReturnValue(true);
-      if (stateCallback) {
-        stateCallback({
-          isOnline: true,
-          status: 'online',
-          lastOnline: new Date(),
-          lastOffline: null,
-        });
-      }
+      stateCallback!({
+        isOnline: true,
+        status: 'online',
+        lastOnline: new Date(),
+        lastOffline: null,
+      });
 
       // Should handle gracefully without crashing
       expect(true).toBe(true); // If we reach here, no crash occurred
