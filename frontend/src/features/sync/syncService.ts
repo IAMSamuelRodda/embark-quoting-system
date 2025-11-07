@@ -18,6 +18,7 @@ import type { Quote } from '../../shared/types/models';
 import { markQuoteAsSynced, markQuoteAsSyncError } from '../quotes/quotesDb';
 import * as syncQueue from './syncQueue';
 import { detectQuoteConflict, hasCriticalConflicts, canAutoResolve } from './conflictDetection';
+import { autoMergeQuotes } from './autoMerge';
 
 // Type guard for API error response
 interface ApiErrorResponse {
@@ -203,10 +204,30 @@ export async function pullChanges(): Promise<{
             updatedCount++;
           } else if (canAutoResolve(conflictReport)) {
             // Non-critical conflicts only - can auto-merge
-            // Auto-merge will be implemented in Feature 5.4
             console.log(`[Sync] Auto-mergeable conflict detected for quote ${remoteQuote.id}`);
-            conflictsDetected++;
-            // TODO: Feature 5.4 - Apply auto-merge and save
+
+            // Apply auto-merge
+            const mergeResult = autoMergeQuotes(localQuote, remoteQuote);
+
+            if (mergeResult.success && mergeResult.mergedQuote) {
+              // Save merged quote to local storage
+              await db.quotes.update(remoteQuote.id, {
+                ...mergeResult.mergedQuote,
+                sync_status: SyncStatus.SYNCED,
+                last_synced_at: new Date(),
+              });
+              updatedCount++;
+
+              console.log(
+                `[Sync] Auto-merged ${mergeResult.autoMergedFields.length} fields for quote ${remoteQuote.id}`,
+              );
+            } else {
+              // Auto-merge failed (shouldn't happen if canAutoResolve returned true)
+              console.error(
+                `[Sync] Auto-merge failed for quote ${remoteQuote.id}: ${mergeResult.error}`,
+              );
+              conflictsDetected++;
+            }
           } else if (hasCriticalConflicts(conflictReport)) {
             // Critical conflicts - requires manual resolution
             console.log(`[Sync] Critical conflict detected for quote ${remoteQuote.id}`);
