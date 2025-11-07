@@ -223,7 +223,9 @@ export async function pullChanges(): Promise<{
               );
             } else {
               // Auto-merge failed (shouldn't happen if canAutoResolve returned true)
-              console.error(`[Sync] Auto-merge failed for quote ${remoteQuote.id}: ${mergeResult.error}`);
+              console.error(
+                `[Sync] Auto-merge failed for quote ${remoteQuote.id}: ${mergeResult.error}`,
+              );
               conflictsDetected++;
             }
           } else if (hasCriticalConflicts(conflictReport)) {
