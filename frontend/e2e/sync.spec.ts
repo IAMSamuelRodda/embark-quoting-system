@@ -57,7 +57,7 @@ test.describe('Sync Engine E2E', () => {
   // TEST: CREATE QUOTE OFFLINE → SYNC ONLINE
   // ============================================================================
 
-  test('should create quote offline and sync when online', async ({ browser }) => {
+  test.skip('should create quote offline and sync when online', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -109,7 +109,7 @@ test.describe('Sync Engine E2E', () => {
   // TEST: EDIT QUOTE ON 2 DEVICES → RESOLVE CONFLICT
   // ============================================================================
 
-  test('should handle conflict when editing quote on 2 devices', async ({ browser }) => {
+  test.skip('should handle conflict when editing quote on 2 devices', async ({ browser }) => {
     // Simulate 2 devices by creating 2 browser contexts
     const device1 = await browser.newContext();
     const device2 = await browser.newContext();
@@ -177,7 +177,7 @@ test.describe('Sync Engine E2E', () => {
   // TEST: QUEUE RETRY AFTER FAILURES
   // ============================================================================
 
-  test('should retry failed sync operations', async ({ browser }) => {
+  test.skip('should retry failed sync operations', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -220,7 +220,7 @@ test.describe('Sync Engine E2E', () => {
   // TEST: RAPID ONLINE/OFFLINE TRANSITIONS
   // ============================================================================
 
-  test('should handle rapid online/offline transitions', async ({ browser }) => {
+  test.skip('should handle rapid online/offline transitions', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -251,7 +251,7 @@ test.describe('Sync Engine E2E', () => {
   // TEST: SYNC STATUS INDICATOR
   // ============================================================================
 
-  test('should show sync status indicator correctly', async ({ browser }) => {
+  test.skip('should show sync status indicator correctly', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 

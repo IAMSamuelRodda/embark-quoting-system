@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './useAuth';
 import { authService } from './authService';
@@ -20,6 +20,21 @@ export function LoginPage() {
     confirmPassword: '',
   });
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  // Listen for online/offline events
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -315,7 +330,7 @@ export function LoginPage() {
           </div>
 
           {/* Offline indicator */}
-          {!navigator.onLine && (
+          {!isOnline && (
             <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-yellow-800 text-sm text-center">
                 ⚠️ You're offline. Sign in requires internet connection.
