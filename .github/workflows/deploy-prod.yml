@@ -275,66 +275,20 @@ jobs:
             exit 1
           fi
 
+  # Amazon-Style Testing: Minimal smoke tests on production
+  # Comprehensive E2E tests already ran on staging (see deploy-staging.yml)
   deployment-verification:
-    name: Post-Deployment Verification
-    runs-on: ubuntu-latest
+    name: Smoke Tests (Production)
     needs: [deploy-backend, deploy-frontend]
-    timeout-minutes: 2
-
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_PROD_ROLE_TO_ASSUME }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Verify backend health
-        run: |
-          ALB_URL="${{ secrets.PROD_API_URL }}"
-
-          echo "🔍 Verifying backend health..."
-          for i in {1..5}; do
-            response=$(curl -s -o /dev/null -w "%{http_code}" ${ALB_URL}/health)
-
-            if [ "$response" = "200" ]; then
-              echo "✅ Backend healthy (attempt $i/5)"
-              break
-            else
-              echo "⚠️  Backend health check returned $response (attempt $i/5)"
-              if [ $i -eq 5 ]; then
-                echo "❌ Backend health verification failed after 5 attempts"
-                exit 1
-              fi
-              sleep 10
-            fi
-          done
-
-      - name: Verify frontend accessibility
-        run: |
-          FRONTEND_URL="${{ secrets.PROD_FRONTEND_URL }}"
-
-          echo "🔍 Verifying frontend accessibility..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" ${FRONTEND_URL})
-
-          if [ "$response" = "200" ]; then
-            echo "✅ Frontend accessible"
-          else
-            echo "❌ Frontend verification failed: HTTP $response"
-            exit 1
-          fi
-
-      - name: Basic authentication sanity check
-        run: |
-          # Single authenticated request to verify auth is working
-          # This is NOT a full E2E test, just basic sanity
-          echo "🔍 Verifying authentication is functional..."
-          echo "✅ Authentication sanity check passed"
-          echo "Note: Full E2E tests were already validated on staging"
-        # TODO: Add single API call with test credentials to verify auth works
+    uses: ./.github/workflows/e2e-tests-reusable.yml
+    with:
+      base-url: ${{ secrets.PROD_FRONTEND_URL }}
+      api-url: ${{ secrets.PROD_API_URL }}
+      environment: production
+      # Run ONLY authentication validation tests (fast smoke test)
+      # Full test suite already validated on staging
+      test-pattern: 'e2e/auth.spec.ts'
+    secrets: inherit
 
   monitor-deployment:
     name: Monitor Production Metrics
