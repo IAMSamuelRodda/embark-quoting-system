@@ -48,12 +48,7 @@ export function PriceManagement() {
     fetchActive();
   }, [fetchActive]);
 
-  const handleStartEdit = (item: {
-    id: string;
-    price: number;
-    unit: string;
-    notes?: string;
-  }) => {
+  const handleStartEdit = (item: { id: string; price: number; unit: string; notes?: string }) => {
     setEditingItem({
       id: item.id,
       price: item.price.toString(),
