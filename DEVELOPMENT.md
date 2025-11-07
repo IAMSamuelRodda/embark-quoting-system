@@ -66,12 +66,15 @@ gh pr create --base main --head dev --title "Release: v1.2.0"
 - ✓ Verify staging deployment health - ~30 sec
 - → **Human approval required** (you confirm)
 
-**Main Branch** (after merge):
-- ✓ Build (quick smoke test) - ~2 min
-- ✓ Deploy to Production (AWS ECS) - ~5-10 min
-- ✓ Smoke tests on production - ~1 min
-- ✓ Create GitHub release (if tagged) - ~30 sec
+**Main Branch** (after tag push like `v1.0.0`):
+- ✓ Pre-deployment validation (tag format check) - ~30 sec
+- ✓ Deploy to Production (AWS ECS + S3/CloudFront) - ~10-15 min
+- ✓ Post-deployment verification (health checks only) - ~1-2 min
+- ✓ Monitor CloudWatch metrics (5 min with auto-rollback) - ~5 min
+- ✓ Create GitHub release - ~30 sec
 - → Production live
+
+**Amazon-style deployment**: Full testing happens in staging. Production deployment only verifies health and monitors metrics for degradation. If error rates spike or targets become unhealthy, automatic rollback is triggered.
 
 ### Test Files & Clean Production
 
@@ -188,10 +191,14 @@ After pushing to **feature branches** or **dev**, GitHub Actions automatically r
 2. Build (smoke test only)
 3. **Manual approval required** → merge
 
-**On `main` branch push** (after approval):
-1. Build (quick smoke)
-2. Deploy to Production
-3. Smoke tests on production
+**On `main` branch tag push** (e.g., `git tag v1.0.0 && git push origin v1.0.0`):
+1. Pre-deployment validation (tag format check)
+2. Deploy to Production (ECS + S3/CloudFront)
+3. Post-deployment verification (health checks only)
+4. Monitor CloudWatch metrics (5 min, auto-rollback on degradation)
+5. Create GitHub release
+
+**Note**: Production uses **Amazon-style deployment** - no full E2E tests, only health verification + metrics monitoring. All comprehensive testing was already done in staging.
 
 ### Monitoring Workflow Status
 
