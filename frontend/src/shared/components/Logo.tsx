@@ -41,7 +41,13 @@ export interface LogoProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement
 
 export const Logo = React.forwardRef<HTMLImageElement, LogoProps>(
   (
-    { variant = 'responsive', size = 'medium', alt = 'Embark Earthworks', className = '', ...props },
+    {
+      variant = 'responsive',
+      size = 'medium',
+      alt = 'Embark Earthworks',
+      className = '',
+      ...props
+    },
     ref,
   ) => {
     // Get logo source based on variant
@@ -94,8 +100,9 @@ export const Logo = React.forwardRef<HTMLImageElement, LogoProps>(
     // For responsive variant, render both images and use CSS to show/hide
     if (variant === 'responsive') {
       return (
-        <div className={logoClasses} ref={ref as any}>
+        <div className={logoClasses}>
           <img
+            ref={ref}
             src={getLogoSrc()}
             alt={alt}
             height={getLogoHeight()}

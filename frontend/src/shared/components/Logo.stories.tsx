@@ -59,7 +59,8 @@ export const Responsive: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Default responsive logo. Shows wordmark on desktop (>640px), icon on mobile (≤640px). Resize browser to see switching behavior.',
+        story:
+          'Default responsive logo. Shows wordmark on desktop (>640px), icon on mobile (≤640px). Resize browser to see switching behavior.',
       },
     },
   },
@@ -117,7 +118,8 @@ export const IconLight: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Icon-only logo for light backgrounds. Use for favicons, mobile headers, and compact spaces.',
+        story:
+          'Icon-only logo for light backgrounds. Use for favicons, mobile headers, and compact spaces.',
       },
     },
   },
