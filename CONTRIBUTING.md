@@ -257,6 +257,8 @@ gh pr create \
 - ✓ Build (Docker build + smoke test)
 
 **Merge**: Auto-merge when all checks pass (no approval required for dev)
+- Use `--merge` (merge commit) to preserve feature branch history
+- Do NOT use `--squash` (keeps git graph clean and shows true branch flow)
 
 ### Dev → Main: Pull Request (Production Release)
 
