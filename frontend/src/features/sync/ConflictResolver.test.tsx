@@ -340,9 +340,9 @@ describe('ConflictResolver', () => {
         />,
       );
 
-      const closeButton = screen.getByRole('button', { name: '' }).parentElement!.querySelector(
-        'svg',
-      )!.parentElement!;
+      const closeButton = screen
+        .getByRole('button', { name: '' })
+        .parentElement!.querySelector('svg')!.parentElement!;
       fireEvent.click(closeButton);
 
       expect(mockOnCancel).toHaveBeenCalledTimes(1);

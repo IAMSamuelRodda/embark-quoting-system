@@ -317,7 +317,9 @@ export function ConflictResolver({
                           }`}
                         >
                           <div className="flex items-start justify-between mb-2">
-                            <div className="text-sm font-medium text-gray-700">Local (This Device)</div>
+                            <div className="text-sm font-medium text-gray-700">
+                              Local (This Device)
+                            </div>
                             {selectedValue === 'local' && (
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -346,11 +348,15 @@ export function ConflictResolver({
                           onClick={() => toggleFieldResolution(field, 'remote')}
                           disabled={isResolving}
                           className={`p-4 text-left hover:bg-green-50 transition-colors disabled:opacity-50 ${
-                            selectedValue === 'remote' ? 'bg-green-50 border-2 border-green-500' : ''
+                            selectedValue === 'remote'
+                              ? 'bg-green-50 border-2 border-green-500'
+                              : ''
                           }`}
                         >
                           <div className="flex items-start justify-between mb-2">
-                            <div className="text-sm font-medium text-gray-700">Remote (Other Device)</div>
+                            <div className="text-sm font-medium text-gray-700">
+                              Remote (Other Device)
+                            </div>
                             {selectedValue === 'remote' && (
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -432,12 +438,14 @@ export function ConflictResolver({
               <div className="text-sm text-gray-600">
                 <p className="mb-1">
                   <span className="font-medium">{conflictingFields.length}</span> field
-                  {conflictingFields.length !== 1 ? 's' : ''} require{conflictingFields.length === 1 ? 's' : ''} manual resolution
+                  {conflictingFields.length !== 1 ? 's' : ''} require
+                  {conflictingFields.length === 1 ? 's' : ''} manual resolution
                 </p>
                 {conflictReport.autoMergedFields.length > 0 && (
                   <p>
                     <span className="font-medium">{conflictReport.autoMergedFields.length}</span>{' '}
-                    field{conflictReport.autoMergedFields.length !== 1 ? 's' : ''} automatically merged
+                    field{conflictReport.autoMergedFields.length !== 1 ? 's' : ''} automatically
+                    merged
                   </p>
                 )}
               </div>

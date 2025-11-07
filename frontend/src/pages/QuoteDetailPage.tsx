@@ -6,7 +6,11 @@ import { JobSelector } from '../features/jobs/JobSelector';
 import { FinancialSummary, type FinancialData } from '../features/financials/FinancialSummary';
 import { ConflictResolver } from '../features/sync/ConflictResolver';
 import { type Job, type Quote, SyncStatus } from '../shared/types/models';
-import type { ConflictReport, ConflictField, AutoMergedField } from '../features/sync/conflictDetection';
+import type {
+  ConflictReport,
+  ConflictField,
+  AutoMergedField,
+} from '../features/sync/conflictDetection';
 import { db, getDeviceId } from '../shared/db/indexedDb';
 import { mergeVersionVectors, incrementVersion } from '../features/sync/versionVectors';
 
