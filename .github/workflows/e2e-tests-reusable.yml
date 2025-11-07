@@ -1,0 +1,150 @@
+name: E2E Tests (Reusable)
+
+# Reusable workflow for E2E testing
+# Called by:
+#   1. .github/workflows/e2e-manual.yml (manual debugging)
+#   2. .github/workflows/deploy-staging.yml (automatic after deployment)
+#
+# Single source of truth for E2E test execution
+
+on:
+  workflow_call:
+    inputs:
+      base-url:
+        description: 'Frontend URL to test against'
+        required: true
+        type: string
+      api-url:
+        description: 'Backend API URL to test against'
+        required: true
+        type: string
+      environment:
+        description: 'Environment name (staging/production/local)'
+        required: false
+        type: string
+        default: 'staging'
+      test-pattern:
+        description: 'Test pattern to run (e.g., "e2e/sync.spec.ts" or blank for all)'
+        required: false
+        type: string
+        default: ''
+    secrets:
+      test-user-email:
+        description: 'E2E test user email'
+        required: true
+      test-user-password:
+        description: 'E2E test user password'
+        required: true
+
+jobs:
+  e2e-tests:
+    name: E2E Tests (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          # Skip man page updates during package installation (saves ~80 seconds)
+          sudo mkdir -p /etc/dpkg/dpkg.cfg.d
+          echo 'path-exclude=/usr/share/man/*' | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
+
+          npx playwright install --with-deps chromium
+
+      - name: Verify connectivity
+        run: |
+          echo "🔍 E2E Test Configuration:"
+          echo "  Environment: ${{ inputs.environment }}"
+          echo "  Frontend URL: ${{ inputs.base-url }}"
+          echo "  API URL: ${{ inputs.api-url }}"
+          echo "  Test User: ${{ secrets.test-user-email }}"
+          echo "  Test Pattern: ${{ inputs.test-pattern || 'all E2E tests' }}"
+          echo ""
+
+          echo "🌐 Testing frontend connectivity..."
+          if curl -f -s -o /dev/null -w "HTTP %{http_code} in %{time_total}s\n" "${{ inputs.base-url }}"; then
+            echo "✅ Frontend is reachable"
+          else
+            echo "❌ Frontend is not reachable at ${{ inputs.base-url }}"
+            echo "Attempting to diagnose..."
+            curl -v "${{ inputs.base-url }}" 2>&1 | head -20
+            exit 1
+          fi
+          echo ""
+
+          echo "🌐 Testing API connectivity..."
+          if curl -f -s -o /dev/null -w "HTTP %{http_code} in %{time_total}s\n" "${{ inputs.api-url }}/health"; then
+            echo "✅ API is reachable"
+          else
+            echo "❌ API is not reachable at ${{ inputs.api-url }}"
+            exit 1
+          fi
+
+      - name: Run E2E tests
+        working-directory: ./frontend
+        timeout-minutes: 5
+        run: |
+          echo "🧪 Running E2E tests..."
+          echo "  Base URL: $E2E_BASE_URL"
+          echo "  API URL: $E2E_API_URL"
+          echo "  Pattern: ${{ inputs.test-pattern || 'all tests' }}"
+          echo ""
+
+          # Export environment variables for Playwright
+          export E2E_BASE_URL
+          export E2E_API_URL
+          export E2E_TEST_USER_EMAIL
+          export E2E_TEST_USER_PASSWORD
+
+          # Run tests with optional pattern
+          if [ -n "${{ inputs.test-pattern }}" ]; then
+            echo "Running specific test pattern: ${{ inputs.test-pattern }}"
+            npx playwright test ${{ inputs.test-pattern }}
+          else
+            echo "Running all E2E tests"
+            npm run test:e2e
+          fi
+        env:
+          E2E_BASE_URL: ${{ inputs.base-url }}
+          E2E_API_URL: ${{ inputs.api-url }}
+          E2E_TEST_USER_EMAIL: ${{ secrets.test-user-email }}
+          E2E_TEST_USER_PASSWORD: ${{ secrets.test-user-password }}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ inputs.environment }}-${{ github.sha }}
+          path: frontend/playwright-report/
+          retention-days: 30
+
+      - name: Upload test results summary
+        if: always()
+        run: |
+          echo "### E2E Test Results (${{ inputs.environment }}) 🧪" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend URL**: ${{ inputs.base-url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **API URL**: ${{ inputs.api-url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Test Pattern**: ${{ inputs.test-pattern || 'all tests' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f frontend/playwright-report/index.html ]; then
+            echo "📊 View detailed report in the artifacts section" >> $GITHUB_STEP_SUMMARY
+          fi
