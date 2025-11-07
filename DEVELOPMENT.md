@@ -4,6 +4,133 @@
 
 ---
 
+## 🌿 Git Branching Strategy
+
+This project uses a **three-tier branching model**: `feature/*` → `dev` → `main`
+
+### Branch Overview
+
+| Branch | Purpose | Deployments | Auto-Merge | Approval Required |
+|--------|---------|-------------|-----------|-------------------|
+| `feature/*` | Active development | None | ✅ Yes (CI passes) | No |
+| `dev` | Integration & staging | Staging (AWS ECS) | ✅ Yes (CI passes) | No |
+| `main` | Production-ready | Production | ❌ No | **Yes** (human-in-loop) |
+
+### Development Flow
+
+```bash
+# 1. Always branch from dev
+git checkout dev
+git pull origin dev
+git checkout -b feature/my-feature
+
+# 2. Work on feature with frequent commits
+git add .
+git commit -m "feat: implement feature X (Relates to #42)"
+
+# 3. Push and create PR to dev
+git push -u origin feature/my-feature
+gh pr create --base dev --title "Feature: X" --body "Implements X (Closes #42)"
+
+# 4. CI runs: validate → test → build
+# 5. Auto-merge to dev when CI passes
+
+# 6. Staging deployment triggered automatically from dev
+# 7. E2E tests run on staging
+
+# 8. When ready for production, create dev → main PR
+gh pr create --base main --head dev --title "Release: v1.2.0"
+
+# 9. Human approval required for main merge
+# 10. Production deployment triggered automatically on main merge
+```
+
+### CI/CD Pipeline by Branch
+
+**Feature Branches** (`feature/*` → `dev` PR):
+- ✓ Validate (lint, security, typecheck) - ~1 min
+- ✓ Test (unit + integration) - ~2-3 min
+- ✓ Build (Docker image + smoke test) - ~3-5 min
+- → Auto-merge to `dev` if all pass
+
+**Dev Branch** (after merge):
+- ✓ Full test suite (unit + integration) - ~2-3 min
+- ✓ Build (Docker image to ECR) - ~3-5 min
+- ✓ Deploy to Staging (AWS ECS) - ~5 min
+- ✓ E2E tests on staging - ~2 min
+- → Staging ready for testing
+
+**Dev → Main PR**:
+- ✓ Validate (quick sanity) - ~1 min
+- ✓ Build (smoke test only) - ~2 min
+- ✓ Verify staging deployment health - ~30 sec
+- → **Human approval required** (you confirm)
+
+**Main Branch** (after merge):
+- ✓ Build (quick smoke test) - ~2 min
+- ✓ Deploy to Production (AWS ECS) - ~5-10 min
+- ✓ Smoke tests on production - ~1 min
+- ✓ Create GitHub release (if tagged) - ~30 sec
+- → Production live
+
+### Test Files & Clean Production
+
+**All branches** contain test files in git history, but they're **excluded from production deployments**:
+
+```bash
+# .gitattributes export-ignore pattern
+frontend/e2e/ export-ignore
+frontend/tests/ export-ignore
+frontend/**/*.test.ts export-ignore
+backend/tests/ export-ignore
+.github/workflows-debug/ export-ignore
+```
+
+**Result**:
+- `git ls-files` shows test files (✓ traceability)
+- `git archive` excludes test files (✓ clean deployments)
+- Production Docker images contain only runtime code
+
+### Hotfix Workflow
+
+For urgent production fixes, branch from `main`:
+
+```bash
+# 1. Branch from main (not dev)
+git checkout main
+git pull origin main
+git checkout -b hotfix/critical-bug
+
+# 2. Fix and commit
+git commit -m "fix: critical production bug (Fixes #89)"
+
+# 3. Create PR to main (bypasses dev/staging)
+gh pr create --base main --title "Hotfix: Critical Bug" --body "Fixes #89"
+
+# 4. After merge to main, backport to dev
+git checkout dev
+git merge main
+git push origin dev
+```
+
+### Branch Protection Rules
+
+**Main Branch**:
+- Require PR reviews: ✅ 1 approver (you)
+- Require status checks: ✅ validate, build smoke tests
+- Allow force pushes: ❌ No
+- Allow deletions: ❌ No
+
+**Dev Branch**:
+- Require PR reviews: ❌ No (auto-merge)
+- Require status checks: ✅ validate, test, build, staging deploy
+- Allow force pushes: ❌ No
+
+**Feature Branches**:
+- No protection (deleted after merge)
+
+---
+
 ## 🔍 Pre-Commit Checklist (CRITICAL)
 
 **Before EVERY commit**, complete this checklist:
@@ -35,14 +162,36 @@ git diff --staged
 
 ## 🚀 CI/CD Workflow Expectations
 
-After pushing, GitHub Actions automatically runs these workflows:
+After pushing to **feature branches** or **dev**, GitHub Actions automatically runs these workflows:
 
-| Workflow | Checks | Pass Criteria | Duration |
-|----------|--------|---------------|----------|
-| **Test** | Unit + integration tests | All tests pass | ~2-3 min |
-| **Validate** | ESLint + Prettier | No violations | ~1 min |
-| **Build** | Docker build (conditional) | Image builds successfully | ~3-5 min |
-| **Deploy** | Deployment to staging/prod | Services healthy | ~5-10 min |
+| Workflow | Triggers | Checks | Pass Criteria | Duration |
+|----------|----------|--------|---------------|----------|
+| **Validate** | PRs to dev/main, pushes to dev/main | ESLint + Prettier + TypeCheck | No violations | ~1 min |
+| **Test** | PRs to dev, pushes to dev | Unit + integration tests | All tests pass | ~2-3 min |
+| **Build** | PRs to dev/main, pushes to dev/main | Docker build (conditional by branch) | Image builds successfully | ~3-5 min |
+| **Deploy Staging** | Pushes to dev only | Deploy to AWS ECS + E2E tests | Services healthy, tests pass | ~7-12 min |
+| **Deploy Production** | Pushes to main only | Deploy to production + smoke tests | Services healthy | ~5-10 min |
+
+### Branch-Specific Workflows
+
+**On `feature/*` → `dev` PR**:
+1. Validate → Test → Build (smoke test)
+2. Auto-merge if all pass
+
+**On `dev` branch push** (after feature merge):
+1. Validate → Test → Build (full)
+2. Deploy to Staging
+3. E2E tests on staging
+
+**On `dev` → `main` PR**:
+1. Validate (quick sanity)
+2. Build (smoke test only)
+3. **Manual approval required** → merge
+
+**On `main` branch push** (after approval):
+1. Build (quick smoke)
+2. Deploy to Production
+3. Smoke tests on production
 
 ### Monitoring Workflow Status
 

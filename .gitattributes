@@ -1,0 +1,64 @@
+# Git attributes for clean production deployments
+# Files matching these patterns exist in git but are excluded from git archive
+
+# ============================================================================
+# Test Files (excluded from production builds via export-ignore)
+# ============================================================================
+# Frontend test files
+frontend/e2e/ export-ignore
+frontend/tests/ export-ignore
+frontend/**/*.test.ts export-ignore
+frontend/**/*.test.tsx export-ignore
+frontend/**/*.spec.ts export-ignore
+frontend/**/*.spec.tsx export-ignore
+frontend/playwright.config.ts export-ignore
+frontend/playwright-report/ export-ignore
+
+# Backend test files
+backend/tests/ export-ignore
+backend/**/*.test.ts export-ignore
+backend/**/*.spec.ts export-ignore
+backend/jest.config.js export-ignore
+
+# ============================================================================
+# Debug Workflows (excluded from production)
+# ============================================================================
+.github/workflows-debug/ export-ignore
+
+# ============================================================================
+# Documentation (optional - keep for reference in production)
+# ============================================================================
+# Uncomment if you want to exclude docs from production deployments
+# docs/ export-ignore
+# DEVELOPMENT.md export-ignore
+# CONTRIBUTING.md export-ignore
+
+# ============================================================================
+# Git Configuration
+# ============================================================================
+# Ensure consistent line endings across platforms
+* text=auto
+
+# Explicitly declare text files for consistent line endings
+*.ts text
+*.tsx text
+*.js text
+*.jsx text
+*.json text
+*.yml text
+*.yaml text
+*.md text
+*.css text
+*.html text
+
+# Binary files - no diff, no line ending conversion
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

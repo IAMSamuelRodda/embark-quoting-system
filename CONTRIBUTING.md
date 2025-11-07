@@ -196,6 +196,169 @@ gh issue comment 17 --body "✅ Unblocked: Sync engine approach decided, can pro
 
 ---
 
+## Git Workflow: Feature → Dev → Main
+
+This project uses a **three-tier branching strategy** with clean separation between development and production code.
+
+### Branch Structure
+
+```
+feature/* → dev → main
+            ↓      ↓
+         staging  production
+```
+
+### Branch Policies
+
+| Branch | Purpose | Deployments | Tests Required | Approval Required |
+|--------|---------|-------------|----------------|-------------------|
+| `feature/*` | Development work | None | Unit + Integration | No |
+| `dev` | Integration & testing | Staging (AWS ECS) | Full suite + E2E | No (auto-merge) |
+| `main` | Production-ready code | Production | Smoke tests only | **Yes** (human approval) |
+
+### Creating a Feature Branch
+
+```bash
+# Always branch from dev, not main
+git checkout dev
+git pull origin dev
+
+# Create feature branch
+git checkout -b feature/quote-crud-api
+
+# Work on the feature
+# ... make changes ...
+
+# Commit work (link to issue)
+git add .
+git commit -m "feat: implement quote CRUD API endpoints
+
+Implements backend endpoints for quote management.
+
+Closes #26"
+```
+
+### Feature → Dev: Pull Request
+
+```bash
+# Push feature branch
+git push -u origin feature/quote-crud-api
+
+# Create PR to dev
+gh pr create \
+  --base dev \
+  --title "Feature: Quote CRUD API" \
+  --body "Implements backend quote API endpoints (Closes #26)"
+```
+
+**CI Checks (Auto-run)**:
+- ✓ Validate (lint, security, typecheck)
+- ✓ Test (unit + integration)
+- ✓ Build (Docker build + smoke test)
+
+**Merge**: Auto-merge when all checks pass (no approval required for dev)
+
+### Dev → Main: Pull Request (Production Release)
+
+```bash
+# Only create dev → main PR when ready for production deployment
+gh pr create \
+  --base main \
+  --head dev \
+  --title "Release: v1.2.0" \
+  --body "Production release with Quote API and Job Types features"
+```
+
+**CI Checks (Auto-run)**:
+- ✓ Validate (quick sanity check)
+- ✓ Build (smoke test only)
+- ✓ Verify staging deployment is healthy
+
+**Merge**: **Human approval required** (you must approve before merge)
+
+**Post-Merge**:
+- Main branch automatically deploys to production
+- Smoke tests run on production
+- GitHub release created (if tagged)
+
+### Clean Production Code
+
+**Test files** exist on all branches but are **excluded from production deployments** via `.gitattributes`:
+
+```bash
+# Tests exist in git (for traceability)
+ls frontend/e2e/
+# ✓ Files visible
+
+# Tests excluded from production builds
+git archive --format=tar HEAD | tar -t | grep "e2e"
+# ✗ No e2e files in archive
+```
+
+This ensures:
+- Full test coverage in development branches
+- Clean production deployments without test infrastructure
+- Git history preserved for all code
+
+### Branch Cleanup
+
+```bash
+# After feature → dev merge, delete feature branch
+git checkout dev
+git pull origin dev
+git branch -d feature/quote-crud-api
+git push origin --delete feature/quote-crud-api
+```
+
+### Hotfix Workflow
+
+For urgent production fixes:
+
+```bash
+# Branch from main, not dev
+git checkout main
+git pull origin main
+git checkout -b hotfix/critical-auth-bug
+
+# Fix the issue
+# ... make changes ...
+
+# Commit with issue reference
+git commit -m "fix: resolve auth token expiration bug
+
+Critical fix for production auth issue.
+
+Fixes #89"
+
+# Create PR directly to main
+gh pr create \
+  --base main \
+  --title "Hotfix: Auth Token Expiration" \
+  --body "Critical production fix (Fixes #89)"
+
+# After merge, backport to dev
+git checkout dev
+git merge main
+git push origin dev
+```
+
+### Workflow Summary
+
+```bash
+# Normal development flow
+feature/my-feature → dev → staging → main → production
+      ↓               ↓                ↓
+  unit tests    full test suite   smoke tests
+  integration   E2E tests         deployment
+                staging deploy
+
+# Approval gates
+feature → dev: Auto-merge (CI passes)
+dev → main:    Human approval required (you confirm staging is healthy)
+```
+
+---
+
 ## Agent Delegation
 
 ### github-progress-tracker Agent (v1.2.0)

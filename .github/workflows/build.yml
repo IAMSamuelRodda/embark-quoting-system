@@ -1,10 +1,13 @@
 name: Build
 
 on:
+  # Feature → Dev: Run build checks on PRs to dev
+  # Dev → Main: Run build checks on PRs to main
   pull_request:
-    branches: [main]
+    branches: [dev, main]
+  # Run on pushes to dev (full build) and main (smoke test only)
   push:
-    branches: [main]
+    branches: [dev, main]
 
 env:
   AWS_REGION: ap-southeast-2  # Sydney region (matches deployed infrastructure)
@@ -65,6 +68,7 @@ jobs:
         # TODO: Create backend/Dockerfile
 
       - name: Run smoke test on Docker image
+        if: github.ref == 'refs/heads/dev' || github.base_ref == 'dev'
         run: |
           # Use the branch name tag (e.g., 'main') which was just pushed
           IMAGE_TAG="${{ github.ref_name }}"

@@ -1,10 +1,13 @@
 name: Validate
 
 on:
+  # Feature → Dev: Run validation on PRs to dev
+  # Dev → Main: Run validation on PRs to main
   pull_request:
-    branches: [main]
+    branches: [dev, main]
+  # Run on pushes to dev and main branches
   push:
-    branches: [main]
+    branches: [dev, main]
 
 jobs:
   lint:

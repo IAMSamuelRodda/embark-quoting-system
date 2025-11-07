@@ -1,9 +1,11 @@
 name: Deploy to Staging
 
 on:
+  # Deploy to staging only on dev branch pushes (after tests pass)
   push:
-    branches: [main]
-  workflow_dispatch:  # Allow manual triggers
+    branches: [dev]
+  # Allow manual triggers for debugging
+  workflow_dispatch:
 
 env:
   AWS_REGION: ap-southeast-2  # Sydney region (matches deployed infrastructure)

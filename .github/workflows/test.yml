@@ -1,10 +1,12 @@
 name: Test
 
 on:
+  # Feature → Dev: Run full test suite on PRs to dev
   pull_request:
-    branches: [main]
+    branches: [dev]
+  # Run full test suite on dev branch pushes (before staging deployment)
   push:
-    branches: [main]
+    branches: [dev]
 
 jobs:
   unit-tests:
