@@ -236,13 +236,7 @@ export async function generateQuotePDF(quote: QuoteWithDetails): Promise<Blob> {
       // Table headers
       doc.setFontSize(PDF_CONFIG.fontSize.small);
       doc.setFillColor(240, 240, 240);
-      doc.rect(
-        PDF_CONFIG.margins.left + 10,
-        yPos - 4,
-        contentWidth - 10,
-        6,
-        'F',
-      );
+      doc.rect(PDF_CONFIG.margins.left + 10, yPos - 4, contentWidth - 10, 6, 'F');
       doc.text('Item', PDF_CONFIG.margins.left + 12, yPos);
       doc.text('Qty', PDF_CONFIG.margins.left + 90, yPos, { align: 'right' });
       doc.text('Unit Price', PDF_CONFIG.margins.left + 120, yPos, { align: 'right' });
@@ -256,18 +250,12 @@ export async function generateQuotePDF(quote: QuoteWithDetails): Promise<Blob> {
       for (const material of job.materials) {
         checkPageBreak(10);
         doc.text(material.name, PDF_CONFIG.margins.left + 12, yPos);
-        doc.text(
-          `${material.quantity} ${material.unit}`,
-          PDF_CONFIG.margins.left + 90,
-          yPos,
-          { align: 'right' },
-        );
-        doc.text(
-          formatCurrency(material.price_per_unit),
-          PDF_CONFIG.margins.left + 120,
-          yPos,
-          { align: 'right' },
-        );
+        doc.text(`${material.quantity} ${material.unit}`, PDF_CONFIG.margins.left + 90, yPos, {
+          align: 'right',
+        });
+        doc.text(formatCurrency(material.price_per_unit), PDF_CONFIG.margins.left + 120, yPos, {
+          align: 'right',
+        });
         doc.text(
           formatCurrency(material.total),
           PDF_CONFIG.pageWidth - PDF_CONFIG.margins.right - 2,

@@ -149,16 +149,16 @@ export function QuoteViewer({ quote, printMode = false }: QuoteViewerProps) {
                   <span className="text-gray-700">
                     Job {index + 1}: {getJobTypeName(job.job_type)}
                   </span>
-                  <span className="font-medium text-gray-900">
-                    {formatCurrency(job.subtotal)}
-                  </span>
+                  <span className="font-medium text-gray-900">{formatCurrency(job.subtotal)}</span>
                 </div>
               ))}
 
               <div className="border-t pt-3 mt-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-700">Direct Costs:</span>
-                  <span className="font-medium">{formatCurrency(quote.financials.direct_cost)}</span>
+                  <span className="font-medium">
+                    {formatCurrency(quote.financials.direct_cost)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm mt-2">
                   <span className="text-gray-700">Overhead Multiplier:</span>
@@ -258,23 +258,22 @@ export function QuoteViewer({ quote, printMode = false }: QuoteViewerProps) {
         </h2>
         <div className="text-xs text-gray-700 space-y-2">
           <p>
-            <strong>1. Acceptance:</strong> This quote is valid for 30 days from the date of
-            issue. Acceptance of this quote constitutes agreement to these terms and conditions.
+            <strong>1. Acceptance:</strong> This quote is valid for 30 days from the date of issue.
+            Acceptance of this quote constitutes agreement to these terms and conditions.
           </p>
           <p>
-            <strong>2. Payment:</strong> A deposit of{' '}
-            {quote.financials?.deposit?.percentage || 30}% is required before work commences. The
-            balance is due upon completion of works. Payment can be made via bank transfer or
-            credit card.
+            <strong>2. Payment:</strong> A deposit of {quote.financials?.deposit?.percentage || 30}%
+            is required before work commences. The balance is due upon completion of works. Payment
+            can be made via bank transfer or credit card.
           </p>
           <p>
             <strong>3. Site Access:</strong> Client to ensure clear site access for equipment.
             Additional charges may apply if access is restricted or requires special arrangements.
           </p>
           <p>
-            <strong>4. Underground Services:</strong> Client is responsible for locating and
-            marking all underground services (water, gas, electricity, telecommunications) prior to
-            work commencing. Dial Before You Dig service must be used.
+            <strong>4. Underground Services:</strong> Client is responsible for locating and marking
+            all underground services (water, gas, electricity, telecommunications) prior to work
+            commencing. Dial Before You Dig service must be used.
           </p>
           <p>
             <strong>5. Weather:</strong> Works may be delayed due to adverse weather conditions.
@@ -343,8 +342,7 @@ function JobBreakdown({ job, index, formatCurrency }: JobBreakdownProps) {
           <div className="pl-4 text-gray-600">
             {Object.entries(job.parameters).map(([key, value]) => (
               <p key={key}>
-                {key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}:{' '}
-                {String(value)}
+                {key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}: {String(value)}
               </p>
             ))}
           </div>
@@ -409,12 +407,8 @@ function MaterialRow({ material, formatCurrency }: MaterialRowProps) {
       <td className="p-2 text-right text-gray-600">
         {material.quantity} {material.unit}
       </td>
-      <td className="p-2 text-right text-gray-600">
-        {formatCurrency(material.price_per_unit)}
-      </td>
-      <td className="p-2 text-right font-medium text-gray-900">
-        {formatCurrency(material.total)}
-      </td>
+      <td className="p-2 text-right text-gray-600">{formatCurrency(material.price_per_unit)}</td>
+      <td className="p-2 text-right font-medium text-gray-900">{formatCurrency(material.total)}</td>
     </tr>
   );
 }
