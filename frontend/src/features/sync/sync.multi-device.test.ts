@@ -438,10 +438,7 @@ describe('Multi-Device Sync Testing', () => {
         customer_phone: quoteFromB.customer_phone, // User chose B
         metadata: metadataField?.mergedValue as Record<string, unknown>, // Auto-merged
         location: locationField?.mergedValue as typeof initialQuote.location, // Auto-merged
-        versionVector: mergeVersionVectors(
-          quoteFromA.versionVector!,
-          quoteFromB.versionVector!,
-        ),
+        versionVector: mergeVersionVectors(quoteFromA.versionVector!, quoteFromB.versionVector!),
       };
 
       expect(manuallyResolved.customer_email).toBe('john.new@example.com');

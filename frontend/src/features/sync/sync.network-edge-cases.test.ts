@@ -126,9 +126,7 @@ describe('Sync Engine: Network Edge Cases', () => {
 
       // Mock API to simulate network error on getAll
       const { api } = await import('../../shared/api/apiClient');
-      const mockGetAll = vi
-        .fn()
-        .mockRejectedValue(new Error('Failed to fetch: Network error'));
+      const mockGetAll = vi.fn().mockRejectedValue(new Error('Failed to fetch: Network error'));
       vi.mocked(api).quotes = {
         ...vi.mocked(api).quotes,
         getAll: mockGetAll,
