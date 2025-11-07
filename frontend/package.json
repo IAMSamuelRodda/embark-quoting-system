@@ -27,7 +27,8 @@
     "test:a11y:all": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"npm run storybook\" \"wait-on tcp:6006 && npm run test:a11y\"",
     "test:a11y:all:report": "concurrently -k -s first -n \"SB,TEST\" -c \"magenta,blue\" \"npm run storybook\" \"wait-on tcp:6006 && npm run test:a11y:report\"",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "generate:favicons": "tsx scripts/generate-favicons.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -36,6 +37,7 @@
     "autoprefixer": "^10.4.21",
     "axios": "^1.13.1",
     "dexie": "^4.2.1",
+    "jspdf": "^3.0.3",
     "lucide-react": "^0.552.0",
     "postcss": "^8.5.6",
     "react": "^19.1.1",
@@ -66,6 +68,7 @@
     "@types/node": "^24.6.0",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
+    "@types/sharp": "^0.31.1",
     "@vitejs/plugin-react": "^5.0.4",
     "@vitest/ui": "^4.0.7",
     "axe-core": "^4.11.0",
@@ -81,6 +84,7 @@
     "pa11y": "^9.0.1",
     "pa11y-ci": "^4.0.1",
     "prettier": "^3.6.2",
+    "sharp": "^0.34.5",
     "storybook": "^10.0.5",
     "tsx": "^4.20.6",
     "typescript": "~5.9.3",

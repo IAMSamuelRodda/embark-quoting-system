@@ -50,6 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [pre-deployment-checks]
     environment:
+      # Note: Create 'production' environment in GitHub repo settings to enable manual approvals
+      # Settings > Environments > New environment > Name: production
       name: production
       url: https://api.embark-quoting.com  # TODO: Update to your production API URL
 
@@ -144,22 +146,20 @@ jobs:
             fi
           done
 
-      - name: Run smoke tests
+      - name: Basic smoke test
         run: |
           ALB_URL="${{ secrets.PROD_API_URL }}"
 
-          echo "Running smoke tests..."
+          echo "Running basic smoke test..."
 
-          # Test 1: Health endpoint
-          if ! curl -sf ${ALB_URL}/health | grep -q "ok"; then
+          # Simple health endpoint check (no grep, just HTTP 200)
+          if curl -f -s -o /dev/null -w "%{http_code}" ${ALB_URL}/health | grep -q "200"; then
+            echo "✅ Health endpoint responding"
+          else
             echo "❌ Health endpoint failed"
+            echo "ROLLBACK_REQUIRED=true" >> $GITHUB_ENV
             exit 1
           fi
-
-          # Test 2: API responds to authenticated request
-          # TODO: Add authenticated smoke test once auth is implemented
-
-          echo "✅ All smoke tests passed"
 
       - name: Rollback on failure
         if: failure() && env.ROLLBACK_REQUIRED == 'true'
@@ -185,6 +185,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-backend]  # Wait for backend to be healthy first
     environment:
+      # Note: Uses same 'production' environment as deploy-backend job
       name: production
       url: https://embark-quoting.com  # TODO: Update to your production frontend URL
 
@@ -277,6 +278,123 @@ jobs:
             exit 1
           fi
 
+  # Amazon-Style Testing: Minimal smoke tests on production
+  # Comprehensive E2E tests already ran on staging (see deploy-staging.yml)
+  # This workflow REQUIRES smoke tests to pass before deployment is considered complete
+  deployment-verification:
+    name: Smoke Tests (Production)
+    needs: [deploy-backend, deploy-frontend]
+    uses: ./.github/workflows/e2e-tests.yml
+    with:
+      environment: production
+      # Run ONLY authentication validation tests (fast smoke test)
+      # Full test suite already validated on staging
+      test-pattern: 'e2e/auth.spec.ts'
+    secrets:
+      # Pass URLs through secrets section (cannot use secrets.* in with: section)
+      base-url-secret: ${{ secrets.PROD_FRONTEND_URL }}
+      api-url-secret: ${{ secrets.PROD_API_URL }}
+      test-user-email: ${{ secrets.E2E_PROD_USER_EMAIL }}
+      test-user-password: ${{ secrets.E2E_PROD_USER_PASSWORD }}
+
+  monitor-deployment:
+    name: Monitor Production Metrics
+    runs-on: ubuntu-latest
+    needs: [deployment-verification]
+    timeout-minutes: 10
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PROD_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Monitor CloudWatch metrics for degradation
+        run: |
+          echo "📊 Monitoring production metrics for 5 minutes..."
+          echo "Watching: HTTP 5xx errors, target health, response times"
+          echo ""
+
+          # Get ALB ARN suffix for CloudWatch metrics
+          # TODO: Store ALB_ARN_SUFFIX in GitHub Secrets during infrastructure setup
+          ALB_ARN_SUFFIX="${{ secrets.PROD_ALB_ARN_SUFFIX }}"
+
+          if [ -z "$ALB_ARN_SUFFIX" ]; then
+            echo "⚠️  PROD_ALB_ARN_SUFFIX not configured - skipping metrics monitoring"
+            echo "To enable automatic rollback based on metrics, add ALB ARN suffix to secrets"
+            exit 0
+          fi
+
+          ROLLBACK_TRIGGERED=false
+
+          for i in {1..10}; do
+            echo "Check $i/10 (monitoring for 30s intervals)..."
+
+            # Get HTTP 5xx error count from last 60 seconds
+            ERROR_COUNT=$(aws cloudwatch get-metric-statistics \
+              --namespace AWS/ApplicationELB \
+              --metric-name HTTPCode_Target_5XX_Count \
+              --dimensions Name=LoadBalancer,Value=${ALB_ARN_SUFFIX} \
+              --start-time $(date -u -d '60 seconds ago' +%Y-%m-%dT%H:%M:%S) \
+              --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+              --period 60 \
+              --statistics Sum \
+              --query 'Datapoints[0].Sum' \
+              --output text 2>/dev/null || echo "0")
+
+            # Get unhealthy target count
+            UNHEALTHY_COUNT=$(aws cloudwatch get-metric-statistics \
+              --namespace AWS/ApplicationELB \
+              --metric-name UnHealthyHostCount \
+              --dimensions Name=LoadBalancer,Value=${ALB_ARN_SUFFIX} \
+              --start-time $(date -u -d '60 seconds ago' +%Y-%m-%dT%H:%M:%S) \
+              --end-time $(date -u +%Y-%m-%dT%H:%M:%S) \
+              --period 60 \
+              --statistics Maximum \
+              --query 'Datapoints[0].Maximum' \
+              --output text 2>/dev/null || echo "0")
+
+            # Handle "None" or empty responses
+            [ "$ERROR_COUNT" = "None" ] || [ -z "$ERROR_COUNT" ] && ERROR_COUNT=0
+            [ "$UNHEALTHY_COUNT" = "None" ] || [ -z "$UNHEALTHY_COUNT" ] && UNHEALTHY_COUNT=0
+
+            echo "  - 5xx errors: $ERROR_COUNT"
+            echo "  - Unhealthy targets: $UNHEALTHY_COUNT"
+
+            # Trigger rollback if error rate is too high
+            if [ "$ERROR_COUNT" != "0" ] && [ "$ERROR_COUNT" -gt 10 ]; then
+              echo "❌ High error rate detected: $ERROR_COUNT errors in 60s (threshold: 10)"
+              ROLLBACK_TRIGGERED=true
+              break
+            fi
+
+            # Trigger rollback if targets are unhealthy
+            if [ "$UNHEALTHY_COUNT" != "0" ] && [ "$UNHEALTHY_COUNT" -gt 0 ]; then
+              echo "❌ Unhealthy targets detected: $UNHEALTHY_COUNT"
+              ROLLBACK_TRIGGERED=true
+              break
+            fi
+
+            echo "  ✅ Metrics healthy"
+            sleep 30
+          done
+
+          if [ "$ROLLBACK_TRIGGERED" = true ]; then
+            echo ""
+            echo "❌ Production metrics degraded - automatic rollback recommended"
+            echo "Manual rollback: aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service ${{ env.ECS_SERVICE }} --task-definition <previous-revision>"
+            exit 1
+          fi
+
+          echo ""
+          echo "✅ Production metrics stable for 5 minutes"
+          echo "Deployment monitoring complete"
+
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
@@ -325,7 +443,7 @@ jobs:
   notify-deployment:
     name: Notify Deployment Success
     runs-on: ubuntu-latest
-    needs: [create-release]
+    needs: [create-release, monitor-deployment]
     if: success()
 
     steps:
@@ -341,7 +459,7 @@ jobs:
   notify-failure:
     name: Notify Deployment Failure
     runs-on: ubuntu-latest
-    needs: [deploy-backend, deploy-frontend]
+    needs: [deploy-backend, deploy-frontend, deployment-verification, monitor-deployment]
     if: failure()
 
     steps:

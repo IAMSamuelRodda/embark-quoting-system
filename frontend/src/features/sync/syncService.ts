@@ -17,6 +17,8 @@ import { SyncOperation, SyncStatus } from '../../shared/types/models';
 import type { Quote } from '../../shared/types/models';
 import { markQuoteAsSynced, markQuoteAsSyncError } from '../quotes/quotesDb';
 import * as syncQueue from './syncQueue';
+import { detectQuoteConflict, hasCriticalConflicts, canAutoResolve } from './conflictDetection';
+import { autoMergeQuotes } from './autoMerge';
 
 // Type guard for API error response
 interface ApiErrorResponse {
@@ -36,6 +38,7 @@ export interface SyncResult {
   success: boolean;
   pushedCount: number;
   pulledCount: number;
+  conflictsDetected: number; // Feature 5.3: Track conflicts
   errors: string[];
 }
 
@@ -133,11 +136,12 @@ export async function pushChanges(batchSize: number = 10): Promise<{
 
 /**
  * Pull remote changes from API and update local storage
- * For Feature 2.6: Simple pull without conflict detection
+ * Feature 5.3: With conflict detection using version vectors
  */
 export async function pullChanges(): Promise<{
   success: boolean;
   count: number;
+  conflictsDetected: number;
   errors: string[];
 }> {
   // Check if online
@@ -145,12 +149,14 @@ export async function pullChanges(): Promise<{
     return {
       success: false,
       count: 0,
+      conflictsDetected: 0,
       errors: ['Device is offline'],
     };
   }
 
   const errors: string[] = [];
   let updatedCount = 0;
+  let conflictsDetected = 0;
 
   try {
     // Fetch all quotes from API
@@ -177,19 +183,86 @@ export async function pullChanges(): Promise<{
           });
           updatedCount++;
         } else if (localQuote.sync_status === SyncStatus.SYNCED) {
-          // Only update if local is synced (no pending changes)
-          // For Feature 2.6: Skip if local has pending changes (avoid conflicts)
-          if (remoteQuote.version > localQuote.version) {
+          // Local has no pending changes - safe to update
+          await db.quotes.update(remoteQuote.id, {
+            ...remoteQuote,
+            sync_status: SyncStatus.SYNCED,
+            last_synced_at: new Date(),
+          });
+          updatedCount++;
+        } else {
+          // Local has pending changes - check for conflicts using version vectors
+          const conflictReport = detectQuoteConflict(localQuote, remoteQuote);
+
+          if (!conflictReport.hasConflict) {
+            // No conflict - remote is strictly newer, can fast-forward
             await db.quotes.update(remoteQuote.id, {
               ...remoteQuote,
               sync_status: SyncStatus.SYNCED,
               last_synced_at: new Date(),
             });
             updatedCount++;
+          } else if (canAutoResolve(conflictReport)) {
+            // Non-critical conflicts only - can auto-merge
+            console.log(`[Sync] Auto-mergeable conflict detected for quote ${remoteQuote.id}`);
+
+            // Apply auto-merge
+            const mergeResult = autoMergeQuotes(localQuote, remoteQuote);
+
+            if (mergeResult.success && mergeResult.mergedQuote) {
+              // Save merged quote to local storage
+              await db.quotes.update(remoteQuote.id, {
+                ...mergeResult.mergedQuote,
+                sync_status: SyncStatus.SYNCED,
+                last_synced_at: new Date(),
+              });
+              updatedCount++;
+
+              console.log(
+                `[Sync] Auto-merged ${mergeResult.autoMergedFields.length} fields for quote ${remoteQuote.id}`,
+              );
+            } else {
+              // Auto-merge failed (shouldn't happen if canAutoResolve returned true)
+              console.error(
+                `[Sync] Auto-merge failed for quote ${remoteQuote.id}: ${mergeResult.error}`,
+              );
+              conflictsDetected++;
+            }
+          } else if (hasCriticalConflicts(conflictReport)) {
+            // Critical conflicts - requires manual resolution
+            console.log(`[Sync] Critical conflict detected for quote ${remoteQuote.id}`);
+            conflictsDetected++;
+
+            // Store conflict data in metadata for later resolution
+            // Feature 5.5: ConflictResolver component will use this data
+            await db.quotes.update(remoteQuote.id, {
+              sync_status: SyncStatus.CONFLICT,
+              last_synced_at: new Date(),
+              metadata: {
+                ...(localQuote.metadata || {}),
+                conflictData: {
+                  remoteQuote: {
+                    ...remoteQuote,
+                    // Convert dates to ISO strings for storage
+                    created_at: remoteQuote.created_at.toISOString(),
+                    updated_at: remoteQuote.updated_at.toISOString(),
+                    last_synced_at: remoteQuote.last_synced_at?.toISOString(),
+                  },
+                  conflictReport: {
+                    ...conflictReport,
+                    // Convert date fields in conflicting fields
+                    conflictingFields: conflictReport.conflictingFields.map((field) => ({
+                      ...field,
+                      localTimestamp: field.localTimestamp.toISOString(),
+                      remoteTimestamp: field.remoteTimestamp.toISOString(),
+                    })),
+                  },
+                  detectedAt: new Date().toISOString(),
+                },
+              },
+            });
           }
         }
-        // If local has pending changes, skip to avoid conflicts
-        // Conflict resolution will be added in Epic 5
       } catch (error) {
         console.error(`Error updating quote ${remoteQuote.id}:`, error);
         errors.push(
@@ -201,6 +274,7 @@ export async function pullChanges(): Promise<{
     return {
       success: errors.length === 0,
       count: updatedCount,
+      conflictsDetected,
       errors,
     };
   } catch (error) {
@@ -220,6 +294,7 @@ export async function pullChanges(): Promise<{
     return {
       success: false,
       count: 0,
+      conflictsDetected: 0,
       errors: [errorMessage],
     };
   }
@@ -244,6 +319,7 @@ export async function syncAll(): Promise<SyncResult> {
     success: pushResult.success && pullResult.success,
     pushedCount: pushResult.count,
     pulledCount: pullResult.count,
+    conflictsDetected: pullResult.conflictsDetected,
     errors: [...pushResult.errors, ...pullResult.errors],
   };
 }

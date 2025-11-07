@@ -12,31 +12,51 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+      includeAssets: [
+        'favicon.ico',
+        'favicons/apple-touch-icon.png',
+        'assets/logos/embark-wordmark-black.webp',
+        'assets/logos/embark-icon-light.webp',
+      ],
       manifest: {
         name: 'Embark Quoting System',
         short_name: 'Embark',
         description: 'Offline-first quoting system for Embark Earthworks',
-        theme_color: '#0284c7',
+        theme_color: '#FFB400', // CAT Gold (Design System v2.0)
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
           {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
+            src: 'favicons/favicon-64x64.png',
+            sizes: '64x64',
             type: 'image/png',
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'favicons/favicon-128x128.png',
+            sizes: '128x128',
+            type: 'image/png',
+          },
+          {
+            src: 'favicons/favicon-256x256.png',
+            sizes: '256x256',
+            type: 'image/png',
+          },
+          {
+            src: 'favicons/favicon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'favicons/favicon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable',
+          },
+          {
+            src: 'favicons/apple-touch-icon.png',
+            sizes: '180x180',
+            type: 'image/png',
           },
         ],
       },

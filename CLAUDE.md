@@ -206,6 +206,32 @@ gh pr view <PR-number> --json closingIssuesReferences
 git log --oneline --grep="#" --invert-grep
 ```
 
+### PR Merge Strategy (CRITICAL)
+
+**RULE**: Use `--merge` (merge commit) for all feature→dev PRs to preserve feature branch history.
+
+**Why**: Merge commits preserve the complete commit history from feature branches and show the true branch flow in the git graph. Squash merging creates "orphaned" commits that stick out in the graph without merging back.
+
+**How to Merge PRs**:
+```bash
+# Feature → dev: Use merge commit
+gh pr merge <PR-number> --merge --auto --repo owner/repo
+
+# Do NOT use:
+gh pr merge <PR-number> --squash --auto  # ❌ Creates orphaned commits
+gh pr merge <PR-number> --rebase --auto  # ❌ Rewrites history
+```
+
+**Benefits of Merge Commits**:
+- ✅ Preserves ALL commits from feature branch (each tested by CI)
+- ✅ Git graph shows branches merging back (not sticking out)
+- ✅ Can see exact history of what was merged
+- ✅ Each commit retains its original SHA
+
+**When to Use Squash**:
+- Reserve for rare cases with genuinely messy intermediate commits
+- Generally avoid for feature branches with clean, tested commits
+
 ---
 
 ## 📝 BLUEPRINT.yaml Change Management

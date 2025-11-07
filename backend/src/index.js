@@ -13,6 +13,7 @@ console.log('  COGNITO_CLIENT_ID:', process.env.COGNITO_CLIENT_ID || 'UNDEFINED'
 import quotesRoutes from './features/quotes/quotes.routes.js';
 import jobsRoutes from './features/jobs/jobs.routes.js';
 import settingsRoutes from './features/financials/settings.routes.js';
+import pricesRoutes from './features/prices/prices.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -63,6 +64,7 @@ app.get('/health', async (req, res) => {
 app.use('/api/quotes', quotesRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/prices', pricesRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -74,6 +76,7 @@ app.get('/', (req, res) => {
       quotes: '/api/quotes',
       jobs: '/api/jobs',
       settings: '/api/settings',
+      prices: '/api/prices (Admin only)',
       docs: 'See README.md for API documentation',
     },
   });
