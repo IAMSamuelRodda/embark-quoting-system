@@ -221,18 +221,23 @@ jobs:
             exit 1
           fi
 
-  # Call reusable E2E workflow (single source of truth)
+  # Amazon-Style Testing: Comprehensive E2E tests on staging
+  # Production gets minimal smoke tests only (see deploy-prod.yml)
+  # This workflow REQUIRES E2E tests to pass before deployment is considered complete
   e2e-tests:
-    name: Run E2E Tests on Staging
+    name: Comprehensive E2E Tests (Staging)
     if: ${{ !cancelled() }}
     needs: [deploy-backend, deploy-frontend]
-    uses: ./.github/workflows/e2e-tests-reusable.yml
+    uses: ./.github/workflows/e2e-tests.yml
     with:
-      base-url: ${{ secrets.STAGING_FRONTEND_URL }}
+      # Pass dynamic backend URL as input (from deploy-backend job output)
       api-url: ${{ needs.deploy-backend.outputs.backend-url }}
-      environment: 'staging'
-      test-pattern: 'e2e/auth-validation.spec.ts'  # Run validation tests only
+      environment: staging
+      # Run ALL E2E tests on staging (comprehensive validation)
+      test-pattern: 'e2e/**/*.spec.ts'
     secrets:
+      # Pass frontend URL through secrets (cannot use secrets.* in with: section)
+      base-url-secret: ${{ secrets.STAGING_FRONTEND_URL }}
       test-user-email: ${{ secrets.E2E_TEST_USER_EMAIL }}
       test-user-password: ${{ secrets.E2E_TEST_USER_PASSWORD }}
 
