@@ -335,3 +335,5 @@ export function QuoteDetailPage() {
     </div>
   );
 }
+
+export default QuoteDetailPage;
