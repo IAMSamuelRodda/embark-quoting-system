@@ -221,115 +221,20 @@ jobs:
             exit 1
           fi
 
+  # Call reusable E2E workflow (single source of truth)
   e2e-tests:
     name: Run E2E Tests on Staging
-    runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
     needs: [deploy-backend, deploy-frontend]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        working-directory: ./frontend
-        run: npm ci
-
-      - name: Install Playwright browsers
-        working-directory: ./frontend
-        env:
-          # Disable man-db triggers - saves 80+ seconds
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          # Skip man page updates during package installation (saves ~80 seconds)
-          sudo mkdir -p /etc/dpkg/dpkg.cfg.d
-          echo 'path-exclude=/usr/share/man/*' | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
-
-          npx playwright install --with-deps chromium
-
-      - name: Check if E2E staging environment is configured
-        id: check-e2e-config
-        run: |
-          if [ -z "${{ secrets.STAGING_FRONTEND_URL }}" ]; then
-            echo "configured=false" >> $GITHUB_OUTPUT
-            echo "⚠️  STAGING_FRONTEND_URL secret not set - skipping E2E tests"
-          else
-            echo "configured=true" >> $GITHUB_OUTPUT
-            echo "✅ E2E staging environment configured"
-          fi
-
-      - name: Run E2E tests against staging
-        if: steps.check-e2e-config.outputs.configured == 'true'
-        working-directory: ./frontend
-        timeout-minutes: 2
-        run: |
-          echo "🔍 E2E Test Configuration:"
-          echo "  Frontend URL: $E2E_BASE_URL"
-          echo "  API URL: $E2E_API_URL (dynamic IP from backend deployment)"
-          echo "  Test User: $E2E_TEST_USER_EMAIL"
-          echo ""
-
-          echo "🌐 Testing frontend connectivity..."
-          if curl -f -s -o /dev/null -w "HTTP %{http_code} in %{time_total}s\n" "$E2E_BASE_URL"; then
-            echo "✅ Frontend is reachable"
-          else
-            echo "❌ Frontend is not reachable at $E2E_BASE_URL"
-            echo "Attempting to diagnose..."
-            curl -v "$E2E_BASE_URL" 2>&1 | head -20
-            exit 1
-          fi
-          echo ""
-
-          echo "🌐 Testing API connectivity..."
-          if curl -f -s -o /dev/null -w "HTTP %{http_code} in %{time_total}s\n" "$E2E_API_URL/health"; then
-            echo "✅ API is reachable"
-          else
-            echo "❌ API is not reachable at $E2E_API_URL"
-            exit 1
-          fi
-          echo ""
-
-          echo "🧪 Running E2E tests..."
-          echo "  Using baseURL: $E2E_BASE_URL"
-          echo "  Using API URL: $E2E_API_URL"
-
-          # Export environment variables explicitly for npm subprocess
-          export E2E_BASE_URL
-          export E2E_API_URL
-          export E2E_TEST_USER_EMAIL
-          export E2E_TEST_USER_PASSWORD
-
-          # Debug: Verify env vars are set before running Playwright
-          echo ""
-          echo "🔍 Environment variables before Playwright:"
-          echo "  E2E_BASE_URL=${E2E_BASE_URL}"
-          echo "  E2E_API_URL=${E2E_API_URL}"
-          echo ""
-
-          npm run test:e2e:validation
-        env:
-          E2E_BASE_URL: ${{ secrets.STAGING_FRONTEND_URL }}
-          E2E_API_URL: ${{ needs.deploy-backend.outputs.backend-url }}
-          E2E_TEST_USER_EMAIL: ${{ secrets.E2E_TEST_USER_EMAIL }}
-          E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}
-        # TODO: Set up test user in staging Cognito
-        # TODO: Add E2E test credentials to GitHub Secrets
-        # TODO: Deploy frontend to S3/CloudFront and set STAGING_FRONTEND_URL secret
-
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-staging-${{ github.sha }}
-          path: frontend/playwright-report/
-          retention-days: 30
+    uses: ./.github/workflows/e2e-tests-reusable.yml
+    with:
+      base-url: ${{ secrets.STAGING_FRONTEND_URL }}
+      api-url: ${{ needs.deploy-backend.outputs.backend-url }}
+      environment: 'staging'
+      test-pattern: 'e2e/auth-validation.spec.ts'  # Run validation tests only
+    secrets:
+      test-user-email: ${{ secrets.E2E_TEST_USER_EMAIL }}
+      test-user-password: ${{ secrets.E2E_TEST_USER_PASSWORD }}
 
   lighthouse:
     name: Lighthouse Performance Audit
