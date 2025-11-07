@@ -187,14 +187,14 @@ export function generateQuoteEmailHTML(data) {
       </ul>
 
       ${
-        depositAmount
-          ? `
-      <div class="info-box">
-        <strong>Deposit Required:</strong> A ${depositPercentage}% deposit of <strong>${depositAmount}</strong> is required to secure your booking and commence work.
-      </div>
-      `
-          : ''
-      }
+  depositAmount
+    ? `
+  <div class="info-box">
+    <strong>Deposit Required:</strong> A ${depositPercentage}% deposit of <strong>${depositAmount}</strong> is required to secure your booking and commence work.
+  </div>
+  `
+    : ''
+}
 
       <center>
         <a href="mailto:quotes@embark-earthworks.com.au?subject=Re: Quote ${quoteNumber}" class="cta-button">
@@ -416,15 +416,15 @@ export function generatePriceChangeEmailHTML(data) {
           <span class="info-value">${createdAt}</span>
         </div>
         ${
-          creatorName
-            ? `
-        <div class="info-row">
-          <span class="info-label">Updated By:</span>
-          <span class="info-value">${creatorName}</span>
-        </div>
-        `
-            : ''
-        }
+  creatorName
+    ? `
+  <div class="info-row">
+    <span class="info-label">Updated By:</span>
+    <span class="info-value">${creatorName}</span>
+  </div>
+  `
+    : ''
+}
       </div>
 
       <p><strong>What this means for you:</strong></p>
