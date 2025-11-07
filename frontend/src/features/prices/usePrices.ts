@@ -24,6 +24,7 @@ interface PricesState {
   // UI State
   loading: boolean;
   error: string | null;
+  showHistory: boolean;
 
   // Actions
   fetchActive: () => Promise<void>;
@@ -31,6 +32,7 @@ interface PricesState {
   updateItem: (itemId: string, updates: Partial<PriceItem>) => Promise<void>;
   addItem: (data: Omit<PriceItem, 'id' | 'price_sheet_id'>) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
+  toggleHistory: () => void;
   clearError: () => void;
 }
 
@@ -40,6 +42,7 @@ export const usePrices = create<PricesState>((set, get) => ({
   history: [],
   loading: false,
   error: null,
+  showHistory: false,
 
   // Fetch active price sheet with items
   fetchActive: async () => {
@@ -179,6 +182,9 @@ export const usePrices = create<PricesState>((set, get) => ({
       throw error;
     }
   },
+
+  // Toggle history visibility
+  toggleHistory: () => set((state) => ({ showHistory: !state.showHistory })),
 
   // Clear error
   clearError: () => set({ error: null }),

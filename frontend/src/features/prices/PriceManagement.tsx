@@ -52,7 +52,7 @@ export function PriceManagement() {
     id: string;
     price: number;
     unit: string;
-    notes: string | null;
+    notes?: string;
   }) => {
     setEditingItem({
       id: item.id,
@@ -93,6 +93,7 @@ export function PriceManagement() {
         name: newItem.name,
         price: parseFloat(newItem.price),
         unit: newItem.unit,
+        last_checked: new Date(),
         notes: newItem.notes || undefined,
       });
       setShowAddModal(false);
@@ -180,11 +181,7 @@ export function PriceManagement() {
                       <span className="text-sm text-gray-600 ml-4">
                         {new Date(sheet.created_at).toLocaleString()}
                       </span>
-                      <span className="text-sm text-gray-600 ml-4">{sheet.item_count} items</span>
                     </div>
-                    {sheet.creator_name && (
-                      <span className="text-sm text-gray-600">by {sheet.creator_name}</span>
-                    )}
                   </div>
                 ))}
               </div>
