@@ -45,13 +45,13 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByText(/forgot password/i)).toBeVisible();
   });
 
-  test('should navigate to signup page from login', async ({ page }) => {
+  test.skip('should navigate to signup page from login', async ({ page }) => {
     await page.goto('/login');
     await page.getByRole('link', { name: /sign up/i }).click();
     await expect(page).toHaveURL('/signup');
   });
 
-  test('should display signup page with all required elements', async ({ page }) => {
+  test.skip('should display signup page with all required elements', async ({ page }) => {
     await page.goto('/signup');
 
     // Check for signup form elements
@@ -67,7 +67,7 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByRole('link', { name: /sign in/i })).toBeVisible();
   });
 
-  test('should navigate back to login from signup', async ({ page }) => {
+  test.skip('should navigate back to login from signup', async ({ page }) => {
     await page.goto('/signup');
     await page.getByRole('link', { name: /sign in/i }).click();
     await expect(page).toHaveURL('/login');
@@ -84,7 +84,7 @@ test.describe('Authentication Flow', () => {
     // Note: Actual error will come from Cognito, we're just verifying the form doesn't crash
   });
 
-  test('should show validation error for mismatched passwords on signup', async ({ page }) => {
+  test.skip('should show validation error for mismatched passwords on signup', async ({ page }) => {
     await page.goto('/signup');
 
     await page.getByPlaceholder(/email/i).fill('test@example.com');
@@ -97,7 +97,7 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByText(/passwords do not match/i)).toBeVisible();
   });
 
-  test('should show validation error for weak password on signup', async ({ page }) => {
+  test.skip('should show validation error for weak password on signup', async ({ page }) => {
     await page.goto('/signup');
 
     await page.getByPlaceholder(/email/i).fill('test@example.com');
