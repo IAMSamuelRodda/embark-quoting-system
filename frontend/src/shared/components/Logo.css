@@ -1,18 +1,24 @@
 /**
  * Logo Styles - Design System v2.0
  *
- * Philosophy: "Industrial Clarity" with consistent brand representation
+ * Philosophy: "Industrial Clarity" with responsive brand representation
+ *
+ * Responsive Behavior:
+ * - Desktop (>640px): Shows full wordmark logo
+ * - Mobile (≤640px): Shows icon-only logo
  *
  * Logo Variants:
- * - Colored: Full brand colors (default)
- * - Black & White: Monochrome version
- * - Icon: Square format
+ * - responsive: Wordmark desktop, icon mobile (default)
+ * - wordmark: Always show wordmark
+ * - icon-light: Always show icon (light backgrounds)
+ * - icon-dark: Always show icon (dark backgrounds)
  *
  * Design Principles:
  * - Maintains aspect ratio (object-fit: contain)
- * - Responsive sizing
+ * - Responsive sizing with 640px breakpoint
  * - No distortion or stretching
  * - Accessible (alt text required)
+ * - Performance-optimized WebP format
  */
 
 .logo {
@@ -30,10 +36,8 @@
   /* User interaction */
   user-select: none;
   pointer-events: auto;
-}
 
-/* Prevent dragging (better UX) */
-.logo {
+  /* Prevent dragging (better UX) */
   -webkit-user-drag: none;
   -khtml-user-drag: none;
   -moz-user-drag: none;
@@ -41,20 +45,73 @@
   user-drag: none;
 }
 
-/* ===== VARIANTS ===== */
+/* ===== RESPONSIVE VARIANT ===== */
 
-/* Colored variant (default) */
-.logo--colored {
-  /* No additional styling needed */
+/* Container for responsive logo (holds both wordmark and icon) */
+.logo--responsive {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
 }
 
-/* Black & White variant */
-.logo--bw {
-  /* No additional styling needed - uses different image source */
+/* Wordmark: Show on desktop, hide on mobile */
+.logo--responsive .logo__wordmark {
+  display: block;
+
+  /* Sizing */
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+
+  /* User interaction */
+  user-select: none;
+  pointer-events: auto;
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
-/* Icon variant (square format) */
-.logo--icon {
+/* Icon: Hide on desktop, show on mobile */
+.logo--responsive .logo__icon {
+  display: none;
+
+  /* Sizing */
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+
+  /* User interaction */
+  user-select: none;
+  pointer-events: auto;
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* Mobile breakpoint: Switch to icon at 640px and below */
+@media (max-width: 640px) {
+  .logo--responsive .logo__wordmark {
+    display: none; /* Hide wordmark on mobile */
+  }
+
+  .logo--responsive .logo__icon {
+    display: block; /* Show icon on mobile */
+  }
+}
+
+/* ===== FIXED VARIANTS ===== */
+
+/* Wordmark variant (always shows wordmark) */
+.logo--wordmark {
+  /* Inherits base logo styles */
+}
+
+/* Icon light variant (always shows icon) */
+.logo--icon-light {
+  /* Square format maintains 1:1 aspect ratio */
+  width: auto;
+}
+
+/* Icon dark variant (always shows icon) */
+.logo--icon-dark {
   /* Square format maintains 1:1 aspect ratio */
   width: auto;
 }
