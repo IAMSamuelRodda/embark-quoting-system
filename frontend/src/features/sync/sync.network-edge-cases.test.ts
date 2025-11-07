@@ -91,6 +91,8 @@ describe('Sync Engine: Network Edge Cases', () => {
         retry_count: 0,
         next_retry_at: new Date(),
         timestamp: new Date(),
+        dead_letter: false,
+        dead_letter: false,
       };
 
       vi.spyOn(syncQueue, 'getNextBatch').mockResolvedValue([mockQueueItem]);
@@ -154,6 +156,8 @@ describe('Sync Engine: Network Edge Cases', () => {
         retry_count: 0,
         next_retry_at: new Date(),
         timestamp: new Date(),
+        dead_letter: false,
+        dead_letter: false,
       };
 
       // Mock getNextBatch
@@ -192,7 +196,14 @@ describe('Sync Engine: Network Edge Cases', () => {
       const mockIsOnline = vi.mocked(connectionMonitor.isOnline);
       const mockSubscribe = vi.mocked(connectionMonitor.subscribe);
 
-      let stateCallback: ((state: { isOnline: boolean }) => void) | null = null;
+      let stateCallback:
+        | ((state: {
+            isOnline: boolean;
+            status: 'online' | 'offline';
+            lastOnline: Date | null;
+            lastOffline: Date | null;
+          }) => void)
+        | null = null;
 
       // Capture the callback
       mockSubscribe.mockImplementation((callback) => {
@@ -206,18 +217,36 @@ describe('Sync Engine: Network Edge Cases', () => {
 
       // Simulate rapid online/offline transitions
       mockIsOnline.mockReturnValue(true);
-      if (stateCallback) stateCallback({ isOnline: true });
+      if (stateCallback)
+        stateCallback({
+          isOnline: true,
+          status: 'online',
+          lastOnline: new Date(),
+          lastOffline: null,
+        });
 
       // Wait a tiny bit
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       mockIsOnline.mockReturnValue(false);
-      if (stateCallback) stateCallback({ isOnline: false });
+      if (stateCallback)
+        stateCallback({
+          isOnline: false,
+          status: 'offline',
+          lastOnline: null,
+          lastOffline: new Date(),
+        });
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       mockIsOnline.mockReturnValue(true);
-      if (stateCallback) stateCallback({ isOnline: true });
+      if (stateCallback)
+        stateCallback({
+          isOnline: true,
+          status: 'online',
+          lastOnline: new Date(),
+          lastOffline: null,
+        });
 
       // Should handle gracefully without crashing
       expect(true).toBe(true); // If we reach here, no crash occurred
@@ -249,6 +278,7 @@ describe('Sync Engine: Network Edge Cases', () => {
         retry_count: 0,
         next_retry_at: new Date(),
         timestamp: new Date(),
+        dead_letter: false,
       };
 
       vi.spyOn(syncQueue, 'getNextBatch').mockResolvedValue([mockQueueItem]);
@@ -292,6 +322,7 @@ describe('Sync Engine: Network Edge Cases', () => {
           retry_count: 0,
           next_retry_at: new Date(),
           timestamp: new Date(),
+          dead_letter: false,
         },
         {
           id: 'queue-2',
@@ -302,6 +333,7 @@ describe('Sync Engine: Network Edge Cases', () => {
           retry_count: 0,
           next_retry_at: new Date(),
           timestamp: new Date(),
+          dead_letter: false,
         },
         {
           id: 'queue-3',
@@ -312,6 +344,7 @@ describe('Sync Engine: Network Edge Cases', () => {
           retry_count: 0,
           next_retry_at: new Date(),
           timestamp: new Date(),
+          dead_letter: false,
         },
       ];
 
@@ -370,6 +403,7 @@ describe('Sync Engine: Network Edge Cases', () => {
         retry_count: 5, // Max retries (assuming max is 6)
         next_retry_at: new Date(),
         timestamp: new Date(),
+        dead_letter: false,
       };
 
       vi.spyOn(syncQueue, 'getNextBatch').mockResolvedValue([queueItem]);
@@ -410,6 +444,7 @@ describe('Sync Engine: Network Edge Cases', () => {
         retry_count: 0,
         next_retry_at: new Date(),
         timestamp: new Date(),
+        dead_letter: false,
       };
 
       vi.spyOn(syncQueue, 'getNextBatch').mockResolvedValue([queueItem]);
@@ -456,6 +491,7 @@ describe('Sync Engine: Network Edge Cases', () => {
         retry_count: 0,
         next_retry_at: new Date(),
         timestamp: new Date(),
+        dead_letter: false,
       };
 
       vi.spyOn(syncQueue, 'getNextBatch').mockResolvedValue([queueItem]);
