@@ -4,7 +4,11 @@ import { useQuotes } from '../features/quotes/useQuotes';
 import { useJobs } from '../features/jobs/useJobs';
 import { JobSelector } from '../features/jobs/JobSelector';
 import { FinancialSummary, type FinancialData } from '../features/financials/FinancialSummary';
-import { type Job } from '../shared/types/models';
+import { ConflictResolver } from '../features/sync/ConflictResolver';
+import { type Job, type Quote, SyncStatus } from '../shared/types/models';
+import type { ConflictReport, ConflictField, AutoMergedField } from '../features/sync/conflictDetection';
+import { db, getDeviceId } from '../shared/db/indexedDb';
+import { mergeVersionVectors, incrementVersion } from '../features/sync/versionVectors';
 
 export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +16,13 @@ export function QuoteDetailPage() {
   const { selectedQuote, isLoading, error, loadQuoteDetails, clearSelectedQuote } = useQuotes();
   const { jobs, loadJobsForQuote, createJob, deleteJob, clearJobs } = useJobs();
   const [isAddingJob, setIsAddingJob] = useState(false);
+
+  // Feature 5.5: Conflict Resolution
+  const [showConflictResolver, setShowConflictResolver] = useState(false);
+  const [conflictData, setConflictData] = useState<{
+    remoteQuote: Quote;
+    conflictReport: ConflictReport;
+  } | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -23,6 +34,80 @@ export function QuoteDetailPage() {
       clearJobs();
     };
   }, [id, loadQuoteDetails, loadJobsForQuote, clearSelectedQuote, clearJobs]);
+
+  // Feature 5.5: Check for conflict data when quote is loaded
+  useEffect(() => {
+    if (selectedQuote && selectedQuote.sync_status === SyncStatus.CONFLICT) {
+      // Parse conflict data from metadata
+      const metadata = selectedQuote.metadata as
+        | {
+            conflictData?: {
+              remoteQuote: {
+                id: string;
+                quote_number: string;
+                version: number;
+                versionVector?: Record<string, number>;
+                status: string;
+                user_id: string;
+                customer_name: string;
+                customer_email?: string;
+                customer_phone?: string;
+                customer_address?: string;
+                location?: unknown;
+                metadata?: Record<string, unknown>;
+                created_at: string;
+                updated_at: string;
+                sync_status?: string;
+                last_synced_at?: string;
+                device_id?: string;
+              };
+              conflictReport: {
+                hasConflict: boolean;
+                conflictingFields: {
+                  path: string[];
+                  localValue: unknown;
+                  remoteValue: unknown;
+                  localTimestamp: string;
+                  remoteTimestamp: string;
+                  severity: string;
+                }[];
+                autoMergedFields: AutoMergedField[];
+                localVector: Record<string, number>;
+                remoteVector: Record<string, number>;
+              };
+              detectedAt: string;
+            };
+          }
+        | undefined;
+
+      if (metadata?.conflictData) {
+        // Convert ISO strings back to Date objects
+        const remoteQuote: Quote = {
+          ...metadata.conflictData.remoteQuote,
+          created_at: new Date(metadata.conflictData.remoteQuote.created_at),
+          updated_at: new Date(metadata.conflictData.remoteQuote.updated_at),
+          last_synced_at: metadata.conflictData.remoteQuote.last_synced_at
+            ? new Date(metadata.conflictData.remoteQuote.last_synced_at)
+            : undefined,
+        } as Quote;
+
+        const conflictReport: ConflictReport = {
+          ...metadata.conflictData.conflictReport,
+          conflictingFields: metadata.conflictData.conflictReport.conflictingFields.map(
+            (field) =>
+              ({
+                ...field,
+                localTimestamp: new Date(field.localTimestamp),
+                remoteTimestamp: new Date(field.remoteTimestamp),
+              }) as ConflictField,
+          ),
+        };
+
+        setConflictData({ remoteQuote, conflictReport });
+        setShowConflictResolver(true);
+      }
+    }
+  }, [selectedQuote]);
 
   const handleBack = () => {
     navigate('/dashboard');
@@ -55,6 +140,56 @@ export function QuoteDetailPage() {
         alert('Failed to delete job. Please try again.');
       }
     }
+  };
+
+  // Feature 5.5: Handle conflict resolution
+  const handleResolveConflict = async (resolvedQuote: Quote) => {
+    try {
+      if (!selectedQuote) return;
+
+      const deviceId = getDeviceId();
+
+      // Merge version vectors
+      const mergedVector = mergeVersionVectors(
+        selectedQuote.versionVector || {},
+        conflictData?.remoteQuote.versionVector || {},
+      );
+
+      // Increment local device counter
+      const finalVector = incrementVersion(mergedVector, deviceId);
+
+      // Update quote in IndexedDB
+      await db.quotes.update(selectedQuote.id, {
+        ...resolvedQuote,
+        versionVector: finalVector,
+        sync_status: SyncStatus.PENDING, // Mark for sync
+        last_synced_at: new Date(),
+        metadata: {
+          // Clear conflict data from metadata
+          ...(selectedQuote.metadata || {}),
+          conflictData: undefined,
+        },
+      });
+
+      // Close modal and reload quote
+      setShowConflictResolver(false);
+      setConflictData(null);
+
+      if (id) {
+        await loadQuoteDetails(id);
+      }
+
+      // Show success message
+      alert('Conflict resolved successfully. Changes will be synced to the server.');
+    } catch (error) {
+      console.error('Failed to save resolved quote:', error);
+      throw error; // Let ConflictResolver handle the error
+    }
+  };
+
+  const handleCancelConflictResolution = () => {
+    setShowConflictResolver(false);
+    // Don't clear conflict data - user might want to come back
   };
 
   if (isLoading) {
@@ -332,6 +467,17 @@ export function QuoteDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Feature 5.5: Conflict Resolution Modal */}
+      {showConflictResolver && conflictData && selectedQuote && (
+        <ConflictResolver
+          localQuote={selectedQuote}
+          remoteQuote={conflictData.remoteQuote}
+          conflictReport={conflictData.conflictReport}
+          onResolve={handleResolveConflict}
+          onCancel={handleCancelConflictResolution}
+        />
+      )}
     </div>
   );
 }
