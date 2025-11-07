@@ -277,10 +277,11 @@ jobs:
 
   # Amazon-Style Testing: Minimal smoke tests on production
   # Comprehensive E2E tests already ran on staging (see deploy-staging.yml)
+  # This workflow REQUIRES smoke tests to pass before deployment is considered complete
   deployment-verification:
     name: Smoke Tests (Production)
     needs: [deploy-backend, deploy-frontend]
-    uses: ./.github/workflows/e2e-tests-reusable.yml
+    uses: ./.github/workflows/e2e-tests.yml
     with:
       base-url: ${{ secrets.PROD_FRONTEND_URL }}
       api-url: ${{ secrets.PROD_API_URL }}
@@ -288,7 +289,9 @@ jobs:
       # Run ONLY authentication validation tests (fast smoke test)
       # Full test suite already validated on staging
       test-pattern: 'e2e/auth.spec.ts'
-    secrets: inherit
+    secrets:
+      test-user-email: ${{ secrets.E2E_PROD_USER_EMAIL }}
+      test-user-password: ${{ secrets.E2E_PROD_USER_PASSWORD }}
 
   monitor-deployment:
     name: Monitor Production Metrics

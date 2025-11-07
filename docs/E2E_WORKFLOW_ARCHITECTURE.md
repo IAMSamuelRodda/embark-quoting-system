@@ -71,33 +71,39 @@ Production Environment (tagged releases)
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │                                                                        │
-│  e2e-tests-reusable.yml (Single Source of Truth)                     │
+│  e2e-tests.yml (SINGLE SOURCE OF TRUTH - Only E2E logic)             │
 │  ┌────────────────────────────────────────────────────────────┐     │
-│  │ • Install dependencies                                      │     │
-│  │ • Install Playwright browsers                               │     │
-│  │ • Verify connectivity (frontend + API)                     │     │
-│  │ • Run E2E tests with OPTIONAL pattern (configurable)       │     │
-│  │ • Upload Playwright reports                                 │     │
+│  │ Triggers:                                                   │     │
+│  │   1. workflow_dispatch (manual trigger with custom inputs) │     │
+│  │   2. workflow_call (called by other workflows)             │     │
+│  │                                                              │     │
+│  │ Logic:                                                       │     │
+│  │   • Install dependencies                                     │     │
+│  │   • Install Playwright browsers                              │     │
+│  │   • Verify connectivity (frontend + API)                    │     │
+│  │   • Run E2E tests with OPTIONAL pattern (configurable)      │     │
+│  │   • Upload Playwright reports                                │     │
 │  └────────────────────────────────────────────────────────────┘     │
 │                              ▲                                        │
 │                              │                                        │
-│                              │ calls via workflow_call               │
-│                              │                                        │
+│         Manual trigger       │ workflow_call (automatic)             │
+│         OR                   │                                        │
 └──────────────────────────────┼────────────────────────────────────────┘
                                │
-         ┌─────────────────────┼─────────────────────┐
-         │                     │                     │
-         │                     │                     │
-┌────────▼──────────┐  ┌───────▼────────────┐  ┌───▼────────────────┐
-│                   │  │                    │  │                    │
-│  e2e-manual.yml   │  │ deploy-staging.yml │  │ deploy-prod.yml    │
-│  (Manual Trigger) │  │ (Auto on dev push) │  │ (Tagged releases)  │
-│                   │  │                    │  │                    │
-│  • Fast debugging │  │ • COMPREHENSIVE    │  │ • MINIMAL smoke    │
-│    (2 min)        │  │   test suite       │  │   tests only       │
-│  • Any pattern    │  │ • Full validation  │  │ • Auth validation  │
-│  • Any env        │  │ • Lighthouse audit │  │ • Metrics monitor  │
-└───────────────────┘  └────────────────────┘  └────────────────────┘
+                ┌──────────────┴──────────────┐
+                │                             │
+                │                             │
+       ┌────────▼────────────┐       ┌───────▼────────────┐
+       │                     │       │                    │
+       │ deploy-staging.yml  │       │ deploy-prod.yml    │
+       │ (Auto on dev push)  │       │ (Tagged releases)  │
+       │                     │       │                    │
+       │ • COMPREHENSIVE     │       │ • MINIMAL smoke    │
+       │   test suite        │       │   tests only       │
+       │ • Full validation   │       │ • Auth validation  │
+       │ • Lighthouse audit  │       │ • Metrics monitor  │
+       │ • REQUIRED to pass  │       │ • REQUIRED to pass │
+       └─────────────────────┘       └────────────────────┘
 ```
 
 ---
@@ -106,16 +112,24 @@ Production Environment (tagged releases)
 
 ```
 .github/workflows/
-├── e2e-tests-reusable.yml    # ← Single source of truth (150 lines)
-├── e2e-manual.yml             # ← Calls reusable (8 lines)
-├── deploy-staging.yml         # ← Calls reusable (8 lines) - COMPREHENSIVE tests
-└── deploy-prod.yml            # ← Calls reusable (8 lines) - MINIMAL smoke tests
+├── e2e-tests.yml              # ← SINGLE SOURCE OF TRUTH (all E2E logic)
+│                              #   • Can be manually triggered
+│                              #   • Called by deploy-staging.yml
+│                              #   • Called by deploy-prod.yml
+├── deploy-staging.yml         # ← Calls e2e-tests.yml - COMPREHENSIVE tests
+└── deploy-prod.yml            # ← Calls e2e-tests.yml - MINIMAL smoke tests
 ```
 
-### 1. **e2e-tests-reusable.yml** (Single Source of Truth)
+### 1. **e2e-tests.yml** (SINGLE SOURCE OF TRUTH)
 
-**Purpose**: Contains all E2E test execution logic
-**Trigger**: `workflow_call` (called by other workflows, not directly)
+**Purpose**: Contains ALL E2E test execution logic (no duplication anywhere else)
+
+**Triggers**:
+- `workflow_dispatch`: Manual trigger via GitHub Actions UI
+  - Select environment (staging/production/custom)
+  - Provide custom URLs or use staging defaults
+  - Optional test pattern for selective testing
+- `workflow_call`: Called automatically by deploy-staging.yml and deploy-prod.yml
 
 **Inputs**:
 - `base-url` (required): Frontend URL to test
@@ -128,70 +142,62 @@ Production Environment (tagged releases)
 - `test-user-password`: E2E test user credentials
 
 **Key Features**:
+- ✅ Can be manually triggered OR called by other workflows
 - ✅ Installs Playwright browsers with optimizations (skip man pages)
 - ✅ Verifies connectivity before running tests
 - ✅ Supports running specific test patterns for fast debugging
 - ✅ Uploads Playwright reports automatically
 - ✅ Adds test summary to GitHub Actions summary
 
----
-
-### 2. **e2e-manual.yml** (Manual Trigger)
-
-**Purpose**: Fast E2E debugging without full deployment
-**Trigger**: `workflow_dispatch` (manual button in GitHub UI)
-
-**Use Cases**:
-- 🐛 Debug failing E2E tests without deploying
-- 🔬 Test specific scenarios (e.g., only sync tests)
-- 🧪 Run E2E tests against custom environments
-
-**How to Use**:
-1. Go to **Actions** tab in GitHub
-2. Select **"E2E Tests (Manual)"** workflow
-3. Click **"Run workflow"**
-4. Choose options:
-   - **Environment**: `staging`, `production`, or `custom`
-   - **Test Pattern**: Leave blank for all, or specify (e.g., `e2e/sync.spec.ts`)
-   - **Custom URLs**: Only if environment = `custom`
+**Manual Trigger Usage**:
+1. Go to **Actions** tab → **E2E Tests (Single Source of Truth)**
+2. Click **"Run workflow"**
+3. Configure:
+   - **Environment**: `staging` / `production` / `custom`
+   - **Base URL**: Frontend URL (leave blank for staging default)
+   - **API URL**: Backend URL (leave blank for staging default)
+   - **Test Pattern**: Leave blank for all tests, or specify (e.g., `e2e/auth.spec.ts`)
 
 **Example: Debug sync tests on staging**:
-```yaml
+```
 Environment: staging
+Base URL: (blank - uses staging default)
+API URL: (blank - uses staging default)
 Test Pattern: e2e/sync.spec.ts
 ```
 
 ---
 
-### 3. **deploy-staging.yml** (Automatic)
+### 2. **deploy-staging.yml** (Automatic Deployment)
 
-**Purpose**: Run E2E tests after staging deployment
+**Purpose**: Deploy to staging and run COMPREHENSIVE E2E tests
 **Trigger**: Push to `dev` branch
+**E2E Requirement**: Tests MUST pass for deployment to be considered complete
 
 **What Changed**:
 - ❌ **Before**: 100+ lines of duplicated E2E test logic
-- ✅ **After**: 8 lines calling reusable workflow
+- ✅ **After**: 8 lines calling single source of truth
 
-**Example**:
+**Configuration**:
 ```yaml
 e2e-tests:
-  name: Run E2E Tests on Staging
+  name: Comprehensive E2E Tests (Staging)
   needs: [deploy-backend, deploy-frontend]
-  uses: ./.github/workflows/e2e-tests-reusable.yml
+  uses: ./.github/workflows/e2e-tests.yml  # ← SINGLE SOURCE OF TRUTH
   with:
     base-url: ${{ secrets.STAGING_FRONTEND_URL }}
-    api-url: ${{ needs.deploy-backend.outputs.backend-url }}
+    api-url: ${{ needs.deploy-backend.outputs.backend-url }}  # Dynamic ECS IP
     environment: 'staging'
-    test-pattern: 'e2e/auth-validation.spec.ts'  # Fast validation tests
+    test-pattern: 'e2e/**/*.spec.ts'  # ← ALL tests (comprehensive)
   secrets:
     test-user-email: ${{ secrets.E2E_TEST_USER_EMAIL }}
     test-user-password: ${{ secrets.E2E_TEST_USER_PASSWORD }}
 ```
 
-**Why `test-pattern` in staging?**
-- Staging runs only **critical validation tests** (auth, login)
-- Full E2E suite (including sync tests) runs manually when debugging
-- Keeps staging deployment fast (< 5 min feedback)
+**Amazon-Style Philosophy**:
+- Staging runs **ALL E2E tests** (comprehensive validation)
+- Production runs **minimal smoke tests** only (fast verification)
+- Catches issues before they reach production
 
 ---
 

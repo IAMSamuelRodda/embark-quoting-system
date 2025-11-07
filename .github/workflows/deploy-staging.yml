@@ -223,18 +223,21 @@ jobs:
 
   # Amazon-Style Testing: Comprehensive E2E tests on staging
   # Production gets minimal smoke tests only (see deploy-prod.yml)
+  # This workflow REQUIRES E2E tests to pass before deployment is considered complete
   e2e-tests:
     name: Comprehensive E2E Tests (Staging)
     if: ${{ !cancelled() }}
     needs: [deploy-backend, deploy-frontend]
-    uses: ./.github/workflows/e2e-tests-reusable.yml
+    uses: ./.github/workflows/e2e-tests.yml
     with:
       base-url: ${{ secrets.STAGING_FRONTEND_URL }}
       api-url: ${{ needs.deploy-backend.outputs.backend-url }}
       environment: staging
       # Run ALL E2E tests on staging (comprehensive validation)
       test-pattern: 'e2e/**/*.spec.ts'
-    secrets: inherit
+    secrets:
+      test-user-email: ${{ secrets.E2E_TEST_USER_EMAIL }}
+      test-user-password: ${{ secrets.E2E_TEST_USER_PASSWORD }}
 
   lighthouse:
     name: Lighthouse Performance Audit
