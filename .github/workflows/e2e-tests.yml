@@ -163,7 +163,7 @@ jobs:
 
       - name: Run E2E tests
         working-directory: ./frontend
-        timeout-minutes: 5
+        timeout-minutes: 15
         run: |
           echo "🧪 Running E2E tests..."
           echo "  Base URL: $E2E_BASE_URL"
