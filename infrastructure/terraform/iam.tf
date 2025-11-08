@@ -178,6 +178,27 @@ resource "aws_iam_role_policy" "github_actions_secrets" {
   })
 }
 
+# Policy for GitHub Actions to describe load balancers (for deployment verification)
+resource "aws_iam_role_policy" "github_actions_elb" {
+  name = "${var.project_name}-${var.environment}-github-actions-elb"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "elasticloadbalancing:DescribeLoadBalancers",
+          "elasticloadbalancing:DescribeTargetGroups",
+          "elasticloadbalancing:DescribeTargetHealth"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # ===================================================================
 # ECS Task Execution Role (used by ECS to pull images, get secrets)
 # ===================================================================

@@ -20,20 +20,20 @@ github_org    = "IAMSamuelRodda"
 github_repo   = "embark-quoting-system"
 github_branch = "main"
 
-# Database (production-ready with multi-AZ)
-db_instance_class    = "db.t4g.small"  # Larger instance for production
-db_allocated_storage = 100              # More storage
-db_engine_version    = "15.5"
+# Database (right-sized for 1-10 users)
+db_instance_class    = "db.t3.micro"   # Sufficient for small user base
+db_allocated_storage = 20              # 20GB is plenty for 1-10 users
+db_engine_version    = "15.14"
 db_name              = "embark_quoting_prod"
 db_username          = "embark_admin"
 # db_password - MUST be passed via -var flag or environment variable
 
-# ECS (production resources with auto-scaling)
-ecs_task_cpu         = 512   # 0.5 vCPU
-ecs_task_memory      = 1024  # 1 GB
-ecs_desired_count    = 2     # Start with 2 tasks for redundancy
-ecs_autoscaling_min  = 2
-ecs_autoscaling_max  = 10
+# ECS (right-sized for 1-10 users)
+ecs_task_cpu         = 256   # 0.25 vCPU (sufficient for low traffic)
+ecs_task_memory      = 512   # 512 MB
+ecs_desired_count    = 1     # Single task is fine for 1-10 users
+ecs_autoscaling_min  = 1
+ecs_autoscaling_max  = 3     # Can scale up to 3 if needed
 ecs_cpu_threshold    = 70
 ecs_memory_threshold = 80
 

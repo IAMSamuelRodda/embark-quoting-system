@@ -4,7 +4,7 @@ on:
   # Deploy to staging only on dev branch pushes (after tests pass)
   push:
     branches: [dev]
-  # Allow manual triggers for debugging
+  # Allow manual triggers for debugging (restricted to dev branch only)
   workflow_dispatch:
 
 env:
@@ -32,6 +32,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Enforce dev branch only
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/dev" ]; then
+            echo "❌ ERROR: Staging deployments must run from 'dev' branch only"
+            echo "   Current branch: ${{ github.ref }}"
+            echo "   This workflow can only deploy from 'dev' branch"
+            exit 1
+          fi
+          echo "✅ Branch check passed: Running from dev branch"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -149,6 +159,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Enforce dev branch only
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/dev" ]; then
+            echo "❌ ERROR: Staging deployments must run from 'dev' branch only"
+            echo "   Current branch: ${{ github.ref }}"
+            exit 1
+          fi
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
