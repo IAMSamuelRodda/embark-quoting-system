@@ -128,12 +128,17 @@ sync_secrets() {
 
     log_success "${env_upper} secrets synced"
 
-    # E2E credentials (staging only)
+    # E2E credentials (environment-specific)
     if [ "$env" = "staging" ]; then
-        log_info "Syncing E2E test credentials..."
+        log_info "Syncing E2E test credentials (staging)..."
         gh secret set E2E_TEST_USER_EMAIL --body "$E2E_EMAIL"
         gh secret set E2E_TEST_USER_PASSWORD --body "$E2E_PASSWORD"
-        log_success "E2E credentials synced"
+        log_success "E2E staging credentials synced"
+    elif [ "$env" = "production" ]; then
+        log_info "Syncing E2E test credentials (production)..."
+        gh secret set E2E_TEST_USER_EMAIL --body "$E2E_EMAIL"
+        gh secret set E2E_PROD_USER_PASSWORD --body "$E2E_PASSWORD"
+        log_success "E2E production credentials synced"
     fi
 }
 
@@ -162,6 +167,9 @@ print_summary() {
     if [ "$env" = "staging" ]; then
         echo "  - E2E_TEST_USER_EMAIL"
         echo "  - E2E_TEST_USER_PASSWORD"
+    elif [ "$env" = "production" ]; then
+        echo "  - E2E_TEST_USER_EMAIL"
+        echo "  - E2E_PROD_USER_PASSWORD"
     fi
 
     echo ""
