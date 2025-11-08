@@ -17,7 +17,7 @@ private_subnet_cidrs  = ["10.0.10.0/24", "10.0.11.0/24"]  # For RDS only (RDS do
 
 # Deployment flags for minimal setup
 enable_nat_gateway = false  # Save $50/month
-enable_alb         = false  # Save $25/month
+enable_alb         = true   # Enable ALB for operational stability (~$18/month)
 
 # GitHub OIDC
 github_org    = "IAMSamuelRodda"

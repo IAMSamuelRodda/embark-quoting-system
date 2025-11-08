@@ -208,6 +208,12 @@ resource "aws_cognito_user_pool_client" "frontend" {
   name         = "${var.project_name}-${var.environment}-frontend-client"
   user_pool_id = aws_cognito_user_pool.main.id
 
+  # Auth flows (enable SRP authentication for username/password login)
+  explicit_auth_flows = [
+    "ALLOW_USER_SRP_AUTH",        # Secure Remote Password (SRP) authentication
+    "ALLOW_REFRESH_TOKEN_AUTH"     # Allow refreshing tokens
+  ]
+
   # OAuth configuration
   generate_secret                      = false # Public client (SPA)
   allowed_oauth_flows_user_pool_client = true

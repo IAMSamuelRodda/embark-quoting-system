@@ -70,10 +70,14 @@ test.describe('Authentication Flow - Mocked', () => {
   });
 
   test('should display offline indicator when offline', async ({ page }) => {
-    // Set offline mode
+    // Navigate to login page first
+    await page.goto('/login');
+
+    // Then set offline mode
     await page.context().setOffline(true);
 
-    await page.goto('/login');
+    // Wait for offline event to propagate
+    await page.waitForTimeout(100);
 
     // Should show offline warning
     await expect(page.getByText(/you're offline/i)).toBeVisible();
@@ -334,10 +338,14 @@ test.describe('Error Handling - Mocked', () => {
   });
 
   test('should handle network errors gracefully', async ({ page }) => {
-    // Set offline mode to simulate network error
+    // Navigate to login page first
+    await page.goto('/login');
+
+    // Then set offline mode to simulate network error
     await page.context().setOffline(true);
 
-    await page.goto('/login');
+    // Wait for offline event to propagate
+    await page.waitForTimeout(100);
 
     // Should show offline indicator
     await expect(page.getByText(/you're offline/i)).toBeVisible();
