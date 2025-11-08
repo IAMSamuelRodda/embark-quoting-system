@@ -83,61 +83,47 @@ jobs:
           echo "Waiting for service to stabilize..."
           sleep 30
 
-          # Get the running task ARN
-          TASK_ARN=$(aws ecs list-tasks \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --service-name ${{ env.ECS_SERVICE }} \
+          # Get ALB DNS name (infrastructure uses ALB by default)
+          ALB_DNS=$(aws elbv2 describe-load-balancers \
             --region ${{ env.AWS_REGION }} \
-            --query 'taskArns[0]' \
+            --query 'LoadBalancers[?contains(LoadBalancerName, `embark-quoting-staging`)].DNSName' \
             --output text)
 
-          if [ -z "$TASK_ARN" ] || [ "$TASK_ARN" = "None" ]; then
-            echo "❌ No running tasks found!"
+          if [ -z "$ALB_DNS" ]; then
+            echo "❌ Could not find ALB!"
             exit 1
           fi
 
-          echo "Found task: $TASK_ARN"
+          echo "ALB DNS: $ALB_DNS"
 
-          # Get the network interface ID from the task
-          ENI_ID=$(aws ecs describe-tasks \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --tasks $TASK_ARN \
-            --region ${{ env.AWS_REGION }} \
-            --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
-            --output text)
+          # Export for E2E tests (use stable ALB endpoint)
+          echo "backend-url=http://${ALB_DNS}" >> $GITHUB_OUTPUT
 
-          echo "Network interface: $ENI_ID"
-
-          # Get the public IP address
-          PUBLIC_IP=$(aws ec2 describe-network-interfaces \
-            --network-interface-ids $ENI_ID \
-            --region ${{ env.AWS_REGION }} \
-            --query 'NetworkInterfaces[0].Association.PublicIp' \
-            --output text)
-
-          if [ -z "$PUBLIC_IP" ] || [ "$PUBLIC_IP" = "None" ]; then
-            echo "❌ Could not get public IP address!"
-            exit 1
-          fi
-
-          echo "Task public IP: $PUBLIC_IP"
-
-          # Export for E2E tests (dynamic IP without NAT Gateway)
-          echo "backend-url=http://${PUBLIC_IP}:3000" >> $GITHUB_OUTPUT
-
-          # Health check
-          HEALTH_URL="http://${PUBLIC_IP}:3000/health"
+          # Health check through ALB (security groups only allow traffic from ALB)
+          HEALTH_URL="http://${ALB_DNS}/health"
           echo "Running health check on ${HEALTH_URL}"
 
-          response=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
+          # Retry health check with backoff (ALB target registration may take a moment)
+          MAX_RETRIES=6
+          RETRY_COUNT=0
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
 
-          if [ "$response" = "200" ]; then
-            echo "✅ Deployment successful! Health check passed."
-            echo "Backend is accessible at: $HEALTH_URL"
-          else
-            echo "❌ Deployment failed! Health check returned: $response"
-            exit 1
-          fi
+            if [ "$response" = "200" ]; then
+              echo "✅ Deployment successful! Health check passed."
+              echo "Backend is accessible at: $HEALTH_URL"
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "⏳ Health check returned $response, retrying in 10s... (attempt $RETRY_COUNT/$MAX_RETRIES)"
+                sleep 10
+              else
+                echo "❌ Deployment failed! Health check returned: $response after $MAX_RETRIES attempts"
+                exit 1
+              fi
+            fi
+          done
 
       - name: Update STAGING_API_URL secret
         env:
