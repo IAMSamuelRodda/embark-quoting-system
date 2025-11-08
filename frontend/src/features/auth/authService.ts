@@ -7,10 +7,10 @@ import {
   type CognitoUserSession,
 } from 'amazon-cognito-identity-js';
 
-// Cognito configuration from Terraform output
+// Cognito configuration from environment variables (injected at build time)
 const poolData = {
-  UserPoolId: 'ap-southeast-2_WCrUlLwIE',
-  ClientId: '61p5378jhhm40ud2m92m3kv7jv',
+  UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
+  ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
 };
 
 const userPool = new CognitoUserPool(poolData);
