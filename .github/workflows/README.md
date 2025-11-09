@@ -60,3 +60,7 @@ This triggers `deploy-prod.yml` which includes:
 - Automated rollback on failure
 - Smoke tests (minimal E2E tests)
 - GitHub release creation
+
+## E2E Test Architecture
+
+For detailed information about the E2E testing workflow, authentication setup, and troubleshooting, see [E2E_ARCHITECTURE.md](./E2E_ARCHITECTURE.md).

@@ -484,7 +484,7 @@ After completing this setup:
 
 ### Documentation
 - [ARCHITECTURE.md](/ARCHITECTURE.md) - Complete system architecture and tech stack
-- [ADMIN_USER_PROVISIONING.md](./ADMIN_USER_PROVISIONING.md) - User management guide
+- [USER_PROVISIONING.md](./USER_PROVISIONING.md) - User management guide
 - [AWS_RESOURCES.md](./AWS_RESOURCES.md) - Current AWS resource inventory
 - [SECRETS_MANAGEMENT.md](./SECRETS_MANAGEMENT.md) - Secrets architecture and sync strategy
 - [E2E_TEST_USER.md](./E2E_TEST_USER.md) - E2E test user credentials
