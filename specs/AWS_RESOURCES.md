@@ -92,7 +92,9 @@
 - **Backup Window**: 03:00-04:00 UTC
 - **Maintenance Window**: mon:04:00-mon:05:00 UTC
 - **Master Username**: `embark_admin`
-- **Master Password**: `EUXWIzKgxxatYc6DaV8148BA` ⚠️ **STORE SECURELY**
+- **Master Password**: **Stored in AWS Secrets Manager**
+  - Secret Name: `embark-quoting/production/db-credentials`
+  - Retrieve: `aws secretsmanager get-secret-value --secret-id embark-quoting/production/db-credentials --query SecretString --output text`
 - **Endpoint**: ⏳ Provisioning (check with: `aws rds describe-db-instances --db-instance-identifier embark-quoting-db`)
 - **ARN**: `arn:aws:rds:ap-southeast-2:061039764429:db:embark-quoting-db`
 
