@@ -642,9 +642,9 @@ export const db = new EmbarkDatabase();
 
 **Branch Strategy:**
 - `feature/*` → `dev` (auto-merge on CI pass)
-- `dev` → `staging` (automatic deployment)
+- `dev` → `staging` (manual tag-based deployment: `staging-v*`)
 - `dev` → `main` (manual approval required)
-- `main` → `production` (automatic deployment)
+- `main` → `production` (tag-based deployment: `v*`)
 
 **Environment Variables:**
 - Stored in GitHub Secrets

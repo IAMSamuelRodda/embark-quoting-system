@@ -42,26 +42,43 @@ Feature branches → PR → dev → Auto-deploy to staging
 ### Staging Deployment (`deploy-staging.yml`)
 
 **Triggers:**
-- ✅ Automatic: Push to `dev` branch
-- ⚠️  Manual: `workflow_dispatch` (restricted to `dev` branch only)
+- ✅ Tags matching `staging-v*` or `staging-*` pattern (e.g., `staging-v1.2.3`)
+- ⚠️  Manual: `workflow_dispatch`
 
-**Branch Enforcement:**
-```yaml
-# Workflow includes explicit branch check
-- name: Enforce dev branch only
-  run: |
-    if [ "${{ github.ref }}" != "refs/heads/dev" ]; then
-      echo "❌ ERROR: Staging deployments must run from 'dev' branch only"
-      exit 1
-    fi
-```
+**Workflow:**
+1. Merge feature branches to `dev` (accumulate multiple features)
+2. When ready to test on staging, create and push a staging tag:
+   ```bash
+   git checkout dev
+   git pull
+   git tag staging-v1.2.3
+   git push origin staging-v1.2.3
+   ```
+3. Staging deployment includes:
+   - Backend deployment to ECS
+   - Frontend deployment to S3/CloudFront
+   - Comprehensive E2E test suite
+   - Lighthouse performance audit
 
-**Why**: Prevents accidental staging deployments from `main` or feature branches.
+**Tag Formats:**
+- `staging-v1.2.3` - Semantic versioning (recommended)
+- `staging-20250109` - Date-based
+- `staging-feature-name` - Feature-based
+
+**Why**: Tag-based deployment prevents accidental deployments and provides explicit deployment history.
 
 ### Production Deployment (`deploy-prod.yml`)
 
 **Triggers:**
-- ✅ Tags matching `v*` pattern only
+- ✅ Tags matching `v*` pattern only (e.g., `v1.0.0`)
+
+**Workflow:**
+```bash
+git checkout main
+git pull
+git tag v1.0.0
+git push origin v1.0.0
+```
 
 **Why**: Production deployments are intentional, versioned releases only.
 
@@ -69,91 +86,122 @@ Feature branches → PR → dev → Auto-deploy to staging
 
 ## Branch Protection Rules
 
-### Required Protection for `main`
+> **Action Required**: Configure these branch protection rules in GitHub UI at:
+> https://github.com/IAMSamuelRodda/embark-quoting-system/settings/branches
 
-**Current Configuration:**
-```json
-{
-  "required_status_checks": {
-    "strict": true,
-    "checks": [
-      "Lint & Format Check (backend)",
-      "Lint & Format Check (frontend)",
-      "Security Scan (backend)",
-      "Security Scan (frontend)",
-      "TypeScript Type Check",
-      "Build Frontend"
-    ]
-  },
-  "enforce_admins": true,
-  "required_pull_request_reviews": null,
-  "restrictions": null  // ❌ NEEDS FIX
-}
-```
+### Main Branch Protection (`main`)
 
-### ⚠️ CRITICAL: Missing Branch Restrictions
+#### Settings to Configure
 
-**Problem**: Main currently accepts PRs from ANY branch (including feature branches).
+**Protect matching branches:**
+- ✅ **Require a pull request before merging**
+  - ✅ Require approvals: **1**
+  - ✅ Require approval of the most recent reviewable push
 
-**Required Fix**: Configure branch restrictions to **only allow PRs from `dev`**.
+**Require status checks to pass before merging:**
+- ✅ **Require status checks to pass before merging**
+  - ✅ Require branches to be up to date before merging
+  - **Required status checks:**
+    - `validate / lint`
+    - `validate / security`
+    - `validate / typecheck`
+    - `build / build-backend`
+    - `build / build-frontend`
 
-**How to Fix** (GitHub Web UI):
-1. Go to Settings → Branches → Branch protection rules → `main`
-2. Enable "Restrict who can push to matching branches"
-3. Add rule: "Require pull request reviews before merging"
-4. Under "Require pull request", enable "Require approval from specific teams/users"
-5. **CRITICAL**: Add custom protection rule to only allow merges from `dev` branch
+**Other Settings:**
+- ✅ **Do not allow bypassing the above settings**
+- ✅ **Include administrators** (ensures you go through PR process)
+- ❌ Do not allow force pushes
+- ❌ Do not allow deletions
 
-**Note**: GitHub API doesn't support restricting source branches for PRs directly. This must be enforced through:
-- Repository settings (branch protection)
-- CODEOWNERS file (require dev maintainers approval)
-- GitHub Actions workflows (check source branch in PR validation)
+#### ⚠️ Source Branch Restriction
 
-### Recommended Protection for `dev`
+**Problem**: GitHub doesn't support enforcing "PRs only from `dev`" via UI.
 
-```json
-{
-  "required_status_checks": {
-    "strict": true,
-    "checks": [
-      "Lint & Format Check (backend)",
-      "Lint & Format Check (frontend)",
-      "Security Scan (backend)",
-      "Security Scan (frontend)",
-      "TypeScript Type Check",
-      "Unit Tests (backend)",
-      "Unit Tests (frontend)",
-      "Integration Tests (Backend)",
-      "Build Backend Docker Image",
-      "Build Frontend"
-    ]
-  },
-  "enforce_admins": true  // ⚠️ Currently false
-}
-```
+**Workaround**: Use PR validation in CI (validate source branch) or code review discipline.
+
+### Dev Branch Protection (`dev`)
+
+#### Settings to Configure
+
+**Require status checks to pass before merging:**
+- ✅ **Require status checks to pass before merging**
+  - ✅ Require branches to be up to date before merging
+  - **Required status checks:**
+    - `validate / lint`
+    - `validate / security`
+    - `validate / typecheck`
+    - `test / unit-tests`
+    - `test / integration-tests`
+    - `build / build-backend`
+    - `build / build-frontend`
+
+**Other Settings:**
+- ❌ Do not require pull request (allows direct push for hotfixes)
+- ❌ Do not enforce for administrators (allows admin bypass)
+- ❌ Do not allow force pushes
+- ❌ Do not allow deletions
+
+### Status Check Names Reference
+
+These are the exact status check names from GitHub Actions workflows:
+
+**From `validate.yml`:**
+- `validate / lint`
+- `validate / security`
+- `validate / secrets-scan`
+- `validate / typecheck`
+
+**From `test.yml`:**
+- `test / unit-tests`
+- `test / integration-tests`
+- `test / coverage-check`
+
+**From `build.yml`:**
+- `build / build-backend`
+- `build / build-frontend`
+- `build / bundle-analysis`
+
+**Note**: Deployment workflows (`deploy-staging`, `deploy-prod`) run post-merge, not as PR checks.
 
 ---
 
-## Incident: Staging Deployment from Main
+## Auto-Merge Configuration
 
-**Date**: 2025-11-08
-**Issue**: `deploy-staging.yml` was manually triggered from `main` branch via `workflow_dispatch`
+To enable auto-merge for PRs (so feature→dev PRs merge automatically when CI passes):
 
-### Root Cause
-1. `workflow_dispatch` trigger had no branch restriction in YAML
-2. GitHub Actions allows `workflow_dispatch` from any branch by default
-3. No explicit branch check in workflow steps
+1. Go to repository **Settings** → **General**
+2. Scroll to **Pull Requests** section
+3. Check: **Allow auto-merge**
+4. Check: **Automatically delete head branches** (cleans up feature branches after merge)
 
-### Resolution
-1. ✅ Cancelled errant deployment (Run #19191777803)
-2. ✅ Added "Enforce dev branch only" step to both jobs in `deploy-staging.yml`
-3. ✅ Created this governance document
-4. ⏳ **TODO**: Configure branch restrictions on `main` to only accept PRs from `dev`
+---
 
-### Prevention
-- Workflow now fails fast if run from wrong branch
-- Document clarifies branch strategy
-- Branch protection rules (when configured) will prevent direct pushes
+## Verifying Branch Protection
+
+After configuring, test the workflow:
+
+```bash
+# 1. Try pushing directly to main (should fail)
+git checkout main
+echo "test" >> README.md
+git commit -am "test: direct push to main"
+git push origin main
+# Expected: ❌ "required status checks" error
+
+# 2. Create feature PR to dev (should auto-merge after CI)
+git checkout dev
+git checkout -b feature/test-protection
+echo "test" >> README.md
+git commit -am "test: branch protection"
+git push -u origin feature/test-protection
+gh pr create --base dev --title "Test Branch Protection" --body "Testing CI checks"
+# Expected: PR merges automatically when CI passes
+
+# 3. Create dev→main PR (should require approval)
+gh pr create --base main --head dev --title "Test Release" --body "Testing release workflow"
+# Expected: PR requires your approval before merging
+```
 
 ---
 
@@ -175,15 +223,19 @@ git push -u origin feat/my-feature
 # 3. Create PR to dev (NOT main!)
 gh pr create --base dev --title "Add new feature"
 
-# 4. After PR merges to dev, staging auto-deploys
-# (No manual action needed)
+# 4. After PR merges to dev, test locally or wait for staging deployment
 
-# 5. After verification on staging, create release PR
+# 5. When ready to deploy to staging, create staging tag
 git checkout dev
 git pull origin dev
-gh pr create --base main --title "Release v1.2.3"
+git tag staging-v1.2.3
+git push origin staging-v1.2.3
+# This triggers deploy-staging.yml with E2E tests
 
-# 6. After PR merges to main, tag for production
+# 6. After verification on staging, create release PR
+gh pr create --base main --head dev --title "Release v1.2.3"
+
+# 7. After PR merges to main, tag for production
 git checkout main
 git pull origin main
 git tag v1.2.3
@@ -204,10 +256,18 @@ git push -u origin hotfix/critical-bug
 # PR to dev first (test on staging)
 gh pr create --base dev --title "Hotfix: critical bug"
 
-# After staging verification, PR to main
-gh pr create --base main --title "Hotfix: critical bug (verified on staging)"
+# After PR merges, create staging tag to verify
+git checkout dev
+git pull origin dev
+git tag staging-hotfix-v1.2.4
+git push origin staging-hotfix-v1.2.4
 
-# Tag for immediate production deployment
+# After staging verification, PR to main
+gh pr create --base main --head dev --title "Hotfix: critical bug (verified on staging)"
+
+# After PR merges, tag for immediate production deployment
+git checkout main
+git pull origin main
 git tag v1.2.4
 git push origin v1.2.4
 ```
@@ -218,13 +278,14 @@ git push origin v1.2.4
 
 **Golden Rules:**
 1. ✅ Feature branches → `dev` (via PR)
-2. ✅ `dev` → `main` (via PR, after staging verification)
-3. ❌ **NEVER** feature branch → `main` directly
-4. ❌ **NEVER** manually trigger `deploy-staging.yml` from non-dev branches
-5. ✅ Production deploys ONLY via tags on `main`
+2. ✅ `dev` → Staging (via `staging-v*` tags)
+3. ✅ `dev` → `main` (via PR, after staging verification)
+4. ❌ **NEVER** feature branch → `main` directly
+5. ✅ Staging deploys ONLY via `staging-*` tags
+6. ✅ Production deploys ONLY via `v*` tags on `main`
 
 **Status:**
-- ✅ Workflow branch checks implemented
+- ✅ Tag-based deployment implemented
 - ⏳ Branch protection rules need manual configuration
 - ✅ Governance documented
 
@@ -236,3 +297,5 @@ git push origin v1.2.4
 |------|--------|--------|
 | 2025-11-08 | Initial governance document | Claude Code (debug-specialist) |
 | 2025-11-08 | Added branch enforcement to deploy-staging.yml | Claude Code |
+| 2025-11-09 | Updated to tag-based staging deployment | Claude Code |
+| 2025-11-09 | Consolidated BRANCH_PROTECTION.md content | Claude Code |

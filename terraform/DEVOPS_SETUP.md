@@ -19,8 +19,8 @@ The project uses GitHub Actions with the following workflows:
 1. **validate.yml** - Code quality, linting, security scanning, and type checking
 2. **test.yml** - Unit and integration tests with coverage enforcement
 3. **build.yml** - Docker image builds and frontend builds with artifact uploads
-4. **deploy-staging.yml** - Automatic deployment to staging on dev branch merges
-5. **deploy-prod.yml** - Production deployment on tagged releases (main branch) with manual approval
+4. **deploy-staging.yml** - Tag-based deployment to staging environment (`staging-v*` tags)
+5. **deploy-prod.yml** - Tag-based deployment to production environment (`v*` tags on main branch)
 
 ### Developer Workflow
 
@@ -31,8 +31,8 @@ The project uses GitHub Actions with the following workflows:
 │ 1. Create feature branch                                    │
 │ 2. Push commits → validate.yml + test.yml + build.yml      │
 │ 3. Create PR to dev → All checks must pass                 │
-│ 4. Merge to dev → deploy-staging.yml (automatic)           │
-│ 5. Merge dev to main + tag → deploy-prod.yml (manual)      │
+│ 4. Merge to dev → Tag staging-v* → deploy-staging.yml      │
+│ 5. Merge dev to main → Tag v* → deploy-prod.yml            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
