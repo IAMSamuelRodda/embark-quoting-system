@@ -503,7 +503,7 @@ terraform apply -var-file="production.tfvars"
 - [Terraform AWS Provider Documentation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 - [AWS ECS Best Practices](https://docs.aws.amazon.com/AmazonECS/latest/bestpracticesguide/)
 - [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/)
-- [Project DevOps Setup Guide](../../docs/devops-setup.md)
+- [Project DevOps Setup Guide](../docs/DEVOPS_SETUP.md)
 
 ---
 

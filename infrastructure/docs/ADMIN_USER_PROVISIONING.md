@@ -4,6 +4,20 @@
 
 ---
 
+## Environments
+
+**Current Status**: Production environment only (as of v1.0 MVP)
+
+### Production
+- **User Pool ID**: `ap-southeast-2_v2Jk8B9EK`
+- **Region**: `ap-southeast-2` (Sydney)
+- **Purpose**: Live user accounts
+- **Login URL**: https://dtfaaynfdzwhd.cloudfront.net/login (staging) or production URL when deployed
+
+> **Note**: Staging environment uses the same Cognito pool as production. Separate pools may be added in future releases.
+
+---
+
 ## Overview
 
 The Embark Quoting System is a company-internal tool. User accounts are provisioned by administrators using AWS CLI or AWS Console. There is no public signup interface.
@@ -35,7 +49,7 @@ aws configure
 ```bash
 # Replace with actual email and desired temporary password
 aws cognito-idp admin-create-user \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username user@embarkearth.com.au \
   --user-attributes Name=email,Value=user@embarkearth.com.au \
                      Name=email_verified,Value=true \
@@ -60,14 +74,14 @@ aws cognito-idp admin-create-user \
 ```bash
 # For field workers
 aws cognito-idp admin-add-user-to-group \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username user@embarkearth.com.au \
   --group-name field_workers \
   --region ap-southeast-2
 
 # For admins
 aws cognito-idp admin-add-user-to-group \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username admin@embarkearth.com.au \
   --group-name admins \
   --region ap-southeast-2
@@ -181,20 +195,20 @@ cognitoUser.authenticateUser(authenticationDetails, {
 ```bash
 # Update custom:role attribute
 aws cognito-idp admin-update-user-attributes \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username user@embarkearth.com.au \
   --user-attributes Name=custom:role,Value=admin \
   --region ap-southeast-2
 
 # Move user to different group
 aws cognito-idp admin-remove-user-from-group \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username user@embarkearth.com.au \
   --group-name field_workers \
   --region ap-southeast-2
 
 aws cognito-idp admin-add-user-to-group \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username user@embarkearth.com.au \
   --group-name admins \
   --region ap-southeast-2
@@ -204,7 +218,7 @@ aws cognito-idp admin-add-user-to-group \
 
 ```bash
 aws cognito-idp admin-disable-user \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username user@embarkearth.com.au \
   --region ap-southeast-2
 ```
@@ -213,7 +227,7 @@ aws cognito-idp admin-disable-user \
 
 ```bash
 aws cognito-idp admin-enable-user \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username user@embarkearth.com.au \
   --region ap-southeast-2
 ```
@@ -222,7 +236,7 @@ aws cognito-idp admin-enable-user \
 
 ```bash
 aws cognito-idp admin-delete-user \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username user@embarkearth.com.au \
   --region ap-southeast-2
 ```
@@ -231,7 +245,7 @@ aws cognito-idp admin-delete-user \
 
 ```bash
 aws cognito-idp admin-set-user-password \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username user@embarkearth.com.au \
   --password "NewTempPass123!" \
   --permanent false \
@@ -248,7 +262,7 @@ aws cognito-idp admin-set-user-password \
 
 ```bash
 aws cognito-idp list-users \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --region ap-southeast-2 \
   --output table
 ```
@@ -257,7 +271,7 @@ aws cognito-idp list-users \
 
 ```bash
 aws cognito-idp list-users-in-group \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --group-name field_workers \
   --region ap-southeast-2 \
   --output table
@@ -267,7 +281,7 @@ aws cognito-idp list-users-in-group \
 
 ```bash
 aws cognito-idp list-users \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --region ap-southeast-2 \
   --query 'Users[*].[Username,Attributes[?Name==`email`].Value|[0],Attributes[?Name==`custom:role`].Value|[0],UserStatus]' \
   --output text > users.csv
@@ -287,7 +301,7 @@ openssl rand -base64 12
 All admin operations are logged in CloudWatch. Review regularly:
 ```bash
 aws logs filter-log-events \
-  --log-group-name /aws/cognito/userpools/ap-southeast-2_WCrUlLwIE \
+  --log-group-name /aws/cognito/userpools/ap-southeast-2_v2Jk8B9EK \
   --start-time $(date -u -d '1 hour ago' +%s)000 \
   --region ap-southeast-2
 ```
@@ -309,7 +323,7 @@ aws logs filter-log-events \
 To enable MFA for a specific user:
 ```bash
 aws cognito-idp admin-set-user-mfa-preference \
-  --user-pool-id ap-southeast-2_WCrUlLwIE \
+  --user-pool-id ap-southeast-2_v2Jk8B9EK \
   --username admin@embarkearth.com.au \
   --software-token-mfa-settings Enabled=true,PreferredMfa=true \
   --region ap-southeast-2

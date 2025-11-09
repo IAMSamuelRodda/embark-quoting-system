@@ -352,7 +352,7 @@ Timeout: ~2 minutes
 
 ### GitHub
 - **Repository**: https://github.com/IAMSamuelRodda/embark-quoting-system
-- **Project Board**: https://github.com/users/IAMSamuelRodda/projects/1
+- **Project Board**: https://github.com/users/IAMSamuelRodda/projects/2
 - **Actions**: https://github.com/IAMSamuelRodda/embark-quoting-system/actions
 - **Releases**: https://github.com/IAMSamuelRodda/embark-quoting-system/releases/tag/v1.0.0
 

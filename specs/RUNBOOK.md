@@ -67,7 +67,7 @@ For **complex, multi-system issues** where the root cause is unclear, delegate t
 In Claude Code, initiate the debug-specialist agent with a clear problem statement:
 
 "Initiate the debug-specialist. E2E tests are failing with 'Incorrect username or password'
-on both production and staging. Test account credentials are documented in docs/MANUAL_TESTING.md."
+on both production and staging. Test account credentials are documented in specs/MANUAL_TESTING.md."
 ```
 
 **What the Agent Does**:
@@ -583,7 +583,7 @@ gh run view <RUN-ID> --log-failed
 ## Related Documentation
 
 - **Governance**: `docs/GOVERNANCE.md` - Branch strategy and deployment controls
-- **Manual Testing**: `docs/MANUAL_TESTING.md` - Step-by-step testing procedures
+- **Manual Testing**: `specs/MANUAL_TESTING.md` - Step-by-step testing procedures
 - **Debugging Reports**: `docs/debugging/` - Historical incident reports
 - **Contributing**: `CONTRIBUTING.md` - Workflow for developers
 

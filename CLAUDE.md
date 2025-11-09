@@ -10,7 +10,7 @@
 When you need information, check these files in this order:
 
 1. **`specs/BLUEPRINT.yaml`** → Complete implementation plan (tech stack, database schema, milestones/epics, complexity scores)
-2. **`docs/financial-model.md`** → Financial calculation methodology (Profit-First model)
+2. **`specs/FINANCIAL_MODEL.md`** → Financial calculation methodology (Profit-First model)
 3. **`CONTRIBUTING.md`** → Workflow for agents (how to track progress, update issues)
 4. **`DEVELOPMENT.md`** → Pre-commit checklist, CI/CD expectations, test organization (REQUIRED before committing code)
 5. **`README.md`** → Project overview and current status
@@ -67,7 +67,7 @@ See `specs/BLUEPRINT.yaml` → `architecture.frontend.structure` for full tree.
 
 **Formula**: `Quote Price = Raw Materials ÷ 0.30`
 
-**Full details**: `docs/financial-model.md`
+**Full details**: `specs/FINANCIAL_MODEL.md`
 **Implementation**: `specs/BLUEPRINT.yaml` → Epic 4 (Financial Calculations)
 
 ---
@@ -93,7 +93,7 @@ See `specs/BLUEPRINT.yaml` → `architecture.frontend.structure` for full tree.
 
 ### Progress Tracking
 - **Workflow guide**: `CONTRIBUTING.md`
-- **Live progress**: https://github.com/users/IAMSamuelRodda/projects/1
+- **Live progress**: https://github.com/users/IAMSamuelRodda/projects/2
 - **Issues list**: https://github.com/IAMSamuelRodda/embark-quoting-system/issues
 
 ### Security & Performance Requirements
@@ -291,7 +291,7 @@ feature_2_2:
 
 ## 🔗 External Links
 
-- **Project Board**: https://github.com/users/IAMSamuelRodda/projects/1
+- **Project Board**: https://github.com/users/IAMSamuelRodda/projects/2
 - **Issues**: https://github.com/IAMSamuelRodda/embark-quoting-system/issues
 - **Repository**: https://github.com/IAMSamuelRodda/embark-quoting-system
 
