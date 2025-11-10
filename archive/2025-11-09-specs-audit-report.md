@@ -83,9 +83,9 @@ The `specs/` folder contains **significant duplication and organizational issues
 **Critical Issue Found:**
 ```
 AWS_RESOURCES.md Line 95:
-Master Password: `EUXWIzKgxxatYc6DaV8148BA` ⚠️ STORE SECURELY
+Master Password: `[REDACTED]` ⚠️ STORE SECURELY
 ```
-**This is a plaintext RDS password committed to git!** 🔴
+**This was a plaintext RDS password committed to git!** 🔴 (Rotated and redacted)
 
 **Recommendation:**
 - 🔥 **URGENT**: Remove plaintext password from AWS_RESOURCES.md, replace with "Stored in AWS Secrets Manager"
@@ -274,14 +274,14 @@ Master Password: `EUXWIzKgxxatYc6DaV8148BA` ⚠️ STORE SECURELY
 
 **File:** AWS_RESOURCES.md
 **Line:** 95
-**Current:** `Master Password: EUXWIzKgxxatYc6DaV8148BA ⚠️ STORE SECURELY`
+**Current:** `Master Password: [REDACTED - Password Rotated]` ⚠️ STORE SECURELY
 
 **Issue:** **Plaintext RDS password committed to git repository**
 
 **Fix:**
 ```markdown
 # OLD (Line 95)
-Master Password: `EUXWIzKgxxatYc6DaV8148BA` ⚠️ STORE SECURELY
+Master Password: `[REDACTED - Password Rotated]` ⚠️ STORE SECURELY
 
 # NEW
 Master Password: Stored in AWS Secrets Manager
