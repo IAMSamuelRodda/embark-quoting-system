@@ -17,6 +17,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:local": "scripts/test-e2e-with-creds.sh",
     "test:e2e:validation": "playwright test e2e/auth-validation.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
