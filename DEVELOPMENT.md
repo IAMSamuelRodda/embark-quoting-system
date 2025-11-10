@@ -151,15 +151,21 @@ cd frontend && npm run format
 cd backend && npm run test:unit
 cd frontend && npm run test:unit
 
-# 4. Review staged changes
+# 4. Run E2E tests (if authentication or sync changes)
+#    See "E2E Test Credentials" section for setup
+cd frontend && npm run test:e2e
+
+# 5. Review staged changes
 git status
 git diff --staged
 
-# 5. Verify commit message includes issue reference
+# 6. Verify commit message includes issue reference
 #    Use: "Closes #N", "Relates to #N", "Fixes #N"
 ```
 
 **Why**: CI runs these same checks. Catching issues locally saves time and prevents broken builds.
+
+**Note**: E2E tests require credentials from environment variables or AWS Secrets Manager. See the "E2E Test Credentials" section below for setup instructions.
 
 ---
 
@@ -346,6 +352,157 @@ DATABASE_URL="postgresql://embark_test:test_password@localhost:5432/embark_quoti
 # Run integration tests
 DATABASE_URL="postgresql://embark_test:test_password@localhost:5432/embark_quoting_test" \
   npm run test:integration
+```
+
+---
+
+## 🔐 E2E Test Credentials
+
+All Playwright E2E tests use centralized credential management via `frontend/e2e/test-utils.ts`. Tests automatically retrieve credentials and fail fast with clear error messages if unavailable.
+
+### How It Works
+
+The `getAndValidateCredentials()` function retrieves credentials in this order:
+
+1. **Environment variables** (if set):
+   - `TEST_USER_EMAIL`
+   - `TEST_USER_PASSWORD`
+
+2. **AWS Secrets Manager** (fallback):
+   - Secret: `embark-quoting/staging/e2e-test-credentials`
+   - Fields: `email`, `password`
+
+3. **Fail fast** with detailed error message if neither source available
+
+**Why**: Prevents tests from hanging at login for 15+ seconds with empty passwords. Tests now fail immediately with actionable error messages.
+
+### Running E2E Tests
+
+```bash
+cd frontend
+
+# Option 1: Auto-retrieve from AWS (recommended)
+# No setup needed - credentials fetched automatically
+npx playwright test e2e/offline-auth.spec.ts
+npx playwright test e2e/sync_verification.spec.ts
+
+# Option 2: Use environment variables
+export TEST_USER_EMAIL="e2e-test@embark-quoting.local"
+export TEST_USER_PASSWORD="<password>"
+npx playwright test
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run with UI (headed mode)
+npx playwright test e2e/offline-auth.spec.ts --headed
+```
+
+### Test Suites
+
+| Test Suite | Tests | Coverage |
+|------------|-------|----------|
+| **offline-auth.spec.ts** | 4 | Offline authentication flow, Remember Me, credential expiry, invalid credentials |
+| **sync_verification.spec.ts** | 4 | Auto-sync initialization, quote/job sync, sync status UI, offline scenarios |
+
+**Total**: 8 E2E tests validating offline-first architecture and authentication.
+
+### Troubleshooting
+
+#### Error: "Cannot retrieve test credentials"
+
+**Cause**: Neither environment variables nor AWS credentials are available.
+
+**Solutions**:
+
+1. **Set environment variables**:
+   ```bash
+   export TEST_USER_EMAIL="e2e-test@embark-quoting.local"
+   export TEST_USER_PASSWORD="<password>"
+   ```
+
+2. **Configure AWS CLI** (if using AWS fallback):
+   ```bash
+   # Configure AWS credentials
+   aws configure
+
+   # Verify access to secrets
+   aws secretsmanager get-secret-value \
+     --secret-id embark-quoting/staging/e2e-test-credentials
+   ```
+
+3. **Check AWS permissions**: Ensure IAM user has `secretsmanager:GetSecretValue` permission for the staging secrets.
+
+#### Tests Hang at Login (15+ seconds)
+
+**Symptom**: Test times out waiting for navigation after clicking "Sign In".
+
+**Root Cause** (FIXED): Tests previously used `|| ''` fallback for missing passwords, causing indefinite hangs.
+
+**Current Behavior**: Tests now fail fast with clear error message instead of hanging.
+
+**If still occurring**:
+- Check that `test-utils.ts` is being used: `import { getAndValidateCredentials } from './test-utils';`
+- Verify credentials are not empty: `console.log` output should show "Credentials validated successfully"
+
+#### Password Too Short Warning
+
+**Error**: `Password looks invalid (too short). Expected: At least 8 characters for Cognito`
+
+**Cause**: AWS Cognito requires passwords to be at least 8 characters.
+
+**Solution**: Check that the correct password is being retrieved (not a truncated or test placeholder value).
+
+#### AWS CLI Not Configured
+
+**Error**: `Unable to locate credentials. You can configure credentials by running "aws configure"`
+
+**Solution**:
+```bash
+aws configure
+# Enter AWS Access Key ID
+# Enter AWS Secret Access Key
+# Default region: ap-southeast-2 (or your staging region)
+# Default output format: json
+```
+
+### Writing New E2E Tests
+
+When creating new E2E tests, always use centralized credential management:
+
+```typescript
+import { test, expect } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
+
+// Get credentials at module level (fails fast if not available)
+const { email, password } = getAndValidateCredentials();
+
+test.describe('My Test Suite', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login flow
+    await page.goto('http://localhost:3000/login');
+    await page.getByPlaceholder(/email/i).fill(email);
+    await page.getByPlaceholder(/password/i).fill(password);
+    await page.getByRole('button', { name: /sign in/i }).click();
+    await page.waitForURL(/\/(dashboard|quotes)/, { timeout: 15000 });
+  });
+
+  test('my test', async ({ page }) => {
+    // Test logic...
+  });
+});
+```
+
+**DO NOT** use hardcoded credentials or empty string fallbacks:
+```typescript
+// ❌ WRONG - causes hanging tests
+const password = process.env.TEST_USER_PASSWORD || '';
+
+// ❌ WRONG - hardcoded credentials
+const password = 'hardcoded-password-123';
+
+// ✅ CORRECT - centralized with validation
+const { email, password } = getAndValidateCredentials();
 ```
 
 ---
