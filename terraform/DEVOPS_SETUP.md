@@ -1,18 +1,28 @@
 # DevOps Setup Guide
 
-This document explains the CI/CD infrastructure created for the Embark Quoting System and provides step-by-step instructions for completing the setup.
+**Purpose:** Operational guide for setting up CI/CD infrastructure and deployment workflows.
+
+**For architectural details:** See [ARCHITECTURE.md](/ARCHITECTURE.md) for system architecture, tech stack, and infrastructure diagrams.
+
+**Last Updated:** 2025-11-09
+
+---
 
 ## Overview
 
-The project now has a complete CI/CD pipeline with the following workflows:
+This document provides step-by-step instructions for setting up the CI/CD pipeline and AWS infrastructure for the Embark Quoting System.
+
+### CI/CD Workflows
+
+The project uses GitHub Actions with the following workflows:
 
 1. **validate.yml** - Code quality, linting, security scanning, and type checking
 2. **test.yml** - Unit and integration tests with coverage enforcement
 3. **build.yml** - Docker image builds and frontend builds with artifact uploads
-4. **deploy-staging.yml** - Automatic deployment to staging on main branch merges
-5. **deploy-prod.yml** - Production deployment on tagged releases with manual approval
+4. **deploy-staging.yml** - Tag-based deployment to staging environment (`staging-v*` tags)
+5. **deploy-prod.yml** - Tag-based deployment to production environment (`v*` tags on main branch)
 
-## Architecture Diagram
+### Developer Workflow
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -20,20 +30,10 @@ The project now has a complete CI/CD pipeline with the following workflows:
 ├─────────────────────────────────────────────────────────────┤
 │ 1. Create feature branch                                    │
 │ 2. Push commits → validate.yml + test.yml + build.yml      │
-│ 3. Create PR → All checks must pass                         │
-│ 4. Merge to main → deploy-staging.yml (automatic)          │
-│ 5. Create tag (e.g., v1.0.0) → deploy-prod.yml (manual)    │
+│ 3. Create PR to dev → All checks must pass                 │
+│ 4. Merge to dev → Tag staging-v* → deploy-staging.yml      │
+│ 5. Merge dev to main → Tag v* → deploy-prod.yml            │
 └─────────────────────────────────────────────────────────────┘
-
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Development   │     │     Staging     │     │   Production    │
-│   (Optional)    │────▶│   (Automatic)   │────▶│    (Manual)     │
-├─────────────────┤     ├─────────────────┤     ├─────────────────┤
-│ Feature Branch  │     │ Main Branch     │     │ Tagged Release  │
-│ Ephemeral       │     │ ECS + S3        │     │ ECS + S3        │
-└─────────────────┘     │ E2E Tests       │     │ Blue-Green      │
-                        │ Lighthouse      │     │ Rollback Ready  │
-                        └─────────────────┘     └─────────────────┘
 ```
 
 ## Deployment Strategy
@@ -43,8 +43,8 @@ The project now has a complete CI/CD pipeline with the following workflows:
 | Environment | Trigger | Approval | Purpose |
 |-------------|---------|----------|---------|
 | Development | Feature branch push | None | Optional ephemeral testing |
-| Staging | Push to `main` | None (automatic) | Integration testing, E2E validation |
-| Production | Tag `v*.*.*` | **Required** | Live user traffic |
+| Staging | Push to `dev` | None (automatic) | Integration testing, E2E validation |
+| Production | Tag `v*.*.*` on `main` | **Required** | Live user traffic |
 
 ### Deployment Patterns
 
@@ -72,7 +72,11 @@ Staging deployment must pass:
 
 ### Phase 1: AWS Infrastructure (Epic 0 - Week 1)
 
+> **Architecture Reference:** See [ARCHITECTURE.md - Infrastructure](/ARCHITECTURE.md#infrastructure) for detailed architecture diagrams and component descriptions.
+
 #### 1.1 Create AWS Resources
+
+**Core Infrastructure** (see ARCHITECTURE.md for details):
 
 - [ ] **VPC and Networking**
   - [ ] Create VPC with public/private subnets
@@ -105,8 +109,7 @@ Staging deployment must pass:
   - [ ] Note distribution IDs
 
 - [ ] **Cognito User Pools**
-  - [ ] Create staging user pool
-  - [ ] Create production user pool
+  - [ ] Create user pool: `ap-southeast-2_v2Jk8B9EK` (production, shared with staging)
   - [ ] Configure app clients
   - [ ] Set up user groups (admins, field_workers)
 
@@ -472,14 +475,21 @@ Navigate to: Repository → Settings → Branches → Add branch protection rule
 
 After completing this setup:
 
-1. **Update BLUEPRINT.yaml** - Add Epic 0 (DevOps Foundation) before Epic 1
-2. **Create Infrastructure as Code** - Convert manual AWS setup to Terraform/SAM templates
-3. **Add Monitoring** - Configure CloudWatch alarms and Sentry error tracking
-4. **Set Up Notifications** - Add Slack/email notifications for deployment status
-5. **Implement Feature Flags** - Add LaunchDarkly or similar for progressive feature rollout
+1. **Add Monitoring** - Configure CloudWatch alarms and Sentry error tracking
+2. **Set Up Notifications** - Add Slack/email notifications for deployment status
+3. **Implement Feature Flags** - Add LaunchDarkly or similar for progressive feature rollout
+4. **Review Architecture** - See [ARCHITECTURE.md](/ARCHITECTURE.md) for system architecture and ADRs
 
 ## Resources
 
+### Documentation
+- [ARCHITECTURE.md](/ARCHITECTURE.md) - Complete system architecture and tech stack
+- [USER_PROVISIONING.md](./USER_PROVISIONING.md) - User management guide
+- [AWS_RESOURCES.md](./AWS_RESOURCES.md) - Current AWS resource inventory
+- [SECRETS_MANAGEMENT.md](./SECRETS_MANAGEMENT.md) - Secrets architecture and sync strategy
+- [E2E_TEST_USER.md](./E2E_TEST_USER.md) - E2E test user credentials
+
+### External References
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [AWS ECS Deployment Guide](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/)
 - [Playwright Testing](https://playwright.dev/)

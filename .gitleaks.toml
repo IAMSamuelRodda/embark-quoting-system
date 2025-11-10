@@ -1,0 +1,16 @@
+# Gitleaks Configuration
+# https://github.com/gitleaks/gitleaks
+
+title = "Gitleaks Configuration for Embark Quoting System"
+
+# Allowlist audit report password references
+# Password was rotated in commit 23b5779, these are historical references only
+[allowlist]
+description = "Audit report documents rotated RDS password"
+
+# Allowlist by fingerprint (exact match from Gitleaks output)
+stopwords = [
+    "23b5779c8d843c9b5ec40867c6e637fb4d213336:archive/2025-11-09-specs-audit-report.md:generic-api-key:86",
+    "23b5779c8d843c9b5ec40867c6e637fb4d213336:archive/2025-11-09-specs-audit-report.md:generic-api-key:277",
+    "23b5779c8d843c9b5ec40867c6e637fb4d213336:archive/2025-11-09-specs-audit-report.md:generic-api-key:284",
+]

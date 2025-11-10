@@ -333,7 +333,7 @@ When logo is inside interactive elements:
 
 For logo usage questions not covered in this guide:
 
-1. Refer to Design System documentation: `docs/design/style-guide.md`
+1. Refer to Design System documentation: `design/style-guide.md`
 2. Check component implementation: `frontend/src/shared/components/Logo.tsx`
 3. Contact: Embark Earthworks branding team
 
