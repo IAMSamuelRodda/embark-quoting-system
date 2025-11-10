@@ -20,20 +20,20 @@ const createJobSchema = z.object({
   quote_id: z.string().uuid('Invalid quote ID'),
   job_type: jobTypeEnum,
   order_index: z.number().int().nonnegative().optional(), // Auto-calculated if not provided
-  parameters: z.record(z.any()).default({}),
-  materials: z.array(z.record(z.any())).default([]),
-  labour: z.record(z.any()).default({}),
-  calculations: z.record(z.any()).default({}),
+  parameters: z.record(z.string(), z.unknown()).default({}),
+  materials: z.array(z.record(z.string(), z.unknown())).default([]),
+  labour: z.record(z.string(), z.unknown()).default({}),
+  calculations: z.record(z.string(), z.unknown()).default({}),
   subtotal: z.string().default('0.00'), // Stored as string (Postgres decimal)
 });
 
 const updateJobSchema = z.object({
   job_type: jobTypeEnum.optional(),
   order_index: z.number().int().nonnegative().optional(),
-  parameters: z.record(z.any()).optional(),
-  materials: z.array(z.record(z.any())).optional(),
-  labour: z.record(z.any()).optional(),
-  calculations: z.record(z.any()).optional(),
+  parameters: z.record(z.string(), z.unknown()).optional(),
+  materials: z.array(z.record(z.string(), z.unknown())).optional(),
+  labour: z.record(z.string(), z.unknown()).optional(),
+  calculations: z.record(z.string(), z.unknown()).optional(),
   subtotal: z.string().optional(),
 });
 
@@ -56,8 +56,18 @@ const reorderJobsSchema = z.array(
  * @returns {Promise<Object>} Created job
  */
 export async function createJob(jobData, userId, isAdmin) {
+  // Debug: log the incoming data
+  console.log('createJob called with jobData:', JSON.stringify(jobData, null, 2));
+
   // Validate input
-  const validated = createJobSchema.parse(jobData);
+  const result = createJobSchema.safeParse(jobData);
+
+  if (!result.success) {
+    console.error('Zod validation failed:', result.error);
+    throw result.error;
+  }
+
+  const validated = result.data;
 
   // Check quote exists and user has permission
   const quote = await quoteRepository.getQuoteById(validated.quote_id);
