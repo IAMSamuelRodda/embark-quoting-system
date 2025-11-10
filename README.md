@@ -195,6 +195,32 @@ See [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml) for complete functional, pe
 
 ---
 
+## Testing
+
+**E2E Tests** (Playwright):
+```bash
+cd frontend
+
+# Run all E2E tests (credentials auto-retrieved from AWS)
+npm run test:e2e
+
+# Run specific test suite
+npx playwright test e2e/offline-auth.spec.ts
+npx playwright test e2e/sync_verification.spec.ts
+```
+
+**Test Coverage**:
+- ✅ Offline authentication workflow (4 tests)
+- ✅ Auto-sync verification (4 tests)
+
+**See [`DEVELOPMENT.md`](./DEVELOPMENT.md)** for:
+- E2E test credential setup (environment variables or AWS Secrets Manager)
+- Pre-commit checklist (linting, formatting, unit tests)
+- CI/CD workflow expectations
+- Troubleshooting guide
+
+---
+
 ## Contributing
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for:
