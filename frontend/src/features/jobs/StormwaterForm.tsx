@@ -111,6 +111,10 @@ export function StormwaterForm({ quoteId, onSave, onCancel, existingJob }: Storm
           trench_width: data.trench_width,
         }),
       },
+      // Explicitly include required fields with defaults (backend validation expects these)
+      materials: undefined,
+      labour: undefined,
+      calculations: {},
       subtotal: 0,
     };
 

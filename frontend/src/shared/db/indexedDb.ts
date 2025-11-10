@@ -51,12 +51,15 @@ export class EmbarkDatabase extends Dexie {
       `,
 
       // Jobs table
-      // Indexes: quote_id, job_type, order_index
+      // Indexes: quote_id, job_type, order_index, sync_status
       jobs: `
         id,
         quote_id,
         job_type,
-        order_index
+        order_index,
+        sync_status,
+        created_at,
+        updated_at
       `,
 
       // Financials table (one per quote)
@@ -140,6 +143,14 @@ export class EmbarkDatabase extends Dexie {
 
     this.jobs.hook('creating', (_primKey, obj) => {
       if (!obj.id) obj.id = crypto.randomUUID();
+      if (!obj.created_at) obj.created_at = new Date();
+      if (!obj.updated_at) obj.updated_at = new Date();
+      if (!obj.device_id) obj.device_id = getDeviceId();
+      if (!obj.sync_status) obj.sync_status = 'pending';
+    });
+
+    this.jobs.hook('updating', (modifications) => {
+      return { ...modifications, updated_at: new Date() };
     });
 
     this.syncQueue.hook('creating', (_primKey, obj) => {

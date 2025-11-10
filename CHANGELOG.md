@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Critical**: Race condition preventing users from adding jobs immediately after creating quotes
+  - Implemented offline-first architecture for jobs (matching quotes pattern)
+  - Jobs now saved to IndexedDB instantly without waiting for backend sync
+  - Fixed 14 TypeScript compilation errors (type mismatches in Job interface)
+  - Files changed: `jobsDb.ts` (new), `useJobs.ts`, `syncService.ts`, `apiClient.ts`, all job forms, `models.ts`, `indexedDb.ts`
+  - Root cause: Jobs were backend-dependent while quotes were offline-first, creating sync timing dependency
+  - Solution: Jobs now use IndexedDB → Sync Queue → Backend pattern (same as quotes)
+  - Test: `race-condition-job-creation.spec.ts` validates fix
+  - See commit message for detailed implementation notes
+
 ### Known Issues
 - Backend staging deployment failing (health check timeout on ECS task)
 - Color scheme mismatch (index.css uses blue, style guide specifies CAT Gold #FFB400)

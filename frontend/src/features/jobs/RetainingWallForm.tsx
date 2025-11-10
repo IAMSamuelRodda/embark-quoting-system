@@ -87,7 +87,10 @@ export function RetainingWallForm({
         ag_pipe: data.ag_pipe,
         orange_plastic: data.orange_plastic,
       },
-      // Backend will calculate materials, labour, and subtotal
+      // Explicitly include required fields with defaults (backend validation expects these)
+      materials: undefined,
+      labour: undefined,
+      calculations: {},
       subtotal: 0,
     };
 

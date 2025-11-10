@@ -14,7 +14,7 @@ import { db } from '../../shared/db/indexedDb';
 import { api, ApiError } from '../../shared/api/apiClient';
 import { connectionMonitor } from '../../shared/utils/connection';
 import { SyncOperation, SyncStatus } from '../../shared/types/models';
-import type { Quote } from '../../shared/types/models';
+import type { Quote, Job } from '../../shared/types/models';
 import { markQuoteAsSynced, markQuoteAsSyncError } from '../quotes/quotesDb';
 import * as syncQueue from './syncQueue';
 import { detectQuoteConflict, hasCriticalConflicts, canAutoResolve } from './conflictDetection';
@@ -79,18 +79,59 @@ export async function pushChanges(batchSize: number = 10): Promise<{
   // Process each queue item
   for (const item of queueItems) {
     try {
+      // Determine if this is a job or quote operation
+      const isJobOperation = item.data && typeof item.data === 'object' && 'job_type' in item.data;
+      const isReorderOperation = item.data && typeof item.data === 'object' && 'reorder' in item.data;
+
       // Execute operation based on type
       switch (item.operation) {
         case SyncOperation.CREATE:
-          await api.quotes.create(item.data as Partial<Quote>);
+          if (isJobOperation) {
+            // Job create
+            console.log(`[Sync] Creating job for quote ${item.quote_id}`);
+            await api.jobs.create(item.quote_id, item.data as Partial<Job>);
+          } else {
+            // Quote create
+            console.log(`[Sync] Creating quote ${item.quote_id}`);
+            await api.quotes.create(item.data as Partial<Quote>);
+          }
           break;
 
         case SyncOperation.UPDATE:
-          await api.quotes.update(item.quote_id, item.data as Partial<Quote>);
+          if (isReorderOperation) {
+            // Job reorder
+            const reorderData = item.data as { reorder: { id: string; order_index: number }[] };
+            console.log(`[Sync] Reordering jobs for quote ${item.quote_id}`);
+            await api.jobs.reorder(item.quote_id, reorderData.reorder);
+          } else if (isJobOperation && item.data && typeof item.data === 'object' && 'id' in item.data) {
+            // Job update
+            const jobId = (item.data as { id: string }).id;
+            console.log(`[Sync] Updating job ${jobId}`);
+            await api.jobs.update(jobId, item.data as Partial<Job>);
+          } else {
+            // Quote update
+            console.log(`[Sync] Updating quote ${item.quote_id}`);
+            await api.quotes.update(item.quote_id, item.data as Partial<Quote>);
+          }
           break;
 
         case SyncOperation.DELETE:
-          await api.quotes.delete(item.quote_id);
+          if (item.data && typeof item.data === 'object' && 'id' in item.data) {
+            const dataId = (item.data as { id: string }).id;
+            if (dataId !== item.quote_id) {
+              // Job delete (ID doesn't match quote_id)
+              console.log(`[Sync] Deleting job ${dataId}`);
+              await api.jobs.delete(dataId);
+            } else {
+              // Quote delete
+              console.log(`[Sync] Deleting quote ${item.quote_id}`);
+              await api.quotes.delete(item.quote_id);
+            }
+          } else {
+            // Default to quote delete
+            console.log(`[Sync] Deleting quote ${item.quote_id}`);
+            await api.quotes.delete(item.quote_id);
+          }
           break;
 
         default:
@@ -99,10 +140,16 @@ export async function pushChanges(batchSize: number = 10): Promise<{
 
       // Mark as synced and remove from queue
       await syncQueue.markSynced(item.id);
-      await markQuoteAsSynced(item.quote_id);
+
+      // Mark quote as synced (jobs don't need separate marking)
+      if (!isJobOperation) {
+        await markQuoteAsSynced(item.quote_id);
+      }
+
       successCount++;
+      console.log(`[Sync] ✓ Synced ${isJobOperation ? 'job' : 'quote'} for ${item.quote_id}`);
     } catch (error) {
-      console.error(`Sync error for quote ${item.quote_id}:`, error);
+      console.error(`Sync error for ${item.operation} on quote ${item.quote_id}:`, error);
 
       // Handle errors
       let errorMessage = 'Unknown error';
