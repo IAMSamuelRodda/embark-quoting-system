@@ -6,7 +6,7 @@ import { SyncStatusIndicator } from '../features/sync/SyncStatusIndicator';
 import { useSync } from '../features/sync/useSync';
 
 export function DashboardPage() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isOfflineMode, offlineAuthExpiry } = useAuth();
   const navigate = useNavigate();
   const { sync, isOnline } = useSync();
 
@@ -31,9 +31,21 @@ export function DashboardPage() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Embark Quoting System</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Welcome, {user?.email} ({user?.role})
-              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-sm text-gray-600">
+                  Welcome, {user?.email} ({user?.role})
+                </p>
+                {isOfflineMode && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    📴 Offline Mode
+                    {offlineAuthExpiry && (
+                      <span className="ml-1 text-yellow-700">
+                        (expires {new Date(offlineAuthExpiry).toLocaleDateString()})
+                      </span>
+                    )}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-4">
               {/* Sync Status Indicator */}

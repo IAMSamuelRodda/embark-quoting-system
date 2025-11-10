@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Offline Authentication** - Field workers can now login without internet connection (Issue #108)
+  - Secure credential storage using Web Crypto API (AES-GCM 256-bit encryption)
+  - Device-specific encryption keys (unique per browser/device)
+  - "Remember Me" checkbox on login form enables offline authentication
+  - 30-day credential expiry with automatic cleanup
+  - Offline mode indicator in dashboard header showing auth status and expiry
+  - Graceful degradation: Online auth → Offline fallback → First-time requires internet
+  - Security features: Encrypted storage, auto-expiry, device-specific keys, cleared on explicit logout
+  - Files: `secureStorage.ts` (new), `useAuth.ts` (extended), `LoginPage.tsx` (Remember Me), `DashboardPage.tsx` (offline indicator)
+  - Test: `offline-auth.spec.ts` validates complete offline authentication workflow (4 test scenarios)
+  - Use case: Phone resets out of reception, first-time login in areas without connectivity
+
 ### Fixed
 - **Critical**: Race condition preventing users from adding jobs immediately after creating quotes
   - Implemented offline-first architecture for jobs (matching quotes pattern)

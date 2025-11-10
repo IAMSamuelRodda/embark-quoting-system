@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './useAuth';
 import { authService } from './authService';
+import { hasStoredCredentials } from '../../shared/utils/secureStorage';
 import type { CognitoUser } from 'amazon-cognito-identity-js';
 
 export function LoginPage() {
@@ -10,6 +11,7 @@ export function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    rememberMe: false,
   });
   const [newPasswordChallenge, setNewPasswordChallenge] = useState<{
     cognitoUser: CognitoUser;
@@ -39,33 +41,36 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-    useAuth.setState({ isLoading: true });
 
     try {
-      const result = await authService.signIn(formData);
+      // Use useAuth.signIn which now supports offline auth and rememberMe
+      await useAuth.getState().signIn({
+        email: formData.email,
+        password: formData.password,
+        rememberMe: formData.rememberMe,
+      });
 
-      // Check if we got a new password challenge
-      if (result && 'challengeName' in result && result.challengeName === 'NEW_PASSWORD_REQUIRED') {
-        setNewPasswordChallenge({
-          cognitoUser: result.cognitoUser,
-          email: result.email,
+      // If successful, navigate to dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      // Check for new password challenge
+      if (error instanceof Error && error.message === 'NEW_PASSWORD_REQUIRED') {
+        // Need to get the challenge from authService
+        const result = await authService.signIn({
+          email: formData.email,
+          password: formData.password,
         });
-        useAuth.setState({ isLoading: false });
+
+        if (result && 'challengeName' in result && result.challengeName === 'NEW_PASSWORD_REQUIRED') {
+          setNewPasswordChallenge({
+            cognitoUser: result.cognitoUser,
+            email: result.email,
+          });
+        }
         return;
       }
 
-      // Normal login success - result is AuthUser (not challenge)
-      if (result && 'email' in result && !('challengeName' in result)) {
-        // Update auth state manually
-        useAuth.getState().setUser(result);
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      // Error handling - update store with error
-      useAuth.setState({
-        error: error instanceof Error ? error.message : 'Failed to sign in',
-        isLoading: false,
-      });
+      // Other errors already handled by useAuth
       console.error('Login failed:', error);
     }
   };
@@ -113,9 +118,10 @@ export function LoginPage() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     }));
   };
 
@@ -271,13 +277,15 @@ export function LoginPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
-                  id="remember-me"
-                  name="remember-me"
+                  id="rememberMe"
+                  name="rememberMe"
                   type="checkbox"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  Remember me
+                <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
+                  Remember me (enables offline login)
                 </label>
               </div>
 
@@ -333,7 +341,15 @@ export function LoginPage() {
           {!isOnline && (
             <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-yellow-800 text-sm text-center">
-                ⚠️ You're offline. Sign in requires internet connection.
+                {hasStoredCredentials() ? (
+                  <>
+                    📴 You're offline. You can sign in with previously saved credentials.
+                  </>
+                ) : (
+                  <>
+                    ⚠️ You're offline. First-time login requires internet connection. Enable "Remember me" when online to allow offline access.
+                  </>
+                )}
               </p>
             </div>
           )}
