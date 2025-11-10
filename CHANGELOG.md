@@ -15,11 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Jobs now saved to IndexedDB instantly without waiting for backend sync
   - Fixed 14 TypeScript compilation errors (type mismatches in Job interface)
   - Activated auto-sync mechanism in App.tsx to process sync queue when online
+  - Fixed auth race condition where auto-sync fired before authentication completed (causing 401 errors)
   - Files changed: `jobsDb.ts` (new), `useJobs.ts`, `syncService.ts`, `apiClient.ts`, all job forms, `models.ts`, `indexedDb.ts`, `App.tsx`
-  - Root cause: Jobs were backend-dependent while quotes were offline-first, creating sync timing dependency
+  - Root cause #1: Jobs were backend-dependent while quotes were offline-first, creating sync timing dependency
+  - Root cause #2: Auto-sync initialized before authentication, causing silent 401 failures
   - Solution: Jobs now use IndexedDB → Sync Queue → Backend pattern (same as quotes)
-  - Sync queue now automatically processed via `enableAutoSync()` when app starts or connection restored
-  - Test: `race-condition-job-creation.spec.ts` validates fix
+  - Sync queue now automatically processed after authentication completes
+  - Auto-sync waits for `isAuthenticated` state before initializing
+  - Test: `sync_verification.spec.ts` validates complete offline-first + auto-sync behavior
   - See commit messages for detailed implementation notes
 
 ### Known Issues

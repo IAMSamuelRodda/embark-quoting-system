@@ -33,16 +33,22 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
 
-  // Enable automatic background sync when online
+  // Enable automatic background sync ONLY when authenticated
+  // This prevents 401 errors from sync firing before auth completes
   useEffect(() => {
-    console.log('[App] Initializing auto-sync service...');
+    if (!isAuthenticated) {
+      console.log('[App] Waiting for authentication before enabling auto-sync...');
+      return;
+    }
+
+    console.log('[App] Authentication complete. Initializing auto-sync service...');
     const unsubscribe = enableAutoSync();
 
     return () => {
       console.log('[App] Cleaning up auto-sync service...');
       unsubscribe();
     };
-  }, []); // Run only once on mount
+  }, [isAuthenticated]); // Dependency on isAuthenticated - only enable after auth succeeds
 
   if (isLoading) {
     return (
