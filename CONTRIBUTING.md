@@ -2,6 +2,43 @@
 
 > **Before submitting code**: See `DEVELOPMENT.md` for pre-commit checklist, CI/CD expectations, and test organization.
 
+## Getting Started: Local Development
+
+**🚀 Quick Start**
+
+Launch the full local development stack with one command:
+
+```bash
+./scripts/dev-start.sh
+```
+
+**What it sets up:**
+- PostgreSQL database (Docker container: `embark-dev-db`)
+- Backend API on port 3001 (with hot-reload)
+- Frontend dev server on port 3000
+- Database migrations
+- Auto-login with staging credentials
+
+**Result:** Browser opens at `http://localhost:3000`, fully set up and ready to code!
+
+**Monitoring logs:**
+```bash
+# Watch backend logs (API requests, database queries, errors)
+tail -f /tmp/embark-backend.log
+
+# Watch frontend logs
+tail -f /tmp/embark-frontend.log
+
+# View all logs
+tail -f /tmp/embark-*.log
+```
+
+**Stopping services:** Press `Ctrl+C` in the terminal running `dev-start.sh`
+
+**Full setup details:** See [`specs/ENVIRONMENTS.md`](./specs/ENVIRONMENTS.md) for complete environment configuration and manual setup instructions.
+
+---
+
 ## Progress Tracking with Hierarchical Sub-Issues
 
 This project uses **GitHub Issues + GitHub Projects v2** with hierarchical sub-issues for progress tracking. All progress is accessible locally via `gh` CLI with automatic roll-up to parent issues.
@@ -198,166 +235,36 @@ gh issue comment 17 --body "✅ Unblocked: Sync engine approach decided, can pro
 
 ## Git Workflow: Feature → Dev → Main
 
-This project uses a **three-tier branching strategy** with clean separation between development and production code.
+This project uses a **three-tier branching strategy**: `feature/*` → `dev` → `main`
 
-### Branch Structure
+**Complete git workflow details**: See [`DEVELOPMENT.md`](./DEVELOPMENT.md) for branch policies, CI/CD pipelines, hotfix workflow, and test organization.
 
-```
-feature/* → dev → main
-            ↓      ↓
-         staging  production
-```
-
-### Branch Policies
-
-| Branch | Purpose | Deployments | Tests Required | Approval Required |
-|--------|---------|-------------|----------------|-------------------|
-| `feature/*` | Development work | None | Unit + Integration | No |
-| `dev` | Integration & testing | Staging (AWS ECS) | Full suite + E2E | No (auto-merge) |
-| `main` | Production-ready code | Production | Smoke tests only | **Yes** (human approval) |
-
-### Creating a Feature Branch
+### Quick Reference
 
 ```bash
-# Always branch from dev, not main
-git checkout dev
-git pull origin dev
-
-# Create feature branch
-git checkout -b feature/quote-crud-api
-
-# Work on the feature
-# ... make changes ...
-
-# Commit work (link to issue)
-git add .
-git commit -m "feat: implement quote CRUD API endpoints
-
-Implements backend endpoints for quote management.
-
-Closes #26"
-```
-
-### Feature → Dev: Pull Request
-
-```bash
-# Push feature branch
-git push -u origin feature/quote-crud-api
-
-# Create PR to dev
-gh pr create \
-  --base dev \
-  --title "Feature: Quote CRUD API" \
-  --body "Implements backend quote API endpoints (Closes #26)"
-```
-
-**CI Checks (Auto-run)**:
-- ✓ Validate (lint, security, typecheck)
-- ✓ Test (unit + integration)
-- ✓ Build (Docker build + smoke test)
-
-**Merge**: Auto-merge when all checks pass (no approval required for dev)
-- Use `--merge` (merge commit) to preserve feature branch history
-- Do NOT use `--squash` (keeps git graph clean and shows true branch flow)
-
-### Dev → Main: Pull Request (Production Release)
-
-```bash
-# Only create dev → main PR when ready for production deployment
-gh pr create \
-  --base main \
-  --head dev \
-  --title "Release: v1.2.0" \
-  --body "Production release with Quote API and Job Types features"
-```
-
-**CI Checks (Auto-run)**:
-- ✓ Validate (quick sanity check)
-- ✓ Build (smoke test only)
-- ✓ Verify staging deployment is healthy
-
-**Merge**: **Human approval required** (you must approve before merge)
-
-**Post-Merge**:
-- Main branch automatically deploys to production
-- Smoke tests run on production
-- GitHub release created (if tagged)
-
-### Clean Production Code
-
-**Test files** exist on all branches but are **excluded from production deployments** via `.gitattributes`:
-
-```bash
-# Tests exist in git (for traceability)
-ls frontend/e2e/
-# ✓ Files visible
-
-# Tests excluded from production builds
-git archive --format=tar HEAD | tar -t | grep "e2e"
-# ✗ No e2e files in archive
-```
-
-This ensures:
-- Full test coverage in development branches
-- Clean production deployments without test infrastructure
-- Git history preserved for all code
-
-### Branch Cleanup
-
-```bash
-# After feature → dev merge, delete feature branch
-git checkout dev
-git pull origin dev
-git branch -d feature/quote-crud-api
-git push origin --delete feature/quote-crud-api
-```
-
-### Hotfix Workflow
-
-For urgent production fixes:
-
-```bash
-# Branch from main, not dev
-git checkout main
-git pull origin main
-git checkout -b hotfix/critical-auth-bug
-
-# Fix the issue
-# ... make changes ...
+# Create feature branch from dev
+git checkout dev && git pull origin dev
+git checkout -b feature/my-feature
 
 # Commit with issue reference
-git commit -m "fix: resolve auth token expiration bug
+git commit -m "feat: implement feature X
 
-Critical fix for production auth issue.
+Implements feature X with Y and Z.
 
-Fixes #89"
+Closes #42"
 
-# Create PR directly to main
-gh pr create \
-  --base main \
-  --title "Hotfix: Auth Token Expiration" \
-  --body "Critical production fix (Fixes #89)"
+# Create PR to dev (auto-merge when CI passes)
+gh pr create --base dev --title "Feature: X" --body "Closes #42"
 
-# After merge, backport to dev
-git checkout dev
-git merge main
-git push origin dev
+# When ready for production: dev → main PR (requires approval)
+gh pr create --base main --head dev --title "Release: v1.2.0"
 ```
 
-### Workflow Summary
+**Branch Protection**:
+- `feature/*` → `dev`: Auto-merge when CI passes (validate + test + build)
+- `dev` → `main`: Human approval required (you confirm staging is healthy)
 
-```bash
-# Normal development flow
-feature/my-feature → dev → staging → main → production
-      ↓               ↓                ↓
-  unit tests    full test suite   smoke tests
-  integration   E2E tests         deployment
-                staging deploy
-
-# Approval gates
-feature → dev: Auto-merge (CI passes)
-dev → main:    Human approval required (you confirm staging is healthy)
-```
+**See [`DEVELOPMENT.md`](./DEVELOPMENT.md)** for complete git workflow, CI/CD expectations, and troubleshooting.
 
 ---
 
@@ -675,7 +582,7 @@ gh issue list --state open --search "sort:updated-desc"
 ## Technical References
 
 - **BLUEPRINT**: `specs/BLUEPRINT.yaml` - Complete technical specifications
-- **Financial Model**: `docs/financial-model.md` - Profit-First calculation details
+- **Financial Model**: `specs/FINANCIAL_MODEL.md` - Profit-First calculation details
 - **GitHub Setup Skill**: `~/.claude/skills/github-project-setup/` - Project setup automation
 - **CLAUDE.md**: `~/.claude/CLAUDE.md` - Global GitHub workflow patterns
 
@@ -685,7 +592,7 @@ gh issue list --state open --search "sort:updated-desc"
 
 ### Documentation
 - Review `specs/BLUEPRINT.yaml` for feature requirements
-- Check `docs/` for technical specifications
+- Check `specs/` for technical specifications
 - View git history: `git log --oneline --graph`
 
 ### Progress Tracking

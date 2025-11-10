@@ -453,7 +453,7 @@ npm run test:integration 2>&1 | tee test-output.log
 ## 📚 Additional Resources
 
 - **Architecture**: `specs/BLUEPRINT.yaml` - Complete technical specifications
-- **Financial Model**: `docs/financial-model.md` - Profit-First calculation details
+- **Financial Model**: `specs/FINANCIAL_MODEL.md` - Profit-First calculation details
 - **Progress Tracking**: `CONTRIBUTING.md` - Issue workflow and GitHub CLI commands
 - **Project Navigation**: `CLAUDE.md` - Quick reference for finding information
 

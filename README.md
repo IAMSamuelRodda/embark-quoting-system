@@ -41,17 +41,37 @@ gh issue edit 1 --remove-label "status: pending" --add-label "status: in-progres
 
 ### For Developers
 
+**🚀 Quick Start (Automated)**
+
+One command to launch the full local development stack:
+
 ```bash
 # Clone repository
 git clone https://github.com/IAMSamuelRodda/embark-quoting-system.git
 cd embark-quoting-system
 
-# View implementation plan
-cat specs/BLUEPRINT.yaml
-
-# View financial model
-cat docs/financial-model.md
+# Launch full stack (database + backend + frontend + auto-login)
+./scripts/dev-start.sh
 ```
+
+**What it does:**
+- ✅ Starts PostgreSQL database (Docker)
+- ✅ Runs database migrations
+- ✅ Starts backend API (port 3001)
+- ✅ Starts frontend dev server (port 3000)
+- ✅ Retrieves credentials from AWS
+- ✅ Opens browser and auto-logs in
+
+**Result:** Browser opens at `http://localhost:3000`, logged in and ready to test!
+
+**Credentials (if needed manually):**
+- Email: `e2e-test@embark-quoting.local`
+- Password: Retrieve with `aws secretsmanager get-secret-value --secret-id embark-quoting/staging/e2e-test-credentials --query SecretString --output text | jq -r '.password'`
+
+**See also:**
+- [`specs/ENVIRONMENTS.md`](./specs/ENVIRONMENTS.md) - Complete environment setup guide
+- [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml) - Implementation plan
+- [`specs/FINANCIAL_MODEL.md`](./specs/FINANCIAL_MODEL.md) - Financial methodology
 
 ---
 
@@ -66,11 +86,18 @@ cat docs/financial-model.md
 
 **Backend**:
 - Node.js 20 + Express
-- PostgreSQL (RDS)
+- PostgreSQL (local: Docker, cloud: RDS)
 - Drizzle ORM
 - Docker containerized
 
-**Infrastructure** (AWS):
+**Local Development Stack:**
+- PostgreSQL 15 (Docker container: `embark-dev-db`)
+- Backend API on port 3001 (Express with `--watch` for hot-reload)
+- Frontend on port 3000 (Vite dev server)
+- Staging Cognito for authentication
+- Logs: `/tmp/embark-*.log` (backend, frontend, migrations)
+
+**Production Infrastructure** (AWS):
 - ECS Fargate (compute)
 - RDS PostgreSQL (database)
 - Cognito (authentication)
@@ -78,7 +105,7 @@ cat docs/financial-model.md
 - SES (email)
 - CloudFront (CDN)
 
-**Cost**: ~$45/month (low-moderate usage)
+**Cost**: ~$45/month (production, low-moderate usage)
 
 ---
 
@@ -111,7 +138,7 @@ Uses **Profit-First methodology** with configurable allocation percentages for b
 
 **Formula**: `Quote Price = Raw Materials ÷ 0.30`
 
-**Full Details**: See [`docs/financial-model.md`](./docs/financial-model.md) for complete methodology and rationale.
+**Full Details**: See [`specs/FINANCIAL_MODEL.md`](./specs/FINANCIAL_MODEL.md) for complete methodology and rationale.
 
 ### Offline Sync
 
@@ -126,7 +153,7 @@ Uses **Profit-First methodology** with configurable allocation percentages for b
 ## Documentation
 
 - **[`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml)**: Complete implementation plan (complexity-validated)
-- **[`docs/financial-model.md`](./docs/financial-model.md)**: Profit-First calculation methodology
+- **[`specs/FINANCIAL_MODEL.md`](./specs/FINANCIAL_MODEL.md)**: Profit-First calculation methodology
 - **[`CONTRIBUTING.md`](./CONTRIBUTING.md)**: Agent workflow and progress tracking guide
 
 ---
