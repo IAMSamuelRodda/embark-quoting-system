@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
 
 /**
  * Sync Verification Test Suite
@@ -10,9 +11,8 @@ import { test, expect } from '@playwright/test';
  * 4. UI reflects sync status correctly
  */
 
-// Load credentials from env
-const email = process.env.TEST_USER_EMAIL || 'e2e-test@embark-quoting.local';
-const password = process.env.TEST_USER_PASSWORD || '';
+// Get credentials from environment or AWS (fails fast if not available)
+const { email, password } = getAndValidateCredentials();
 
 test.describe('Offline-First Sync Verification', () => {
   test.beforeEach(async ({ page }) => {

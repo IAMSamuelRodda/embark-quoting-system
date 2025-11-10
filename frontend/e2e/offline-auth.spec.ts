@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
 
 /**
  * Offline Authentication E2E Test Suite
@@ -13,9 +14,8 @@ import { test, expect } from '@playwright/test';
  * 7. Go back online and verify sync
  */
 
-// Load credentials from env
-const email = process.env.TEST_USER_EMAIL || 'e2e-test@embark-quoting.local';
-const password = process.env.TEST_USER_PASSWORD || '';
+// Get credentials from environment or AWS (fails fast if not available)
+const { email, password } = getAndValidateCredentials();
 
 test.describe('Offline Authentication Flow', () => {
   test('should enable offline login with Remember Me', async ({ page, context }) => {
