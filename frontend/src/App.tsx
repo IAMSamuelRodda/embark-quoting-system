@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './features/auth/useAuth';
+import { enableAutoSync } from './features/sync/syncService';
 
 // Eager load: LoginPage (needed immediately for unauthenticated users)
 import { LoginPage } from './features/auth/LoginPage';
@@ -30,6 +31,17 @@ function App() {
   useEffect(() => {
     checkAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
+
+  // Enable automatic background sync when online
+  useEffect(() => {
+    console.log('[App] Initializing auto-sync service...');
+    const unsubscribe = enableAutoSync();
+
+    return () => {
+      console.log('[App] Cleaning up auto-sync service...');
+      unsubscribe();
+    };
   }, []); // Run only once on mount
 
   if (isLoading) {

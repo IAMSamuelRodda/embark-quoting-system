@@ -14,11 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented offline-first architecture for jobs (matching quotes pattern)
   - Jobs now saved to IndexedDB instantly without waiting for backend sync
   - Fixed 14 TypeScript compilation errors (type mismatches in Job interface)
-  - Files changed: `jobsDb.ts` (new), `useJobs.ts`, `syncService.ts`, `apiClient.ts`, all job forms, `models.ts`, `indexedDb.ts`
+  - Activated auto-sync mechanism in App.tsx to process sync queue when online
+  - Files changed: `jobsDb.ts` (new), `useJobs.ts`, `syncService.ts`, `apiClient.ts`, all job forms, `models.ts`, `indexedDb.ts`, `App.tsx`
   - Root cause: Jobs were backend-dependent while quotes were offline-first, creating sync timing dependency
   - Solution: Jobs now use IndexedDB → Sync Queue → Backend pattern (same as quotes)
+  - Sync queue now automatically processed via `enableAutoSync()` when app starts or connection restored
   - Test: `race-condition-job-creation.spec.ts` validates fix
-  - See commit message for detailed implementation notes
+  - See commit messages for detailed implementation notes
 
 ### Known Issues
 - Backend staging deployment failing (health check timeout on ECS task)
