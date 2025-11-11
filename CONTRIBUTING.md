@@ -1,5 +1,8 @@
 # Contributing to Embark Quoting System
 
+> **Purpose**: GitHub workflow, progress tracking, and planning new features
+> **Lifecycle**: Stable (update when workflow processes change)
+
 > **Before submitting code**: See `DEVELOPMENT.md` for pre-commit checklist, CI/CD expectations, and test organization.
 
 ## Getting Started: Local Development
@@ -575,6 +578,124 @@ gh issue list --state open --label "status: in-progress"
 
 # See recently updated issues
 gh issue list --state open --search "sort:updated-desc"
+```
+
+---
+
+## Planning New Features
+
+### BLUEPRINT.yaml Lifecycle
+
+**BLUEPRINT.yaml is a planning tool for generating GitHub issues, NOT a living reference document.**
+
+**When to Use:**
+- Planning NEW features/epics before converting to GitHub issues
+- Initial project setup with `github-project-setup` skill (generates hierarchical issues)
+- Major scope expansions requiring systematic breakdown
+
+**When NOT to Use:**
+- ❌ Looking up architecture details → Use `ARCHITECTURE.md`
+- ❌ Tracking implementation progress → Use GitHub Issues
+- ❌ Documenting completed work → Use `STATUS.md` and git commits
+
+### Lifecycle Flow
+
+```
+1. Plan Feature → Write BLUEPRINT.yaml structure (milestones → epics → features → tasks)
+2. Generate Issues → Use `github-project-setup` skill to create GitHub issues from YAML
+3. Archive → BLUEPRINT.yaml section becomes historical once issues exist
+4. Track Progress → Use GitHub Issues (source of truth), NOT BLUEPRINT.yaml
+```
+
+**Key Principle**: Once GitHub issues are created from BLUEPRINT.yaml, the YAML becomes **historical documentation** of the original plan. GitHub Issues become the living source of truth.
+
+### When Plans Change During Implementation
+
+**DO NOT update BLUEPRINT.yaml** - Reality always diverges from the original plan. Use GitHub workflow instead:
+
+```bash
+# Document plan changes in GitHub issues
+gh issue comment <issue-number> --body "🚧 Plan Change: Need auth middleware first. Splitting into separate task.
+
+**Original plan**: Implement quote API with inline validation
+**New approach**: Extract auth middleware as separate task (#45)
+**Reason**: Multiple endpoints need JWT validation, better to centralize
+**Impact**: +1 day, blocks quote API until complete"
+
+# Create new tasks as needed
+gh issue create --title "Implement JWT auth middleware" \
+  --label "type: task" \
+  --body "Extracted from #26. Required before quote API implementation."
+
+# Update STATUS.md with investigation notes
+# Update ARCHITECTURE.md if architecture changed (e.g., new middleware pattern)
+
+# Commit with issue references
+git commit -m "feat: add JWT auth middleware
+
+Implements centralized authentication for API endpoints.
+
+Closes #45
+Unblocks #26"
+```
+
+### Source of Truth by Use Case
+
+| Need | Source of Truth | Why |
+|------|----------------|-----|
+| **Current work status** | GitHub Issues (labels) | `status: pending`, `status: in-progress`, `status: completed` |
+| **Blocking dependencies** | GitHub Issues (comments) | Links to blockers, discussion, resolution |
+| **Timeline changes** | GitHub Issues + Milestones | Issue comments, milestone dates |
+| **Scope changes** | GitHub Issues | New issues, closed issues, updated descriptions |
+| **Architecture details** | `ARCHITECTURE.md` | Database schema, tech stack, ADRs |
+| **Current bugs/fixes** | `STATUS.md` | Active investigations, recent changes |
+| **Original plan** | `specs/BLUEPRINT.yaml` | Historical: what we PLANNED (not what we BUILT) |
+
+### Example: Planning a New Feature
+
+**Scenario**: Add email notification system (not in original BLUEPRINT)
+
+**Step 1: Add to BLUEPRINT.yaml**
+```yaml
+# specs/BLUEPRINT.yaml
+epic_8:
+  name: Email Notifications
+  complexity: 2.8
+  estimated_days: 7
+  features:
+    feature_8_1:
+      name: SES Integration
+      complexity: 2.0
+      estimated_days: 3
+      tasks:
+        task_8_1_1:
+          name: Configure AWS SES
+          estimated_days: 1
+        task_8_1_2:
+          name: Email template system
+          estimated_days: 2
+```
+
+**Step 2: Generate GitHub Issues**
+```bash
+# Use github-project-setup skill to create issues from YAML
+# Creates Epic #50, Feature #51, Tasks #52-53 with hierarchy
+```
+
+**Step 3: BLUEPRINT.yaml becomes historical**
+- ✅ GitHub Issues are now the source of truth
+- ✅ Track progress in Issues (#50, #51, #52, #53)
+- ✅ Update ARCHITECTURE.md with SES integration details as you build
+- ❌ Don't update BLUEPRINT.yaml during implementation
+
+**Step 4: When plans change during implementation**
+```bash
+# Discovered: Need email bounce handling (not in original plan)
+gh issue create --title "Implement email bounce handling" \
+  --label "type: task" \
+  --body "Required for production SES compliance. Relates to #51"
+
+# BLUEPRINT.yaml is NOT updated - GitHub issue is sufficient
 ```
 
 ---

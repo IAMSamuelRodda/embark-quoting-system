@@ -1,5 +1,8 @@
 # Project Status
 
+> **Purpose**: Current work, active bugs, and recent changes (~2 week rolling window)
+> **Lifecycle**: Living document (update daily/weekly during active development)
+
 **Last Updated:** 2025-11-11
 **Current Phase:** Post-MVP Bug Fixes & Investigation
 **Version:** 1.0.0-beta
@@ -27,10 +30,12 @@
 - ✅ E2E test credential management - centralized and automated
 - ✅ Auth race condition fix - auto-sync now depends on authentication
 - ✅ Documentation updates - DEVELOPMENT.md, README.md with E2E test guides
+- ✅ Job financial calculations - implemented calculator service, seeded price items
+- ✅ CLAUDE.md refactor - minimal critical docs list, no changelog bloat
+- ✅ Playwright skill enhancement - added credential management pattern
 
 **Investigating Now:**
 - 🔴 Sync queue not clearing while online ("2 pending" indicator)
-- 🔴 Job financial calculations not working ("No price" on quotes)
 
 ---
 
@@ -101,53 +106,50 @@
 
 ---
 
-#### Issue #2: Job Financial Calculations Not Working 🔴
-**Status:** CRITICAL - Under Investigation
-**Discovered:** 2025-11-11
-**Symptom:** Jobs added to quotes show "No price" instead of calculated values
+#### Issue #2: Job Financial Calculations Not Working ✅ RESOLVED
+**Status:** FIXED - 2025-11-11
+**Symptom:** Jobs added to quotes showed "No price" instead of calculated values
 
-**Expected Behavior:**
-- Job parameters entered (wall type, height, length, etc.)
-- Profit-First calculation applied: `Quote Price = Raw Materials ÷ 0.30`
-- Price displayed in financial summary
-- Total cost aggregated across all jobs
+**Root Cause:**
+- Job creation hardcoded `subtotal: 0` in all 5 frontend forms
+- Backend accepted job data without invoking calculation service
+- Price sheet table was empty (no seed data for material costs)
 
-**Evidence:**
-- Quote: EE-2025-0001 (customer: Sam Smith)
-- Status: Draft
-- Financial Summary: "No price" (orange indicator)
-- Job added but no cost calculation
+**Solution Implemented:**
+1. ✅ Created `backend/src/features/jobs/job-calculator.service.js` (479 lines)
+   - Calculations for all 5 job types (retaining_wall, driveway, trenching, stormwater, site_prep)
+   - Fetches price sheet data and calculates materials, labour, subtotals
+   - Uses job-specific formulas from BLUEPRINT.yaml
 
-**Impact:**
-- Core MVP functionality broken (Epic 4: Financial Calculations)
-- Users cannot generate quotes with pricing
-- Profit-First model not functioning
+2. ✅ Integrated calculator into `backend/src/features/jobs/jobs.service.js`
+   - `createJob()` calls calculator before saving (lines 93-110)
+   - `updateJobParameters()` recalculates on parameter changes (lines 333-360)
+   - Graceful fallback to zeros if price sheet missing
 
-**Root Cause Hypotheses:**
-1. Calculation service not called when job created
-2. Price sheet data missing (no material costs in database)
-3. Job parameters not stored correctly (JSONB field empty)
-4. Frontend-backend mismatch in calculation logic
-5. Race condition between job creation and financial calculation
+3. ✅ Updated all 5 frontend job forms to remove hardcoded zeros:
+   - RetainingWallForm.tsx, DrivewayForm.tsx, TrenchingForm.tsx
+   - StormwaterForm.tsx, SitePrepForm.tsx
+   - Backend now calculates everything automatically
 
-**Investigation Steps:**
-1. Check job data in IndexedDB (verify parameters stored)
-2. Check job data in backend API (verify sync worked)
-3. Inspect price_sheets table (verify material costs exist)
-4. Check browser console for calculation errors
-5. Verify calculation service integration in job forms
-6. Test with backend/tests/integration/calculation.service.test.js
+4. ✅ Created `backend/database/seed-dev.js` with 11 price items:
+   - Materials: blocks, road base, AG pipe, orange plastic, gravel, paving sand
+   - Stormwater: PVC pipes, t-joints, elbows, downpipe adaptors
+   - Labour rate: $85/hour
+   - Successfully seeded development database
 
-**Files:**
-- `frontend/src/features/jobs/RetainingWallForm.tsx`
-- `frontend/src/features/jobs/useJobs.ts`
-- `frontend/src/features/jobs/jobsDb.ts`
-- `backend/src/features/financials/calculation.service.js`
-- `backend/src/features/jobs/jobs.service.js`
+**Files Modified (8 files):**
+- backend/src/features/jobs/job-calculator.service.js (NEW)
+- backend/src/features/jobs/jobs.service.js
+- backend/database/seed-dev.js (NEW)
+- frontend/src/features/jobs/RetainingWallForm.tsx
+- frontend/src/features/jobs/DrivewayForm.tsx
+- frontend/src/features/jobs/TrenchingForm.tsx
+- frontend/src/features/jobs/StormwaterForm.tsx
+- frontend/src/features/jobs/SitePrepForm.tsx
 
-**Documentation:**
-- `specs/FINANCIAL_MODEL.md` (Profit-First methodology)
-- `specs/BLUEPRINT.yaml` → Epic 4
+**Next Steps:**
+- Manual UI test: Create a retaining wall job and verify subtotal > 0
+- E2E test with calculations (once auth credentials available)
 
 ---
 
@@ -411,16 +413,16 @@ All core documentation is current (updated Nov 11, 2025):
 
 | Document | Status | Last Updated | Notes |
 |----------|--------|--------------|-------|
-| **README.md** | ✅ Current | Nov 11 | Added Testing section |
-| **DEVELOPMENT.md** | ✅ Current | Nov 11 | E2E test credentials section |
-| **CHANGELOG.md** | 🟡 Needs Update | Nov 9 | Add offline auth completion |
+| **README.md** | ✅ Current | Nov 11 | Project introduction |
+| **ARCHITECTURE.md** | ✅ Current | Nov 11 | Technical reference (living) |
 | **STATUS.md** | ✅ Current | Nov 11 | This document (living) |
-| **CLAUDE.md** | ✅ Current | Nov 7 | Navigation guide |
-| **CONTRIBUTING.md** | ✅ Current | Nov 7 | Agent workflow guide |
-| **ARCHITECTURE.md** | ✅ Current | Nov 9 | Technical architecture |
-| **specs/RUNBOOK.md** | ✅ Current | Nov 8 | Operations procedures |
-| **specs/BLUEPRINT.yaml** | ✅ Current | - | Implementation plan |
+| **CONTRIBUTING.md** | ✅ Current | Nov 11 | GitHub workflow, planning |
+| **DEVELOPMENT.md** | ✅ Current | Nov 11 | Git workflow, CI/CD |
+| **CLAUDE.md** | ✅ Current | Nov 11 | Agent directives (minimal) |
+| **CHANGELOG.md** | 🟡 Needs Update | Nov 9 | Release history |
+| **specs/BLUEPRINT.yaml** | 📦 Historical | - | Planning artifact (archived once issues created) |
 | **specs/FINANCIAL_MODEL.md** | ✅ Current | - | Profit-First methodology |
+| **specs/RUNBOOK.md** | ✅ Current | Nov 8 | Operations procedures |
 
 ---
 
@@ -464,4 +466,4 @@ All core documentation is current (updated Nov 11, 2025):
 
 ---
 
-**Note:** This is a living document. Update after significant changes, bug discoveries, or milestone completions.
+**Note:** This is a living document. Update after significant changes, bug discoveries, issue completions, or milestone completions.

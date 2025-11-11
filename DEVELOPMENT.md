@@ -1,6 +1,7 @@
 # Development Workflow
 
-> **Purpose**: Developer and agent workflow for code quality, testing, and CI/CD integration.
+> **Purpose**: Git workflow, CI/CD pipelines, and pre-commit checklist
+> **Lifecycle**: Stable (update when branching strategy or CI/CD processes change)
 
 ---
 
@@ -33,7 +34,7 @@ git push -u origin feature/my-feature
 gh pr create --base dev --title "Feature: X" --body "Implements X (Closes #42)"
 
 # 4. CI runs: validate → test → build
-# 5. Auto-merge to dev when CI passes
+# 5. Auto-merge to dev when CI passes (uses --merge to preserve history)
 
 # 6. Staging deployment triggered automatically from dev
 # 7. E2E tests run on staging
@@ -44,6 +45,25 @@ gh pr create --base main --head dev --title "Release: v1.2.0"
 # 9. Human approval required for main merge
 # 10. Production deployment triggered automatically on main merge
 ```
+
+### PR Merge Strategy
+
+**RULE**: Use `--merge` (merge commit) for all PRs to preserve complete feature branch history.
+
+**Why**: Merge commits show the true branch flow in git graph and preserve individual commit history (each commit was tested by CI). Squash merging creates "orphaned" commits that don't show merging back into the main line.
+
+**How to Merge**:
+```bash
+# Automatic (when CI passes) - GitHub Actions uses --merge
+# Manual merge if needed:
+gh pr merge <PR-number> --merge --auto
+
+# Do NOT use:
+gh pr merge <PR-number> --squash  # ❌ Loses individual commit history
+gh pr merge <PR-number> --rebase  # ❌ Rewrites commit SHAs
+```
+
+**Exception**: Only use `--squash` for rare cases with genuinely messy WIP commits that shouldn't be preserved.
 
 ### CI/CD Pipeline by Branch
 

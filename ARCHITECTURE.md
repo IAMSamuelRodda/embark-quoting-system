@@ -1,8 +1,10 @@
 # Architecture Documentation
 
+> **Purpose**: Technical reference for system architecture, database schema, tech stack, and ADRs
+> **Lifecycle**: Living (update as implementation diverges from original plan)
+
 **Version:** 1.0
-**Last Updated:** 2025-11-09
-**Status:** Living document (update when architecture changes)
+**Last Updated:** 2025-11-11
 
 ---
 
