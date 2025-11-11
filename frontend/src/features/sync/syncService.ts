@@ -374,9 +374,14 @@ export async function syncAll(): Promise<SyncResult> {
 /**
  * Auto-sync when connection restored
  * Call this once at app startup to enable auto-sync
+ *
+ * FIX: Added periodic retry mechanism to sync pending items every 30 seconds while online
+ * Previously: Sync only triggered on connection state change (offline → online)
+ * Now: Periodic checks ensure items with failed retries eventually sync
  */
 export function enableAutoSync(): () => void {
   let syncInProgress = false;
+  let periodicCheckInterval: ReturnType<typeof setInterval> | null = null;
 
   const unsubscribe = connectionMonitor.subscribe(async (state) => {
     // Only sync when coming back online
@@ -396,7 +401,41 @@ export function enableAutoSync(): () => void {
         }
       }
     }
+
+    // Start/stop periodic retry based on connection state
+    if (state.isOnline && !periodicCheckInterval) {
+      // Check for pending items every 30 seconds while online
+      console.log('[Sync] Starting periodic sync check (every 30 seconds)');
+      periodicCheckInterval = setInterval(async () => {
+        if (syncInProgress) return; // Skip if sync already in progress
+
+        const queueSize = await db.getSyncQueueSize();
+        if (queueSize > 0) {
+          console.log(`[Periodic Sync] Found ${queueSize} pending items, syncing...`);
+          syncInProgress = true;
+          try {
+            await syncAll();
+          } catch (error) {
+            console.error('[Periodic Sync] Auto-sync failed:', error);
+          } finally {
+            syncInProgress = false;
+          }
+        }
+      }, 30000); // 30 seconds
+    } else if (!state.isOnline && periodicCheckInterval) {
+      // Stop periodic checks when offline
+      console.log('[Sync] Stopping periodic sync check (device offline)');
+      clearInterval(periodicCheckInterval);
+      periodicCheckInterval = null;
+    }
   });
 
-  return unsubscribe;
+  // Cleanup function
+  return () => {
+    unsubscribe();
+    if (periodicCheckInterval) {
+      clearInterval(periodicCheckInterval);
+      periodicCheckInterval = null;
+    }
+  };
 }
