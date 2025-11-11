@@ -3,8 +3,8 @@
 > **Purpose**: Current work, active bugs, and recent changes (~2 week rolling window)
 > **Lifecycle**: Living document (update daily/weekly during active development)
 
-**Last Updated:** 2025-11-11
-**Current Phase:** Post-MVP Bug Fixes & Investigation
+**Last Updated:** 2025-11-11 (Session: Resolved 2 critical bugs)
+**Current Phase:** Post-MVP Bug Fixes & Verification
 **Version:** 1.0.0-beta
 
 ---
@@ -25,15 +25,19 @@
 
 ## Current Focus
 
-**Completed Nov 11:**
+**Completed Nov 11 (Today's Session):**
+- ✅ **Sync Queue Fix** - Auto-sync now updates UI state (3-part fix: UI updates, accurate counting, immediate refresh)
+- ✅ **Job Calculations Fix** - Backend bugs fixed + frontend captures responses (all 5 job types verified: $510-$1,715)
+- ✅ **E2E Test Created** - job-calculations.spec.ts tests driveway, retaining wall, multiple jobs
+- ✅ **Database Import Fix** - Corrected job-calculator import path (postgres.js)
+
+**Completed Earlier (Nov 11):**
 - ✅ Offline authentication feature (Issue #108) - fully tested and documented
 - ✅ E2E test credential management - centralized and automated
 - ✅ Auth race condition fix - auto-sync now depends on authentication
 - ✅ Documentation updates - DEVELOPMENT.md, README.md with E2E test guides
-- ✅ Job financial calculations - implemented calculator service, seeded price items
 - ✅ CLAUDE.md refactor - minimal critical docs list, no changelog bloat
 - ✅ Playwright skill enhancement - added credential management pattern
-- ✅ Sync queue fix - UI state updates + accurate queue size counting (3-part fix)
 
 ---
 
