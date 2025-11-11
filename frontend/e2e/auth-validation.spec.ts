@@ -1,16 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
 
 /**
  * Authentication Validation Test
  *
  * Quick validation of authentication flow with real Cognito.
- * Uses test.worker@embarkearth.com.au with known password.
+ * Credentials retrieved from AWS Secrets Manager.
  */
 
-const TEST_CREDENTIALS = {
-  email: process.env.E2E_TEST_USER_EMAIL || 'test.automation@embarkearth.com.au',
-  password: process.env.E2E_TEST_USER_PASSWORD || 'AutoTest123!',
-};
+const TEST_CREDENTIALS = getAndValidateCredentials();
 
 test.describe('Authentication Validation', () => {
 

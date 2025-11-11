@@ -1,14 +1,13 @@
 import { test } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
 
 test('Debug login password fill', async ({ page }) => {
   const baseUrl = 'http://localhost:3000';
-  const email = 'e2e-test@embark-quoting.local';
-  const password = process.env.E2E_TEST_PASSWORD || '';
+  const { email, password } = getAndValidateCredentials();
 
   console.log('\n=== DEBUG LOGIN TEST ===');
   console.log('Password length:', password.length);
   console.log('Password value:', password ? '[REDACTED]' : 'EMPTY');
-  console.log('Password from env:', process.env.E2E_TEST_PASSWORD ? 'SET' : 'NOT SET');
 
   await page.goto(baseUrl);
   

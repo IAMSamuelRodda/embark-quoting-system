@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
 
 test('Reproduce job creation error', async ({ page, browserName }) => {
   const baseUrl = 'http://localhost:3000';
-  const email = 'e2e-test@embark-quoting.local';
-  const password = process.env.E2E_TEST_PASSWORD || '';
+  
+  const { email, password } = getAndValidateCredentials();
 
   console.log(`\n=== Test Starting (${browserName}) ===`);
 

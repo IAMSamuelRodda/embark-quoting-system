@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
 
 test.describe('Job Creation Test', () => {
   test('should create a quote and add a retaining wall job', async ({ page }) => {
     const baseUrl = 'http://localhost:3000';
-    const email = 'e2e-test@embark-quoting.local';
-    const password = process.env.E2E_TEST_PASSWORD || '';
+    
+    const { email, password } = getAndValidateCredentials();
 
     // Step 1: Login
     console.log('Step 1: Navigating to login page...');

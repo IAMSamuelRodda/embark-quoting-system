@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
 
 /**
  * Complete End-to-End Job Creation Workflow Test
@@ -12,8 +13,7 @@ import { test, expect } from '@playwright/test';
  */
 test('Complete job creation workflow', async ({ page }) => {
   const baseUrl = 'http://localhost:3000';
-  const email = 'e2e-test@embark-quoting.local';
-  const password = process.env.E2E_TEST_PASSWORD || '';
+  const { email, password } = getAndValidateCredentials();
 
   console.log('\n=== COMPLETE JOB WORKFLOW TEST ===\n');
 

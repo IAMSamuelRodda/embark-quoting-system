@@ -35,7 +35,7 @@ export async function createJob(data: Partial<Job>, quoteId: string): Promise<Jo
     materials: data.materials,
     labour: data.labour,
     calculations: data.calculations || {},
-    subtotal: data.subtotal ?? 0,
+    subtotal: data.subtotal ?? 0, // Store as number in IndexedDB
     created_at: new Date(),
     updated_at: new Date(),
     sync_status: SyncStatus.PENDING,

@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
 
 test('Verify API authentication uses access token', async ({ page }) => {
   const baseUrl = 'http://localhost:3000';
-  const email = 'e2e-test@embark-quoting.local';
-  const password = process.env.E2E_TEST_PASSWORD || '';
+  
+  const { email, password } = getAndValidateCredentials();
 
   // Login
   await page.goto(baseUrl);

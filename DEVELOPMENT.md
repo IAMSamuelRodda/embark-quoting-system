@@ -627,6 +627,65 @@ npm run test:integration 2>&1 | tee test-output.log
 
 ---
 
+## ❌ Anti-Patterns: Critical Mistakes to Avoid
+
+### 🚨 NEVER Hardcode E2E Test Credentials
+
+**ANTI-PATTERN (DO NOT DO THIS)**:
+```typescript
+// ❌ WRONG - Hardcoded environment variable that doesn't exist
+const password = process.env.E2E_TEST_PASSWORD || '';
+const email = 'e2e-test@embark-quoting.local';
+
+// ❌ WRONG - Hardcoded fallback password
+const password = process.env.E2E_TEST_PASSWORD || 'AutoTest123!';
+```
+
+**Why This Is Catastrophic**:
+1. **Silent Failures**: If `E2E_TEST_PASSWORD` doesn't exist, password is empty string (`''`)
+2. **Tests Pass Login Stage**: Playwright successfully fills empty string into password field
+3. **Authentication Fails**: Cognito returns "Incorrect username or password"
+4. **Cascading Failures**: All downstream tests fail (sync, job creation, etc.)
+5. **Wasted Debugging Time**: Developers debug sync/API code when the problem is test setup
+6. **False Root Cause**: Looks like application bug when it's actually missing credentials
+
+**Real-World Impact**:
+- **Session 1**: Debugged sync service code for 2+ hours
+- **Session 2**: Fixed scope errors, type mismatches - all irrelevant
+- **Session 3**: Deployed debug-specialist subagent to investigate sync failures
+- **Actual Problem**: Tests couldn't log in because password was empty string
+
+**CORRECT PATTERN (ALWAYS DO THIS)**:
+```typescript
+// ✅ CORRECT - Use centralized credential retrieval
+import { getAndValidateCredentials } from './test-utils';
+
+const { email, password } = getAndValidateCredentials();
+```
+
+**What `getAndValidateCredentials()` Does**:
+1. **Tries environment variables first**: `TEST_USER_EMAIL`, `TEST_USER_PASSWORD`
+2. **Falls back to AWS Secrets Manager**: `embark-quoting/staging/e2e-test-credentials`
+3. **Validates credentials are not empty**: Checks password length >= 8 chars
+4. **Fails fast with clear error**: Tells developer exactly how to fix the issue
+5. **Logs credential status**: Shows redacted password length for debugging
+
+**Enforcement**:
+- **Pre-commit check**: `grep -r "E2E_TEST.*PASSWORD" --include="*.spec.ts" frontend/e2e/`
+- **If matches found**: Reject commit with error message pointing to this documentation
+- **CI/CD validation**: Same check in GitHub Actions to prevent merging
+
+**Why This Pattern Exists**:
+- AWS Secrets Manager is authoritative source for staging/production credentials
+- Environment variables allow local override without committing secrets
+- Centralized validation prevents multiple implementations with different error handling
+- Fail-fast approach saves hours of debugging downstream failures
+
+**Historical Context**:
+This anti-pattern was encountered in commit 09c2653 where 8 test files used hardcoded `process.env.E2E_TEST_PASSWORD` that didn't exist, causing all E2E tests to fail authentication silently. The debugging process consumed 3+ sessions across multiple agents before identifying the root cause.
+
+---
+
 ## 📚 Additional Resources
 
 - **Architecture**: `specs/BLUEPRINT.yaml` - Complete technical specifications
@@ -636,4 +695,4 @@ npm run test:integration 2>&1 | tee test-output.log
 
 ---
 
-**Last Updated**: 2025-11-06 (Initial version - extracted from CLAUDE.md and CONTRIBUTING.md)
+**Last Updated**: 2025-11-11 (Added anti-pattern documentation for hardcoded E2E credentials)

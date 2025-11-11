@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
 
 /**
  * Race Condition Test: Job Creation Immediately After Quote Creation
@@ -34,8 +35,8 @@ test.describe('Job Creation Race Condition Bug', () => {
     });
 
     const baseUrl = 'http://localhost:3000';
-    const email = 'e2e-test@embark-quoting.local';
-    const password = process.env.E2E_TEST_PASSWORD || '';
+    
+    const { email, password } = getAndValidateCredentials();
 
     console.log('\n=== RACE CONDITION TEST ===\n');
 
@@ -186,8 +187,8 @@ test.describe('Job Creation Race Condition Bug', () => {
      */
 
     const baseUrl = 'http://localhost:3000';
-    const email = 'e2e-test@embark-quoting.local';
-    const password = process.env.E2E_TEST_PASSWORD || '';
+    
+    const { email, password } = getAndValidateCredentials();
 
     console.log('\n=== VERIFICATION TEST (After Fix) ===\n');
 

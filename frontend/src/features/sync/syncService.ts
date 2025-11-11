@@ -99,7 +99,15 @@ export async function pushChanges(batchSize: number = 10): Promise<{
           if (isJobOperation) {
             // Job create - capture response to get backend-calculated values
             console.log(`[Sync] Creating job for quote ${item.quote_id}`);
-            const createJobResponse = await api.jobs.create(item.quote_id, item.data as Partial<Job>);
+
+            // Transform job data for API: Convert subtotal number to string (backend expects decimal as string)
+            const jobData = item.data as Partial<Job>;
+            const apiJobData = {
+              ...jobData,
+              subtotal: typeof jobData.subtotal === 'number' ? jobData.subtotal.toFixed(2) : jobData.subtotal,
+            };
+
+            const createJobResponse = await api.jobs.create(item.quote_id, apiJobData);
 
             // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
             if (createJobResponse.success && createJobResponse.data) {
@@ -129,7 +137,15 @@ export async function pushChanges(batchSize: number = 10): Promise<{
             // Job update - capture response to get backend-calculated values
             const jobId = (item.data as { id: string }).id;
             console.log(`[Sync] Updating job ${jobId}`);
-            const updateJobResponse = await api.jobs.update(jobId, item.data as Partial<Job>);
+
+            // Transform job data for API: Convert subtotal number to string (backend expects decimal as string)
+            const jobData = item.data as Partial<Job>;
+            const apiJobData = {
+              ...jobData,
+              subtotal: typeof jobData.subtotal === 'number' ? jobData.subtotal.toFixed(2) : jobData.subtotal,
+            };
+
+            const updateJobResponse = await api.jobs.update(jobId, apiJobData);
 
             // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
             if (updateJobResponse.success && updateJobResponse.data) {
