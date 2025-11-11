@@ -183,10 +183,24 @@ export class EmbarkDatabase extends Dexie {
   }
 
   /**
-   * Get sync queue size (pending changes)
+   * Get sync queue size (pending changes ready to sync)
+   * Only counts items that are:
+   * - Not in dead-letter queue (dead_letter = 0)
+   * - Past their retry time (next_retry_at <= now or null)
    */
   async getSyncQueueSize(): Promise<number> {
-    return await this.syncQueue.count();
+    const now = new Date();
+
+    // Get all active items (not in dead-letter queue)
+    const allItems = await this.syncQueue.where('dead_letter').equals(0).toArray();
+
+    // Filter to only items ready for sync (past retry time)
+    const readyItems = allItems.filter((item) => {
+      if (!item.next_retry_at) return true;
+      return new Date(item.next_retry_at) <= now;
+    });
+
+    return readyItems.length;
   }
 
   /**

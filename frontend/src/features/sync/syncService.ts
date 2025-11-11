@@ -19,6 +19,7 @@ import { markQuoteAsSynced, markQuoteAsSyncError } from '../quotes/quotesDb';
 import * as syncQueue from './syncQueue';
 import { detectQuoteConflict, hasCriticalConflicts, canAutoResolve } from './conflictDetection';
 import { autoMergeQuotes } from './autoMerge';
+import { useSync } from './useSync';
 
 // Type guard for API error response
 interface ApiErrorResponse {
@@ -414,7 +415,21 @@ export function enableAutoSync(): () => void {
           console.log(`[Periodic Sync] Found ${queueSize} pending items, syncing...`);
           syncInProgress = true;
           try {
-            await syncAll();
+            const result = await syncAll();
+
+            // Update UI state after auto-sync completes
+            const { refreshPendingCount } = useSync.getState();
+            await refreshPendingCount();
+
+            // Update sync metadata for user feedback
+            if (result.success && (result.pushedCount > 0 || result.pulledCount > 0)) {
+              useSync.setState({
+                lastSyncAt: new Date(),
+                pushedCount: result.pushedCount,
+                pulledCount: result.pulledCount,
+              });
+              console.log(`[Periodic Sync] Success: pushed ${result.pushedCount}, pulled ${result.pulledCount}`);
+            }
           } catch (error) {
             console.error('[Periodic Sync] Auto-sync failed:', error);
           } finally {

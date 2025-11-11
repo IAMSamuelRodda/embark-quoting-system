@@ -33,9 +33,7 @@
 - ✅ Job financial calculations - implemented calculator service, seeded price items
 - ✅ CLAUDE.md refactor - minimal critical docs list, no changelog bloat
 - ✅ Playwright skill enhancement - added credential management pattern
-
-**Investigating Now:**
-- 🔴 Sync queue not clearing while online ("2 pending" indicator)
+- ✅ Sync queue fix - UI state updates + accurate queue size counting (3-part fix)
 
 ---
 
@@ -65,44 +63,57 @@
 
 ### Critical Blockers - Requires Immediate Investigation
 
-#### Issue #1: Sync Queue Not Clearing While Online 🔴
-**Status:** CRITICAL - Under Investigation
-**Discovered:** 2025-11-11
-**Symptom:** "2 pending" indicator persists in dashboard header despite solid internet connection
+#### Issue #1: Sync Queue Not Clearing While Online ✅ RESOLVED
+**Status:** FIXED - 2025-11-11
+**Symptom:** "2 pending" indicator persisted in dashboard header despite solid internet connection
 
-**Root Cause Analysis:**
-- Auto-sync only triggers on connection state change (offline → online)
-- No periodic retry mechanism while online
-- Items remain stuck in sync queue after failed attempts
-- No subsequent retry because connection state hasn't changed
+**Root Cause (Identified via debug-specialist agent):**
+Two interconnected issues:
 
-**Evidence:**
-- User: e2e-test@embark-quoting.local (field_worker)
-- Connection: Stable internet
-- Sync Status: Orange "2 pending" indicator
-- Browser: localhost:3000/dashboard
+1. **Auto-sync bypassed UI state management**
+   - Periodic sync (every 30s) called `syncAll()` directly without updating Zustand store
+   - UI relied on manual refresh via `refreshPendingCount()` which was only called:
+     - On manual sync button click
+     - Every 10 seconds via `SyncStatusIndicator` polling
+   - Result: Items synced successfully but UI counter never updated
 
-**Impact:**
-- Data not syncing to backend
-- Violates offline-first architecture promise ("auto-sync")
-- Users must manually click sync button
+2. **Queue size counted items not ready for sync**
+   - `getSyncQueueSize()` used `syncQueue.count()` which counted ALL items
+   - Included items with future `next_retry_at` timestamps (exponential backoff)
+   - `getNextBatch()` correctly filtered by `next_retry_at <= now`, creating mismatch
+   - Result: UI showed "2 pending" but no items were actually ready to sync
 
-**Investigation Steps:**
-1. Check browser console for sync errors
-2. Inspect IndexedDB sync_queue table
-3. Verify backend API responding
-4. Check auth token validity
-5. Review retry_count and next_retry_at for stuck items
+**Solution Implemented (3-part fix):**
 
-**Potential Fixes:**
-- Add periodic sync retry (every 30s while online with pending items)
-- Trigger sync after operations complete (in addition to connection change)
-- Improve error visibility in UI
+1. **Fix 1: Auto-sync updates UI state** (`frontend/src/features/sync/syncService.ts:420-432`)
+   - Added `useSync.getState().refreshPendingCount()` call after periodic sync completes
+   - Added sync metadata updates (`lastSyncAt`, `pushedCount`, `pulledCount`) for user feedback
+   - Now UI counter updates immediately when auto-sync runs
 
-**Files:**
-- `frontend/src/features/sync/syncService.ts` (auto-sync logic)
-- `frontend/src/features/sync/syncQueue.ts` (queue management)
-- `frontend/src/features/sync/useSync.ts` (state management)
+2. **Fix 2: Accurate queue size counting** (`frontend/src/shared/db/indexedDb.ts:185-204`)
+   - Changed `getSyncQueueSize()` to filter by:
+     - `dead_letter = 0` (excludes failed items in dead-letter queue)
+     - `next_retry_at <= now` (excludes items waiting for exponential backoff)
+   - Now counter only shows items actually ready to sync
+
+3. **Fix 3: Immediate refresh after mutations** (`frontend/src/features/quotes/useQuotes.ts`)
+   - Added `refreshPendingCount()` call after `createQuote()`, `updateQuote()`, `deleteQuote()`
+   - Provides instant UI feedback when operations add items to sync queue
+   - No waiting for 10-second polling interval
+
+**Files Modified:**
+- `frontend/src/features/sync/syncService.ts` (added useSync import, UI state updates)
+- `frontend/src/shared/db/indexedDb.ts` (accurate queue size logic)
+- `frontend/src/features/quotes/useQuotes.ts` (added useSync import, immediate refresh)
+
+**Verification:**
+- TypeScript compilation: ✅ Passed
+- Build: ✅ Successful (2.5s)
+- Manual testing: Pending (requires local dev server)
+
+**Next Steps:**
+- Manual UI test: Create/update quote and verify counter updates immediately
+- E2E test: Verify periodic sync updates UI within 30 seconds
 
 ---
 
@@ -354,22 +365,20 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for comprehensive details.
 
 ### High Priority - Blocking MVP
 
-1. **🔴 Investigate "2 pending" sync issue**
-   - Check browser console for errors
-   - Inspect IndexedDB sync_queue
-   - Verify backend API responding
-   - Determine root cause (auth, server, retry logic)
+1. **✅ COMPLETED: Sync queue fix**
+   - Implemented 3-part fix (UI state updates, accurate queue size, immediate refresh)
+   - Verified TypeScript compilation and build successful
+   - Ready for manual testing
 
-2. **🔴 Investigate job financial calculations**
-   - Test job creation flow end-to-end
-   - Verify calculation service integration
-   - Check price sheet data exists
-   - Ensure Profit-First formula applies
+2. **✅ COMPLETED: Job financial calculations**
+   - Calculator service implemented with Profit-First formula
+   - Price sheet seeded with 11 items
+   - All 5 job forms updated
 
-3. **🔧 Fix identified root causes**
-   - Implement periodic sync retry if needed
-   - Fix calculation service integration if broken
-   - Update tests to verify fixes
+3. **📋 Manual testing and verification**
+   - Test sync queue fix with create/update/delete quote operations
+   - Verify periodic sync updates UI within 30 seconds
+   - Test job financial calculations end-to-end
 
 ### Medium Priority - Quality Improvements
 

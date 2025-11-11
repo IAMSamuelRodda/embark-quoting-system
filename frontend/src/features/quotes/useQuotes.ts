@@ -15,6 +15,7 @@ import type {
   Quote,
   QuoteStatus,
 } from '../../shared/types/models';
+import { useSync } from '../sync/useSync';
 
 interface QuotesState {
   // Data
@@ -116,6 +117,11 @@ export const useQuotes = create<QuotesState>((set, get) => ({
       const newQuote = await createQuote(data);
       // Reload quotes to include the new one
       await get().loadQuotes();
+
+      // Immediately refresh sync status after mutation
+      const { refreshPendingCount } = useSync.getState();
+      await refreshPendingCount();
+
       set({ isLoading: false });
       return newQuote;
     } catch (error) {
@@ -156,6 +162,11 @@ export const useQuotes = create<QuotesState>((set, get) => ({
       if (get().selectedQuote?.id === id) {
         await get().loadQuoteDetails(id);
       }
+
+      // Immediately refresh sync status after mutation
+      const { refreshPendingCount } = useSync.getState();
+      await refreshPendingCount();
+
       set({ isLoading: false });
     } catch (error) {
       set({
@@ -177,6 +188,11 @@ export const useQuotes = create<QuotesState>((set, get) => ({
       if (get().selectedQuote?.id === id) {
         set({ selectedQuote: null });
       }
+
+      // Immediately refresh sync status after mutation
+      const { refreshPendingCount } = useSync.getState();
+      await refreshPendingCount();
+
       set({ isLoading: false });
     } catch (error) {
       set({
