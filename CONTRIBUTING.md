@@ -42,6 +42,57 @@ tail -f /tmp/embark-*.log
 
 ---
 
+## Definition of Done: UI Bug Fixes
+
+**⚠️ CRITICAL REQUIREMENT**: All UI bug fixes MUST include a passing E2E test that verifies the fix works in the actual UI.
+
+### Why This Matters
+
+The offline-first architecture adds complexity - data flows through multiple layers (**UI → IndexedDB → Sync → API → Response → IndexedDB → UI**), and any broken link causes silent failures. Backend tests alone don't catch UI display issues.
+
+**Example from November 2025 session:**
+- Issue: Job calculations showed "$0.00" even after backend calculated correctly
+- Root cause: Frontend wasn't capturing API responses with calculated values
+- Backend tests: ✅ Passing (calculations worked)
+- Frontend unit tests: ✅ Passing (components rendered)
+- **E2E test: ❌ Failed - exposed the bug!**
+
+### Requirements for UI Fixes
+
+1. **Write E2E test first** (Test-Driven Development):
+   ```bash
+   cd frontend
+   npm run test:e2e -- <test-file>.spec.ts
+   ```
+
+2. **Test must fail initially** - proves it reproduces the bug
+
+3. **Apply fix** - update code to resolve the issue
+
+4. **Test must pass** - verifies the fix works end-to-end
+
+5. **Keep test in suite** - prevents regression
+
+### What Counts as a UI Bug
+
+- Data not displaying correctly
+- Form submissions not working
+- Sync status not updating
+- Calculations showing incorrect values
+- Navigation/routing issues
+- Any user-facing display or interaction problem
+
+### E2E Test Resources
+
+- **Test location**: `frontend/e2e/*.spec.ts`
+- **Run tests**: `npm run test:e2e`
+- **Example**: `frontend/e2e/job-calculations.spec.ts` (comprehensive 3-scenario test)
+- **Skill**: Use `playwright-testing-advanced` skill for test generation and best practices
+
+**Bottom line**: If a user can see it's broken in the UI, an E2E test must verify the fix. No exceptions.
+
+---
+
 ## Progress Tracking with Hierarchical Sub-Issues
 
 This project uses **GitHub Issues + GitHub Projects v2** with hierarchical sub-issues for progress tracking. All progress is accessible locally via `gh` CLI with automatic roll-up to parent issues.

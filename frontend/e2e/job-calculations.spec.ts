@@ -27,7 +27,7 @@ test.describe('Job Financial Calculations', () => {
 
     // Wait for dashboard to load
     await page.waitForURL('/dashboard');
-    await expect(page.getByRole('heading', { name: 'Quotes' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Quotes', exact: true })).toBeVisible();
   });
 
   test('driveway job calculates correct subtotal after sync', async ({ page }) => {
@@ -41,7 +41,7 @@ test.describe('Job Financial Calculations', () => {
     await page.getByLabel('Phone').fill('0400000001');
 
     // Save quote
-    await page.getByRole('button', { name: 'Save Quote' }).click();
+    await page.getByRole('button', { name: 'Create Quote' }).click();
 
     // Wait for quote to be created (redirects to quote detail page)
     await page.waitForURL(/\/quotes\/[a-f0-9-]+$/);
@@ -57,12 +57,12 @@ test.describe('Job Financial Calculations', () => {
     // Materials: 6m³ × $45 = $270
     // Labour: 4 hours × $85/hr = $340
     // Total: $610
-    await page.getByLabel('Length (m)').fill('10');
-    await page.getByLabel('Width (m)').fill('4');
+    await page.getByLabel('Length (meters)').fill('10');
+    await page.getByLabel('Width (meters)').fill('4');
     await page.getByLabel('Base Thickness (mm)').fill('150');
 
-    // Save job
-    await page.getByRole('button', { name: 'Save Job' }).click();
+    // Save job (submit form)
+    await page.locator('form').getByRole('button', { name: 'Add Job' }).click();
 
     // Assert: Job initially shows $0.00 (offline-first behavior)
     const jobCard = page.getByText(/Job \d+: DRIVEWAY/).locator('..');
@@ -108,7 +108,7 @@ test.describe('Job Financial Calculations', () => {
 
     await page.getByLabel('Customer Name').fill('Test Customer - Wall');
     await page.getByLabel('Email').fill('wall@test.com');
-    await page.getByRole('button', { name: 'Save Quote' }).click();
+    await page.getByRole('button', { name: 'Create Quote' }).click();
     await page.waitForURL(/\/quotes\/[a-f0-9-]+$/);
 
     // Add retaining wall job
@@ -121,11 +121,11 @@ test.describe('Job Financial Calculations', () => {
     // Labour: 15 hours × $85 = $1,275
     // Total: ~$1,715
     await page.getByLabel('Number of Bays').fill('10');
-    await page.getByLabel('Height (mm)').fill('600');
-    await page.getByLabel('Length (m)').fill('5');
+    await page.getByLabel('Height (mm)').selectOption('600');
+    await page.getByLabel('Total Length (meters)').fill('5');
     await page.getByLabel('Include AG Pipe').check();
 
-    await page.getByRole('button', { name: 'Save Job' }).click();
+    await page.locator('form').getByRole('button', { name: 'Add Job' }).click();
 
     // Verify initial $0.00
     const jobCard = page.getByText(/Job \d+: RETAINING_WALL/).locator('..');
@@ -156,24 +156,24 @@ test.describe('Job Financial Calculations', () => {
     await page.waitForURL(/\/quotes\/new/);
 
     await page.getByLabel('Customer Name').fill('Test Customer - Multiple');
-    await page.getByRole('button', { name: 'Save Quote' }).click();
+    await page.getByRole('button', { name: 'Create Quote' }).click();
     await page.waitForURL(/\/quotes\/[a-f0-9-]+$/);
 
     // Add driveway job
     await page.getByRole('button', { name: 'Add Job' }).click();
     await page.getByRole('button', { name: 'Driveway' }).click();
-    await page.getByLabel('Length (m)').fill('8');
-    await page.getByLabel('Width (m)').fill('3');
+    await page.getByLabel('Length (meters)').fill('8');
+    await page.getByLabel('Width (meters)').fill('3');
     await page.getByLabel('Base Thickness (mm)').fill('100');
-    await page.getByRole('button', { name: 'Save Job' }).click();
+    await page.locator('form').getByRole('button', { name: 'Add Job' }).click();
 
     // Add trenching job
     await page.getByRole('button', { name: 'Add Job' }).click();
     await page.getByRole('button', { name: 'Trenching' }).click();
-    await page.getByLabel('Length (m)').fill('15');
-    await page.getByLabel('Width (mm)').fill('400');
-    await page.getByLabel('Depth (mm)').fill('600');
-    await page.getByRole('button', { name: 'Save Job' }).click();
+    await page.getByLabel('Length (meters)').fill('15');
+    await page.getByLabel('Width (mm)').selectOption('600');
+    await page.getByLabel('Depth (meters)').fill('0.6');
+    await page.locator('form').getByRole('button', { name: 'Add Job' }).click();
 
     // Verify both jobs initially show $0.00
     await expect(page.getByText(/Job 1:.*Subtotal: \$0\.00/)).toBeVisible();
