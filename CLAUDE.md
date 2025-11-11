@@ -123,11 +123,23 @@ See `CONTRIBUTING.md` for complete workflow.
 
 ## 🧪 E2E Testing & Authentication
 
-**E2E tests require credentials**: Use `frontend/e2e/test-utils.ts` which auto-retrieves from environment variables (`TEST_USER_EMAIL`, `TEST_USER_PASSWORD`) or AWS Secrets Manager (`embark-quoting/staging/e2e-test-credentials`). If tests fail with auth errors, it's missing credentials, not broken tests.
+**CRITICAL - Correct Credential Pattern**:
+```typescript
+// ✅ ALWAYS DO THIS
+import { getAndValidateCredentials } from './test-utils';
+const { email, password } = getAndValidateCredentials();
+
+// ❌ NEVER DO THIS - Silent failures!
+const password = process.env.E2E_TEST_PASSWORD || '';  // Empty string if not set!
+```
+
+**How it works**: `getAndValidateCredentials()` tries environment variables (`TEST_USER_EMAIL`, `TEST_USER_PASSWORD`) first, then falls back to AWS Secrets Manager (`embark-quoting/staging/e2e-test-credentials`). It validates credentials are not empty and fails fast with clear error messages.
+
+**Why this matters**: Hardcoded `process.env.E2E_TEST_PASSWORD || ''` results in empty password, authentication fails silently, and ALL tests fail downstream. This wasted 3 debugging sessions looking at sync code when the problem was test setup. See `DEVELOPMENT.md § Anti-Patterns` for complete explanation.
 
 **Run tests**: `cd frontend && npm run test:e2e`
 
-**Details**: See `DEVELOPMENT.md` or invoke `playwright-testing-advanced` skill for complete setup and troubleshooting.
+**If tests fail with auth errors**: Check credentials are configured (see DEVELOPMENT.md § Anti-Patterns § E2E Test Credentials)
 
 ---
 - The offline-first architecture adds complexity - data flows through multiple layers (UI → IndexedDB → Sync → API → Response → IndexedDB → UI), and any broken link causes silent failures.
