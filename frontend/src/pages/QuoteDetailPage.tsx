@@ -402,7 +402,7 @@ export function QuoteDetailPage() {
                       <h3 className="font-medium text-gray-900 mb-2">
                         Job {index + 1}: {job.job_type.replace(/_/g, ' ').toUpperCase()}
                       </h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600" data-testid="job-subtotal">
                         Subtotal: {formatCurrency(job.subtotal)}
                       </p>
                     </div>

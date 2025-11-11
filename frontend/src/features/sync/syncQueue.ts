@@ -112,11 +112,14 @@ export async function enqueue(
 export async function getNextBatch(batchSize: number = 10): Promise<EnhancedSyncQueueItem[]> {
   const now = new Date();
 
-  // Get all active queue items
-  const allItems = await db.syncQueue.where('dead_letter').equals(0).toArray();
+  // Get all queue items (handle both boolean false and number 0 for dead_letter)
+  const allItems = await db.syncQueue.toArray();
 
-  // Filter items ready for retry
+  // Filter items ready for retry (not dead-letter, past retry time)
   const readyItems = allItems.filter((item) => {
+    // Exclude dead-letter items (truthy values - handle both boolean and number)
+    if (item.dead_letter) return false;
+
     // If no next_retry_at, it's ready
     if (!item.next_retry_at) return true;
 

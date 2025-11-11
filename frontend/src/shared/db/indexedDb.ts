@@ -185,21 +185,36 @@ export class EmbarkDatabase extends Dexie {
   /**
    * Get sync queue size (pending changes ready to sync)
    * Only counts items that are:
-   * - Not in dead-letter queue (dead_letter = 0)
+   * - Not in dead-letter queue (dead_letter = 0 or false)
    * - Past their retry time (next_retry_at <= now or null)
    */
   async getSyncQueueSize(): Promise<number> {
     const now = new Date();
 
     // Get all active items (not in dead-letter queue)
-    const allItems = await this.syncQueue.where('dead_letter').equals(0).toArray();
+    // Handle both boolean false and number 0 for dead_letter field
+    const allItems = await this.syncQueue.toArray();
+    console.log(`[getSyncQueueSize] Total items in queue: ${allItems.length}`);
 
-    // Filter to only items ready for sync (past retry time)
+    // Filter to only items ready for sync (not dead-letter, past retry time)
     const readyItems = allItems.filter((item) => {
-      if (!item.next_retry_at) return true;
-      return new Date(item.next_retry_at) <= now;
+      // Exclude dead-letter items (truthy values - handle both boolean and number)
+      if (item.dead_letter) {
+        console.log(`[getSyncQueueSize] Excluding dead-letter item ${item.id}`);
+        return false;
+      }
+
+      // Include items with no retry time or past retry time
+      if (!item.next_retry_at) {
+        console.log(`[getSyncQueueSize] Including item ${item.id} (no retry time)`);
+        return true;
+      }
+      const isReady = new Date(item.next_retry_at) <= now;
+      console.log(`[getSyncQueueSize] Item ${item.id} retry check: ${isReady} (next_retry_at: ${item.next_retry_at})`);
+      return isReady;
     });
 
+    console.log(`[getSyncQueueSize] Ready items: ${readyItems.length}`);
     return readyItems.length;
   }
 

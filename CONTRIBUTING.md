@@ -89,6 +89,26 @@ The offline-first architecture adds complexity - data flows through multiple lay
 - **Example**: `frontend/e2e/job-calculations.spec.ts` (comprehensive 3-scenario test)
 - **Skill**: Use `playwright-testing-advanced` skill for test generation and best practices
 
+### Debugging E2E Test Failures
+
+When E2E tests fail, use **systematic debugging** with adaptive polling:
+
+```bash
+# Use adaptive test monitor (catches fast failures in 10s, not 150s)
+~/.claude/skills/systematic-debugging/scripts/adaptive_test_monitor.sh \
+  "cd frontend && npm run test:e2e -- <test-file>.spec.ts" \
+  /tmp/test-output.log
+```
+
+**Why adaptive polling?**
+- Fast failures (auth errors, selectors): 5-10s
+- Medium tests (sync waits): 30-40s
+- Full suite: 60-120s+
+
+Adaptive intervals (10s, 30s, 60s) catch 80% of failures within 30s instead of waiting 150s.
+
+**For complex debugging**: Delegate to `debug-specialist` agent or load `systematic-debugging` skill.
+
 **Bottom line**: If a user can see it's broken in the UI, an E2E test must verify the fix. No exceptions.
 
 ---

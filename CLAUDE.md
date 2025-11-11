@@ -130,3 +130,8 @@ See `CONTRIBUTING.md` for complete workflow.
 **Details**: See `DEVELOPMENT.md` or invoke `playwright-testing-advanced` skill for complete setup and troubleshooting.
 
 ---
+- The offline-first architecture adds complexity - data flows through multiple layers (UI → IndexedDB → Sync → API → Response → IndexedDB → UI), and any broken link causes silent failures.
+- 1. Multi-layer data flow creates blind spots: UI → IndexedDB → Sync → API → IndexedDB → UI means backend tests alone miss integration failures
+  2. Label mismatches break selectors: Tests caught "Length (m)" vs "Length (meters)", "Save Quote" vs "Create Quote", "Save Job" vs "Add Job" - all invisible to unit tests
+  3. Dropdown vs input fields matter: Tests revealed <select> vs <input> differences requiring .selectOption() vs .fill() - Playwright enforces real browser behavior
+  4. Test-driven debugging: Running E2E tests iteratively exposed each UI layer issue systematically (authentication → form labels → button text → submit behavior)

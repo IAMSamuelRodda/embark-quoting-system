@@ -16,7 +16,8 @@ import { connectionMonitor } from '../../shared/utils/connection';
 import { SyncOperation, SyncStatus } from '../../shared/types/models';
 import type { Quote, Job } from '../../shared/types/models';
 import { markQuoteAsSynced, markQuoteAsSyncError } from '../quotes/quotesDb';
-import { updateJobFromBackend, markJobAsSyncError } from '../jobs/jobsDb';
+import { updateJobFromBackend, markJobAsSyncError, getJobsByQuoteId } from '../jobs/jobsDb';
+import { useJobs } from '../jobs/useJobs';
 import * as syncQueue from './syncQueue';
 import { detectQuoteConflict, hasCriticalConflicts, canAutoResolve } from './conflictDetection';
 import { autoMergeQuotes } from './autoMerge';
@@ -53,8 +54,11 @@ export async function pushChanges(batchSize: number = 10): Promise<{
   count: number;
   errors: string[];
 }> {
+  console.log(`[pushChanges] Starting push, batchSize=${batchSize}`);
+
   // Check if online
   if (!connectionMonitor.isOnline()) {
+    console.log(`[pushChanges] Device is offline, aborting`);
     return {
       success: false,
       count: 0,
@@ -63,9 +67,12 @@ export async function pushChanges(batchSize: number = 10): Promise<{
   }
 
   // Get next batch of items ready for sync (priority-ordered, past retry time)
+  console.log(`[pushChanges] Getting next batch from queue...`);
   const queueItems = await syncQueue.getNextBatch(batchSize);
+  console.log(`[pushChanges] Retrieved ${queueItems.length} items from queue`);
 
   if (queueItems.length === 0) {
+    console.log(`[pushChanges] No items to sync, returning`);
     return {
       success: true,
       count: 0,
@@ -80,10 +87,11 @@ export async function pushChanges(batchSize: number = 10): Promise<{
 
   // Process each queue item
   for (const item of queueItems) {
+    // Determine if this is a job or quote operation (hoist outside try-catch for scope access)
+    const isJobOperation = item.data && typeof item.data === 'object' && 'job_type' in item.data;
+    const isReorderOperation = item.data && typeof item.data === 'object' && 'reorder' in item.data;
+
     try {
-      // Determine if this is a job or quote operation
-      const isJobOperation = item.data && typeof item.data === 'object' && 'job_type' in item.data;
-      const isReorderOperation = item.data && typeof item.data === 'object' && 'reorder' in item.data;
 
       // Execute operation based on type
       switch (item.operation) {
@@ -97,6 +105,11 @@ export async function pushChanges(batchSize: number = 10): Promise<{
             if (createJobResponse.success && createJobResponse.data) {
               const jobId = (item.data as { id: string }).id;
               await updateJobFromBackend(jobId, createJobResponse.data);
+
+              // Refresh Zustand state to trigger UI update with calculated values
+              const updatedJobs = await getJobsByQuoteId(item.quote_id);
+              useJobs.setState({ jobs: updatedJobs });
+
               console.log(`[Sync] Updated job ${jobId} with backend calculations (subtotal: ${createJobResponse.data.subtotal})`);
             }
           } else {
@@ -121,6 +134,11 @@ export async function pushChanges(batchSize: number = 10): Promise<{
             // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
             if (updateJobResponse.success && updateJobResponse.data) {
               await updateJobFromBackend(jobId, updateJobResponse.data);
+
+              // Refresh Zustand state to trigger UI update with calculated values
+              const updatedJobs = await getJobsByQuoteId(item.quote_id);
+              useJobs.setState({ jobs: updatedJobs });
+
               console.log(`[Sync] Updated job ${jobId} with backend calculations (subtotal: ${updateJobResponse.data.subtotal})`);
             }
           } else {
@@ -426,8 +444,8 @@ export function enableAutoSync(): () => void {
 
     // Start/stop periodic retry based on connection state
     if (state.isOnline && !periodicCheckInterval) {
-      // Check for pending items every 30 seconds while online
-      console.log('[Sync] Starting periodic sync check (every 30 seconds)');
+      // Check for pending items every 5 seconds while online
+      console.log('[Sync] Starting periodic sync check (every 5 seconds)');
       periodicCheckInterval = setInterval(async () => {
         if (syncInProgress) return; // Skip if sync already in progress
 
@@ -457,7 +475,7 @@ export function enableAutoSync(): () => void {
             syncInProgress = false;
           }
         }
-      }, 30000); // 30 seconds
+      }, 5000); // 5 seconds
     } else if (!state.isOnline && periodicCheckInterval) {
       // Stop periodic checks when offline
       console.log('[Sync] Stopping periodic sync check (device offline)');

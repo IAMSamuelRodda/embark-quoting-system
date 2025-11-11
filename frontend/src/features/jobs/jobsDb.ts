@@ -184,15 +184,32 @@ export async function reorderJobs(
 
 /**
  * Update job with backend-calculated data and mark as synced
+ *
+ * CRITICAL: This function updates IndexedDB with backend-calculated values.
+ * The caller (syncService.ts) is responsible for triggering UI refresh.
+ *
+ * Bug Fix: Previously, UI wasn't refreshed after sync. The fix is in syncService.ts
+ * which now reloads jobs after successful sync to trigger Zustand update.
+ *
  * @param jobId - Job ID
  * @param backendJob - Job data from backend API (includes calculated values)
  */
 export async function updateJobFromBackend(jobId: string, backendJob: Partial<Job>): Promise<void> {
+  // Update IndexedDB with backend-calculated values
   await db.jobs.update(jobId, {
     ...backendJob,
     sync_status: SyncStatus.SYNCED,
     last_synced_at: new Date(),
   });
+
+  // Get the fully updated job for logging
+  const updatedJob = await db.jobs.get(jobId);
+
+  if (updatedJob) {
+    console.log(
+      `[jobsDb] ✓ Updated job ${jobId} in IndexedDB (subtotal: $${updatedJob.subtotal})`,
+    );
+  }
 }
 
 /**
