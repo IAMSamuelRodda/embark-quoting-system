@@ -117,11 +117,7 @@ export function TrenchingForm({ quoteId, onSave, onCancel, existingJob }: Trench
           downpipe_adaptors: data.downpipe_adaptors,
         }),
       },
-      // Explicitly include required fields with defaults (backend validation expects these)
-      materials: undefined,
-      labour: undefined,
-      calculations: {},
-      subtotal: 0,
+      // Backend will calculate materials, labour, calculations, and subtotal
     };
 
     await onSave(jobData);

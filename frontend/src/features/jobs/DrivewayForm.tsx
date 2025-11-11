@@ -98,11 +98,7 @@ export function DrivewayForm({ quoteId, onSave, onCancel, existingJob }: Drivewa
         topping_thickness: data.topping_enabled ? data.topping_thickness : undefined,
         topping_type: data.topping_enabled ? data.topping_type : undefined,
       },
-      // Explicitly include required fields with defaults (backend validation expects these)
-      materials: undefined,
-      labour: undefined,
-      calculations: {},
-      subtotal: 0,
+      // Backend will calculate materials, labour, calculations, and subtotal
     };
 
     await onSave(jobData);

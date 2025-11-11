@@ -7,6 +7,7 @@
 
 import * as repository from './jobs.repository.js';
 import * as quoteRepository from '../quotes/quotes.repository.js';
+import * as jobCalculator from './job-calculator.service.js';
 import { z } from 'zod';
 
 // ============================================================================
@@ -85,6 +86,27 @@ export async function createJob(jobData, userId, isAdmin) {
   if (validated.order_index === undefined) {
     const jobCount = await repository.countJobsByQuoteId(validated.quote_id);
     validated.order_index = jobCount; // Start at 0, next is 1, etc.
+  }
+
+  // Calculate job materials, labour, and subtotal
+  // This replaces any hardcoded zeros from the frontend
+  try {
+    const calculated = await jobCalculator.calculateJob(validated.job_type, validated.parameters);
+
+    validated.materials = calculated.materials;
+    validated.labour = calculated.labour;
+    validated.calculations = calculated.calculations;
+    validated.subtotal = calculated.subtotal.toString(); // Convert to string for Postgres decimal
+
+    console.log(`Job calculated: ${validated.job_type} subtotal = $${calculated.subtotal}`);
+  } catch (error) {
+    console.error('Job calculation failed:', error.message);
+    // If calculation fails, use zeros (better than crashing)
+    // This allows jobs to be created even if price sheet is missing
+    validated.materials = validated.materials || [];
+    validated.labour = validated.labour || {};
+    validated.calculations = validated.calculations || {};
+    validated.subtotal = validated.subtotal || '0.00';
   }
 
   // Create job
@@ -307,13 +329,35 @@ export async function updateJobParameters(jobId, parameters, userId, isAdmin) {
     throw new Error('FORBIDDEN: You do not have permission to update this job');
   }
 
-  // Update parameters
-  const updated = await repository.updateJobParameters(jobId, parameters);
+  // Recalculate job with new parameters
+  try {
+    const calculated = await jobCalculator.calculateJob(existing.job_type, parameters);
 
-  // Update quote's updated_at timestamp
-  await quoteRepository.updateQuote(existing.quote_id, {});
+    // Update parameters and calculations
+    const updatedData = {
+      ...parameters,
+      materials: calculated.materials,
+      labour: calculated.labour,
+      calculations: calculated.calculations,
+      subtotal: calculated.subtotal.toString(),
+    };
 
-  return updated;
+    const updated = await repository.updateJob(jobId, updatedData);
+
+    // Update quote's updated_at timestamp
+    await quoteRepository.updateQuote(existing.quote_id, {});
+
+    return updated;
+  } catch (error) {
+    console.error('Job recalculation failed:', error.message);
+    // If calculation fails, still update parameters without recalculating
+    const updated = await repository.updateJobParameters(jobId, parameters);
+
+    // Update quote's updated_at timestamp
+    await quoteRepository.updateQuote(existing.quote_id, {});
+
+    return updated;
+  }
 }
 
 /**
