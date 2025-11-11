@@ -98,7 +98,7 @@ export function calculateJob(jobType: string, parameters: Record<string, any>): 
  * - include_orange_plastic (boolean)
  */
 function calculateRetainingWall(params: Record<string, any>): JobCalculation {
-  const { bays, height, length, include_ag_pipe, include_orange_plastic } = params;
+  const { bays, height, length, ag_pipe, orange_plastic } = params;
 
   if (!bays || !height || !length) {
     throw new Error('Missing required parameters: bays, height, length');
@@ -132,7 +132,7 @@ function calculateRetainingWall(params: Record<string, any>): JobCalculation {
   });
 
   // AG Pipe (optional)
-  if (include_ag_pipe) {
+  if (ag_pipe) {
     const agPipePrice = getPrice('ag pipe');
     materials.push({
       name: 'AG Pipe',
@@ -144,7 +144,7 @@ function calculateRetainingWall(params: Record<string, any>): JobCalculation {
   }
 
   // Orange Plastic (optional)
-  if (include_orange_plastic) {
+  if (orange_plastic) {
     const plasticPrice = getPrice('orange plastic');
     materials.push({
       name: 'Orange Plastic',
@@ -187,22 +187,22 @@ function calculateRetainingWall(params: Record<string, any>): JobCalculation {
  * Parameters:
  * - length (meters)
  * - width (meters)
- * - base_thickness_mm (number)
- * - include_topping (boolean)
- * - topping_thickness_mm (number, optional)
+ * - base_thickness (number, in mm)
+ * - topping_enabled (boolean)
+ * - topping_thickness (number, in mm, optional)
  * - topping_type (string, optional)
  */
 function calculateDriveway(params: Record<string, any>): JobCalculation {
-  const { length, width, base_thickness_mm, include_topping, topping_thickness_mm, topping_type } = params;
+  const { length, width, base_thickness, topping_enabled, topping_thickness, topping_type } = params;
 
-  if (!length || !width || !base_thickness_mm) {
-    throw new Error('Missing required parameters: length, width, base_thickness_mm');
+  if (!length || !width || !base_thickness) {
+    throw new Error('Missing required parameters: length, width, base_thickness');
   }
 
   const materials: Material[] = [];
 
   // Base material calculation
-  const baseM3 = length * width * (base_thickness_mm / 1000);
+  const baseM3 = length * width * (base_thickness / 1000);
   const roadBasePrice = getPrice('road base');
 
   materials.push({
@@ -214,8 +214,8 @@ function calculateDriveway(params: Record<string, any>): JobCalculation {
   });
 
   // Topping material (optional)
-  if (include_topping && topping_thickness_mm) {
-    const toppingM3 = length * width * (topping_thickness_mm / 1000);
+  if (topping_enabled && topping_thickness) {
+    const toppingM3 = length * width * (topping_thickness / 1000);
     const toppingPrice = getPrice(topping_type || '20mm gravel');
 
     materials.push({
@@ -244,7 +244,7 @@ function calculateDriveway(params: Record<string, any>): JobCalculation {
     labour,
     calculations: {
       baseM3,
-      toppingM3: include_topping && topping_thickness_mm ? (length * width * (topping_thickness_mm / 1000)) : 0,
+      toppingM3: topping_enabled && topping_thickness ? (length * width * (topping_thickness / 1000)) : 0,
       labourHours,
     },
     subtotal: parseFloat((materialsCost + labour.total).toFixed(2)),
@@ -260,16 +260,16 @@ function calculateDriveway(params: Record<string, any>): JobCalculation {
  * - depth (meters)
  */
 function calculateTrenching(params: Record<string, any>): JobCalculation {
-  const { length, width_mm, depth } = params;
+  const { length, width, depth } = params;
 
-  if (!length || !width_mm || !depth) {
-    throw new Error('Missing required parameters: length, width_mm, depth');
+  if (!length || !width || !depth) {
+    throw new Error('Missing required parameters: length, width, depth');
   }
 
   const materials: Material[] = [];
 
   // Calculate road base for backfill
-  const volumeM3 = length * (width_mm / 1000) * depth;
+  const volumeM3 = length * (width / 1000) * depth;
   const roadBasePrice = getPrice('road base');
 
   materials.push({
@@ -313,10 +313,10 @@ function calculateTrenching(params: Record<string, any>): JobCalculation {
  * - num_downpipes (number)
  */
 function calculateStormwater(params: Record<string, any>): JobCalculation {
-  const { total_length, num_t_joints, num_elbows, num_downpipes } = params;
+  const { pipe_length, t_joints, elbows, downpipe_adaptors } = params;
 
-  if (!total_length) {
-    throw new Error('Missing required parameter: total_length');
+  if (!pipe_length) {
+    throw new Error('Missing required parameter: pipe_length');
   }
 
   const materials: Material[] = [];
@@ -325,52 +325,52 @@ function calculateStormwater(params: Record<string, any>): JobCalculation {
   const pipePrice = getPrice('pvc 90mm pipe');
   materials.push({
     name: 'PVC 90mm Pipe',
-    quantity: total_length,
+    quantity: pipe_length,
     unit: 'm',
     price_per_unit: pipePrice,
-    total: total_length * pipePrice,
+    total: pipe_length * pipePrice,
   });
 
   // T-joints
-  if (num_t_joints && num_t_joints > 0) {
+  if (t_joints && t_joints > 0) {
     const tJointPrice = getPrice('t-joint');
     materials.push({
       name: 'T-Joint',
-      quantity: num_t_joints,
+      quantity: t_joints,
       unit: 'unit',
       price_per_unit: tJointPrice,
-      total: num_t_joints * tJointPrice,
+      total: t_joints * tJointPrice,
     });
   }
 
   // Elbows
-  if (num_elbows && num_elbows > 0) {
+  if (elbows && elbows > 0) {
     const elbowPrice = getPrice('elbow');
     materials.push({
       name: 'Elbow',
-      quantity: num_elbows,
+      quantity: elbows,
       unit: 'unit',
       price_per_unit: elbowPrice,
-      total: num_elbows * elbowPrice,
+      total: elbows * elbowPrice,
     });
   }
 
   // Downpipe adaptors
-  if (num_downpipes && num_downpipes > 0) {
+  if (downpipe_adaptors && downpipe_adaptors > 0) {
     const adaptorPrice = getPrice('downpipe adaptor');
     materials.push({
       name: 'Downpipe Adaptor',
-      quantity: num_downpipes,
+      quantity: downpipe_adaptors,
       unit: 'unit',
       price_per_unit: adaptorPrice,
-      total: num_downpipes * adaptorPrice,
+      total: downpipe_adaptors * adaptorPrice,
     });
   }
 
   const materialsCost = materials.reduce((sum, material) => sum + material.total, 0);
 
   // Labour
-  const labourHours = total_length * 0.3 + (num_t_joints + num_elbows + num_downpipes) * 0.25;
+  const labourHours = pipe_length * 0.3 + (t_joints + elbows + downpipe_adaptors) * 0.25;
   const labourRate = getPrice('labour rate');
 
   const labour: Labour = {
@@ -394,20 +394,20 @@ function calculateStormwater(params: Record<string, any>): JobCalculation {
  *
  * Parameters:
  * - area (square meters)
- * - depth_mm (compaction depth in mm)
- * - include_paving_sand (boolean)
+ * - depth (compaction depth in meters)
+ * - backfill_type (string: 'road_base' or 'paving_sand', optional)
  */
 function calculateSitePrep(params: Record<string, any>): JobCalculation {
-  const { area, depth_mm, include_paving_sand } = params;
+  const { area, depth, backfill_type } = params;
 
-  if (!area || !depth_mm) {
-    throw new Error('Missing required parameters: area, depth_mm');
+  if (!area || !depth) {
+    throw new Error('Missing required parameters: area, depth');
   }
 
   const materials: Material[] = [];
 
   // Road base for compaction
-  const roadBaseM3 = area * (depth_mm / 1000);
+  const roadBaseM3 = area * depth;
   const roadBasePrice = getPrice('road base');
 
   materials.push({
@@ -418,8 +418,8 @@ function calculateSitePrep(params: Record<string, any>): JobCalculation {
     total: roadBaseM3 * roadBasePrice,
   });
 
-  // Paving sand (optional)
-  if (include_paving_sand) {
+  // Paving sand (optional - if backfill_type is 'paving_sand')
+  if (backfill_type === 'paving_sand') {
     // Assume 50mm of paving sand
     const sandM3 = area * 0.05;
     const sandPrice = getPrice('paving sand');
@@ -450,7 +450,7 @@ function calculateSitePrep(params: Record<string, any>): JobCalculation {
     labour,
     calculations: {
       roadBaseM3,
-      sandM3: include_paving_sand ? area * 0.05 : 0,
+      sandM3: backfill_type === 'paving_sand' ? area * 0.05 : 0,
       labourHours,
     },
     subtotal: parseFloat((materialsCost + labour.total).toFixed(2)),
