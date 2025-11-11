@@ -335,7 +335,7 @@ export async function updateJobParameters(jobId, parameters, userId, isAdmin) {
 
     // Update parameters and calculations
     const updatedData = {
-      ...parameters,
+      parameters: parameters,
       materials: calculated.materials,
       labour: calculated.labour,
       calculations: calculated.calculations,

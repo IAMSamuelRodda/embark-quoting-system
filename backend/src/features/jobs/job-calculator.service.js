@@ -10,7 +10,7 @@
 
 import { db } from '../../shared/db/postgres.js';
 import { priceSheets, priceItems } from '../../shared/db/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 /**
  * Calculate materials and labour for a job
@@ -67,7 +67,7 @@ async function getPriceSheet(priceSheetId = null) {
   }
 
   // Get latest price sheet
-  const sheets = await db.select().from(priceSheets).orderBy(priceSheets.created_at, 'desc').limit(1);
+  const sheets = await db.select().from(priceSheets).orderBy(desc(priceSheets.created_at)).limit(1);
   return sheets[0] || null;
 }
 
