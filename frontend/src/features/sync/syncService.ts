@@ -16,6 +16,7 @@ import { connectionMonitor } from '../../shared/utils/connection';
 import { SyncOperation, SyncStatus } from '../../shared/types/models';
 import type { Quote, Job } from '../../shared/types/models';
 import { markQuoteAsSynced, markQuoteAsSyncError } from '../quotes/quotesDb';
+import { updateJobFromBackend, markJobAsSyncError } from '../jobs/jobsDb';
 import * as syncQueue from './syncQueue';
 import { detectQuoteConflict, hasCriticalConflicts, canAutoResolve } from './conflictDetection';
 import { autoMergeQuotes } from './autoMerge';
@@ -88,9 +89,16 @@ export async function pushChanges(batchSize: number = 10): Promise<{
       switch (item.operation) {
         case SyncOperation.CREATE:
           if (isJobOperation) {
-            // Job create
+            // Job create - capture response to get backend-calculated values
             console.log(`[Sync] Creating job for quote ${item.quote_id}`);
-            await api.jobs.create(item.quote_id, item.data as Partial<Job>);
+            const createJobResponse = await api.jobs.create(item.quote_id, item.data as Partial<Job>);
+
+            // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
+            if (createJobResponse.success && createJobResponse.data) {
+              const jobId = (item.data as { id: string }).id;
+              await updateJobFromBackend(jobId, createJobResponse.data);
+              console.log(`[Sync] Updated job ${jobId} with backend calculations (subtotal: ${createJobResponse.data.subtotal})`);
+            }
           } else {
             // Quote create
             console.log(`[Sync] Creating quote ${item.quote_id}`);
@@ -105,10 +113,16 @@ export async function pushChanges(batchSize: number = 10): Promise<{
             console.log(`[Sync] Reordering jobs for quote ${item.quote_id}`);
             await api.jobs.reorder(item.quote_id, reorderData.reorder);
           } else if (isJobOperation && item.data && typeof item.data === 'object' && 'id' in item.data) {
-            // Job update
+            // Job update - capture response to get backend-calculated values
             const jobId = (item.data as { id: string }).id;
             console.log(`[Sync] Updating job ${jobId}`);
-            await api.jobs.update(jobId, item.data as Partial<Job>);
+            const updateJobResponse = await api.jobs.update(jobId, item.data as Partial<Job>);
+
+            // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
+            if (updateJobResponse.success && updateJobResponse.data) {
+              await updateJobFromBackend(jobId, updateJobResponse.data);
+              console.log(`[Sync] Updated job ${jobId} with backend calculations (subtotal: ${updateJobResponse.data.subtotal})`);
+            }
           } else {
             // Quote update
             console.log(`[Sync] Updating quote ${item.quote_id}`);
@@ -142,7 +156,7 @@ export async function pushChanges(batchSize: number = 10): Promise<{
       // Mark as synced and remove from queue
       await syncQueue.markSynced(item.id);
 
-      // Mark quote as synced (jobs don't need separate marking)
+      // Mark quote as synced (jobs are marked synced by updateJobFromBackend)
       if (!isJobOperation) {
         await markQuoteAsSynced(item.quote_id);
       }
@@ -164,11 +178,18 @@ export async function pushChanges(batchSize: number = 10): Promise<{
         errorMessage = error.message;
       }
 
-      errors.push(`Quote ${item.quote_id}: ${errorMessage}`);
+      errors.push(`${isJobOperation ? 'Job' : 'Quote'} ${item.quote_id}: ${errorMessage}`);
 
       // Mark as failed with exponential backoff
       await syncQueue.markFailed(item.id, errorMessage);
-      await markQuoteAsSyncError(item.quote_id, errorMessage);
+
+      // Mark job or quote as sync error
+      if (isJobOperation && item.data && typeof item.data === 'object' && 'id' in item.data) {
+        const jobId = (item.data as { id: string }).id;
+        await markJobAsSyncError(jobId, errorMessage);
+      } else {
+        await markQuoteAsSyncError(item.quote_id, errorMessage);
+      }
 
       // Auto-prioritize items that keep failing
       await syncQueue.autoPrioritize(item.id);

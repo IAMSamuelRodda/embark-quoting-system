@@ -183,8 +183,22 @@ export async function reorderJobs(
 // ============================================================================
 
 /**
- * Mark job as synced
+ * Update job with backend-calculated data and mark as synced
  * @param jobId - Job ID
+ * @param backendJob - Job data from backend API (includes calculated values)
+ */
+export async function updateJobFromBackend(jobId: string, backendJob: Partial<Job>): Promise<void> {
+  await db.jobs.update(jobId, {
+    ...backendJob,
+    sync_status: SyncStatus.SYNCED,
+    last_synced_at: new Date(),
+  });
+}
+
+/**
+ * Mark job as synced (without updating data)
+ * @param jobId - Job ID
+ * @deprecated Use updateJobFromBackend instead to preserve backend-calculated values
  */
 export async function markJobAsSynced(jobId: string): Promise<void> {
   await db.jobs.update(jobId, {
