@@ -107,12 +107,13 @@ export async function pushChanges(batchSize: number = 10): Promise<{
               subtotal: typeof jobData.subtotal === 'number' ? jobData.subtotal.toFixed(2) : jobData.subtotal,
             };
 
-            const createJobResponse = await api.jobs.create(item.quote_id, apiJobData);
+            const createJobResponse = await api.jobs.create(item.quote_id, apiJobData as any);
 
             // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
             if (createJobResponse.success && createJobResponse.data) {
               const jobId = (item.data as { id: string }).id;
-              await updateJobFromBackend(jobId, createJobResponse.data);
+              // Backend returns subtotal as string (DECIMAL type), updateJobFromBackend handles conversion
+              await updateJobFromBackend(jobId, createJobResponse.data as any);
 
               // Refresh Zustand state to trigger UI update with calculated values
               const updatedJobs = await getJobsByQuoteId(item.quote_id);
@@ -145,11 +146,12 @@ export async function pushChanges(batchSize: number = 10): Promise<{
               subtotal: typeof jobData.subtotal === 'number' ? jobData.subtotal.toFixed(2) : jobData.subtotal,
             };
 
-            const updateJobResponse = await api.jobs.update(jobId, apiJobData);
+            const updateJobResponse = await api.jobs.update(jobId, apiJobData as any);
 
             // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
             if (updateJobResponse.success && updateJobResponse.data) {
-              await updateJobFromBackend(jobId, updateJobResponse.data);
+              // Backend returns subtotal as string (DECIMAL type), updateJobFromBackend handles conversion
+              await updateJobFromBackend(jobId, updateJobResponse.data as any);
 
               // Refresh Zustand state to trigger UI update with calculated values
               const updatedJobs = await getJobsByQuoteId(item.quote_id);

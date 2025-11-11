@@ -12,6 +12,7 @@
 
 import { db, getDeviceId } from '../../shared/db/indexedDb';
 import { SyncStatus, SyncOperation, type Job } from '../../shared/types/models';
+import { calculateJob } from './jobCalculator';
 
 // ============================================================================
 // CRUD OPERATIONS
@@ -26,16 +27,38 @@ import { SyncStatus, SyncOperation, type Job } from '../../shared/types/models';
 export async function createJob(data: Partial<Job>, quoteId: string): Promise<Job> {
   const deviceId = getDeviceId();
 
+  // Calculate job costs locally (offline-first)
+  let calculatedData = {
+    materials: data.materials,
+    labour: data.labour,
+    calculations: data.calculations || {},
+    subtotal: data.subtotal ?? 0,
+  };
+
+  try {
+    const calculation = calculateJob(data.job_type!, data.parameters || {});
+    calculatedData = {
+      materials: calculation.materials,
+      labour: calculation.labour,
+      calculations: calculation.calculations || {},
+      subtotal: calculation.subtotal,
+    };
+    console.log(`[jobsDb] Calculated job costs locally: $${calculation.subtotal}`);
+  } catch (error) {
+    console.error('[jobsDb] Failed to calculate job costs locally, using defaults:', error);
+    // Continue with zero values - backend will calculate on sync
+  }
+
   const job: Job = {
     id: crypto.randomUUID(),
     quote_id: quoteId,
     job_type: data.job_type!,
     order_index: data.order_index ?? (await getNextOrderIndex(quoteId)),
     parameters: data.parameters || {},
-    materials: data.materials,
-    labour: data.labour,
-    calculations: data.calculations || {},
-    subtotal: data.subtotal ?? 0, // Store as number in IndexedDB
+    materials: calculatedData.materials,
+    labour: calculatedData.labour,
+    calculations: calculatedData.calculations,
+    subtotal: calculatedData.subtotal,
     created_at: new Date(),
     updated_at: new Date(),
     sync_status: SyncStatus.PENDING,
@@ -57,7 +80,7 @@ export async function createJob(data: Partial<Job>, quoteId: string): Promise<Jo
     dead_letter: false,
   });
 
-  console.log(`[jobsDb] Created job ${job.id} for quote ${quoteId} (offline-first)`);
+  console.log(`[jobsDb] Created job ${job.id} for quote ${quoteId} (offline-first, subtotal: $${job.subtotal})`);
 
   return job;
 }
@@ -95,9 +118,29 @@ export async function updateJob(jobId: string, updates: Partial<Job>): Promise<v
   const job = await db.jobs.get(jobId);
   if (!job) throw new Error(`Job ${jobId} not found`);
 
+  // If parameters changed, recalculate costs locally
+  let finalUpdates = { ...updates };
+
+  if (updates.parameters) {
+    try {
+      const calculation = calculateJob(job.job_type, updates.parameters);
+      finalUpdates = {
+        ...updates,
+        materials: calculation.materials,
+        labour: calculation.labour,
+        calculations: calculation.calculations || {},
+        subtotal: calculation.subtotal,
+      };
+      console.log(`[jobsDb] Recalculated job costs locally: $${calculation.subtotal}`);
+    } catch (error) {
+      console.error('[jobsDb] Failed to recalculate job costs locally:', error);
+      // Continue with original updates
+    }
+  }
+
   // Update in IndexedDB
   await db.jobs.update(jobId, {
-    ...updates,
+    ...finalUpdates,
     updated_at: new Date(),
     sync_status: SyncStatus.PENDING,
   });
@@ -107,14 +150,14 @@ export async function updateJob(jobId: string, updates: Partial<Job>): Promise<v
     id: crypto.randomUUID(),
     quote_id: job.quote_id,
     operation: SyncOperation.UPDATE,
-    data: { ...updates, id: jobId },
+    data: { ...finalUpdates, id: jobId },
     priority: 3, // SyncPriority.NORMAL
     timestamp: new Date(),
     retry_count: 0,
     dead_letter: false,
   });
 
-  console.log(`[jobsDb] Updated job ${jobId} (offline-first)`);
+  console.log(`[jobsDb] Updated job ${jobId} (offline-first, subtotal: $${finalUpdates.subtotal ?? job.subtotal})`);
 }
 
 /**
@@ -194,10 +237,19 @@ export async function reorderJobs(
  * @param jobId - Job ID
  * @param backendJob - Job data from backend API (includes calculated values)
  */
-export async function updateJobFromBackend(jobId: string, backendJob: Partial<Job>): Promise<void> {
+export async function updateJobFromBackend(jobId: string, backendJob: any): Promise<void> {
+  // Convert backend decimal strings to numbers
+  const normalizedJob: Partial<Job> = {
+    ...backendJob,
+    // Backend returns subtotal as string (from DECIMAL type), convert to number
+    subtotal: typeof backendJob.subtotal === 'string'
+      ? parseFloat(backendJob.subtotal)
+      : backendJob.subtotal,
+  };
+
   // Update IndexedDB with backend-calculated values
   await db.jobs.update(jobId, {
-    ...backendJob,
+    ...normalizedJob,
     sync_status: SyncStatus.SYNCED,
     last_synced_at: new Date(),
   });
