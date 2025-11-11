@@ -8,7 +8,7 @@
  * from specs/BLUEPRINT.yaml
  */
 
-import { db } from '../../shared/db/index.js';
+import { db } from '../../shared/db/postgres.js';
 import { priceSheets, priceItems } from '../../shared/db/schema.js';
 import { eq } from 'drizzle-orm';
 
