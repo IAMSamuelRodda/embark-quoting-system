@@ -46,3 +46,4 @@ Thumbs.db
 
 # Terraform plan files
 *.tfplan
+tfplan

@@ -2,7 +2,6 @@ import { test } from '@playwright/test';
 import { getAndValidateCredentials } from './test-utils';
 
 test('Reproduce job creation error', async ({ page, browserName, baseURL }) => {
-  const baseUrl = baseURL || 'http://localhost:3000';
   
   const { email, password } = getAndValidateCredentials();
 
@@ -10,7 +9,7 @@ test('Reproduce job creation error', async ({ page, browserName, baseURL }) => {
 
   // Login
   console.log('1. Login...');
-  await page.goto(baseUrl);
+  await page.goto(baseURL || '/');
   await page.waitForSelector('input[type="email"], input[placeholder*="email" i]');
   await page.getByPlaceholder(/email/i).fill(email);
   await page.getByPlaceholder(/password/i).fill(password);
@@ -20,7 +19,7 @@ test('Reproduce job creation error', async ({ page, browserName, baseURL }) => {
 
   // Create quote
   console.log('2. Creating quote...');
-  await page.goto(`${baseUrl}/quotes/new`);
+  await page.goto((baseURL || '') + '/quotes/new');
   await page.getByLabel(/customer name/i).fill('Test Customer');
   await page.getByLabel(/email/i).fill('test@example.com');
   await page.getByLabel(/phone/i).fill('0412345678');

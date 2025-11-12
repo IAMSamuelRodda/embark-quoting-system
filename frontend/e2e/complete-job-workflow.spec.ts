@@ -12,7 +12,6 @@ import { getAndValidateCredentials } from './test-utils';
  * 5. Save quote with job
  */
 test('Complete job creation workflow', async ({ page, baseURL }) => {
-  const baseUrl = baseURL || 'http://localhost:3000';
   const { email, password } = getAndValidateCredentials();
 
   console.log('\n=== COMPLETE JOB WORKFLOW TEST ===\n');
@@ -43,7 +42,7 @@ test('Complete job creation workflow', async ({ page, baseURL }) => {
 
   // STEP 1: Login
   console.log('STEP 1: Login');
-  await page.goto(baseUrl);
+  await page.goto(baseURL || '/');
   await page.waitForSelector('input[type="email"], input[placeholder*="email" i]');
   await page.getByPlaceholder(/email/i).fill(email);
   await page.getByPlaceholder(/password/i).fill(password);
@@ -53,7 +52,7 @@ test('Complete job creation workflow', async ({ page, baseURL }) => {
 
   // STEP 2: Create quote
   console.log('STEP 2: Create quote');
-  await page.goto(`${baseUrl}/quotes/new`);
+  await page.goto((baseURL || '') + '/quotes/new');
   await page.getByLabel(/customer name/i).fill('E2E Test Customer');
   await page.getByLabel(/email/i).fill('e2e@test.com');
   await page.getByLabel(/phone/i).fill('0400000000');
