@@ -327,15 +327,19 @@ Implements feature X with Y and Z.
 
 Closes #42"
 
-# Create PR to dev (auto-merge when CI passes)
+# Create PR to dev with MANDATORY auto-merge
 gh pr create --base dev --title "Feature: X" --body "Closes #42"
+gh pr merge <PR-NUMBER> --auto --squash --delete-branch
 
 # When ready for production: dev → main PR (requires approval)
 gh pr create --base main --head dev --title "Release: v1.2.0"
 ```
 
-**Branch Protection**:
-- `feature/*` → `dev`: Auto-merge when CI passes (validate + test + build)
+**Branch Protection & Auto-Merge Policy**:
+- `feature/*` → `dev`: **MANDATORY auto-merge** when CI passes (validate + test + build)
+  - **ALWAYS enable auto-merge** with `gh pr merge <PR-NUMBER> --auto --squash --delete-branch`
+  - **WHY**: Prevents PR staleness and manual rebase cycles (PRs become outdated with dev branch)
+  - **ENFORCEMENT**: All `feature/*`, `fix/*`, `docs/*`, `sync/*` PRs to `dev` MUST use auto-merge
 - `dev` → `main`: Human approval required (you confirm staging is healthy)
 
 **See [`DEVELOPMENT.md`](./DEVELOPMENT.md)** for complete git workflow, CI/CD expectations, and troubleshooting.
