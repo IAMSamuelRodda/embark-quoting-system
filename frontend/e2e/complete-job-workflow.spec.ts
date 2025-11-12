@@ -11,8 +11,8 @@ import { getAndValidateCredentials } from './test-utils';
  * 4. Verify job appears in quote
  * 5. Save quote with job
  */
-test('Complete job creation workflow', async ({ page }) => {
-  const baseUrl = 'http://localhost:3000';
+test('Complete job creation workflow', async ({ page, baseURL }) => {
+  const baseUrl = baseURL || 'http://localhost:3000';
   const { email, password } = getAndValidateCredentials();
 
   console.log('\n=== COMPLETE JOB WORKFLOW TEST ===\n');

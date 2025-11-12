@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test('Verify CAT Gold colors on staging environment', async ({ page }) => {
+test('Verify CAT Gold colors on staging environment', async ({ page, baseURL }) => {
   page.on('console', msg => {
     if (msg.type() === 'error') console.log('ERROR:', msg.text());
   });
 
   // Use cache-busting query parameter to bypass CloudFront cache
   const cacheBuster = Date.now();
-  await page.goto(`https://dtfaaynfdzwhd.cloudfront.net/?v=${cacheBuster}`, {
+  await page.goto(`${baseURL || '/'}?v=${cacheBuster}`, {
     waitUntil: 'networkidle'
   });
   await page.waitForTimeout(2000);

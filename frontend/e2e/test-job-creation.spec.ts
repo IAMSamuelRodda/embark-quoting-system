@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 import { getAndValidateCredentials } from './test-utils';
 
 test.describe('Job Creation Test', () => {
-  test('should create a quote and add a retaining wall job', async ({ page }) => {
-    const baseUrl = 'http://localhost:3000';
+  test('should create a quote and add a retaining wall job', async ({ page, baseURL }) => {
+    const baseUrl = baseURL || 'http://localhost:3000';
     
     const { email, password } = getAndValidateCredentials();
 

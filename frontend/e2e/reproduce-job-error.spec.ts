@@ -1,8 +1,8 @@
 import { test } from '@playwright/test';
 import { getAndValidateCredentials } from './test-utils';
 
-test('Reproduce job creation error', async ({ page, browserName }) => {
-  const baseUrl = 'http://localhost:3000';
+test('Reproduce job creation error', async ({ page, browserName, baseURL }) => {
+  const baseUrl = baseURL || 'http://localhost:3000';
   
   const { email, password } = getAndValidateCredentials();
 

@@ -1,13 +1,13 @@
 import { test } from '@playwright/test';
 
-test('Debug page load and CSS', async ({ page }) => {
+test('Debug page load and CSS', async ({ page, baseURL }) => {
   // Listen for console messages
   page.on('console', msg => console.log('BROWSER:', msg.text()));
-  
+
   // Listen for page errors
   page.on('pageerror', err => console.log('ERROR:', err.message));
-  
-  await page.goto('http://localhost:3001/');
+
+  await page.goto(baseURL || '/');
   await page.waitForTimeout(3000);
   
   // Check if React app loaded
