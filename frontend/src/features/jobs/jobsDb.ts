@@ -252,7 +252,7 @@ export async function updateJobFromBackend(
     subtotal:
       typeof backendJob.subtotal === 'string'
         ? parseFloat(backendJob.subtotal)
-        : backendJob.subtotal,
+        : (backendJob.subtotal as number | undefined),
   };
 
   // Update IndexedDB with backend-calculated values
