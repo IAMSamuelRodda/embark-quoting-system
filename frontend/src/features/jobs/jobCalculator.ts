@@ -13,25 +13,25 @@
 // Price data (matches backend seed data)
 const PRICE_MAP = new Map([
   // Retaining wall materials
-  ['block', { price: 12.50, unit: 'per block' }],
-  ['road base', { price: 45.00, unit: 'm³' }],
-  ['ag pipe', { price: 8.50, unit: 'm' }],
-  ['orange plastic', { price: 3.20, unit: 'm' }],
+  ['block', { price: 12.5, unit: 'per block' }],
+  ['road base', { price: 45.0, unit: 'm³' }],
+  ['ag pipe', { price: 8.5, unit: 'm' }],
+  ['orange plastic', { price: 3.2, unit: 'm' }],
 
   // Driveway materials
-  ['20mm gravel', { price: 55.00, unit: 'm³' }],
+  ['20mm gravel', { price: 55.0, unit: 'm³' }],
 
   // Stormwater materials
-  ['pvc 90mm pipe', { price: 12.00, unit: 'm' }],
-  ['t-joint', { price: 18.00, unit: 'unit' }],
-  ['elbow', { price: 15.00, unit: 'unit' }],
-  ['downpipe adaptor', { price: 22.00, unit: 'unit' }],
+  ['pvc 90mm pipe', { price: 12.0, unit: 'm' }],
+  ['t-joint', { price: 18.0, unit: 'unit' }],
+  ['elbow', { price: 15.0, unit: 'unit' }],
+  ['downpipe adaptor', { price: 22.0, unit: 'unit' }],
 
   // Site prep materials
-  ['paving sand', { price: 65.00, unit: 'm³' }],
+  ['paving sand', { price: 65.0, unit: 'm³' }],
 
   // Labour
-  ['labour rate', { price: 85.00, unit: 'per hour' }],
+  ['labour rate', { price: 85.0, unit: 'per hour' }],
 ]);
 
 /**
@@ -193,7 +193,8 @@ function calculateRetainingWall(params: Record<string, unknown>): JobCalculation
  * - topping_type (string, optional)
  */
 function calculateDriveway(params: Record<string, unknown>): JobCalculation {
-  const { length, width, base_thickness, topping_enabled, topping_thickness, topping_type } = params;
+  const { length, width, base_thickness, topping_enabled, topping_thickness, topping_type } =
+    params;
 
   if (!length || !width || !base_thickness) {
     throw new Error('Missing required parameters: length, width, base_thickness');
@@ -244,7 +245,8 @@ function calculateDriveway(params: Record<string, unknown>): JobCalculation {
     labour,
     calculations: {
       baseM3,
-      toppingM3: topping_enabled && topping_thickness ? (length * width * (topping_thickness / 1000)) : 0,
+      toppingM3:
+        topping_enabled && topping_thickness ? length * width * (topping_thickness / 1000) : 0,
       labourHours,
     },
     subtotal: parseFloat((materialsCost + labour.total).toFixed(2)),

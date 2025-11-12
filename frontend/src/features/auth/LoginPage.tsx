@@ -61,7 +61,11 @@ export function LoginPage() {
           password: formData.password,
         });
 
-        if (result && 'challengeName' in result && result.challengeName === 'NEW_PASSWORD_REQUIRED') {
+        if (
+          result &&
+          'challengeName' in result &&
+          result.challengeName === 'NEW_PASSWORD_REQUIRED'
+        ) {
           setNewPasswordChallenge({
             cognitoUser: result.cognitoUser,
             email: result.email,
@@ -342,12 +346,11 @@ export function LoginPage() {
             <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-yellow-800 text-sm text-center">
                 {hasStoredCredentials() ? (
-                  <>
-                    📴 You're offline. You can sign in with previously saved credentials.
-                  </>
+                  <>📴 You're offline. You can sign in with previously saved credentials.</>
                 ) : (
                   <>
-                    ⚠️ You're offline. First-time login requires internet connection. Enable "Remember me" when online to allow offline access.
+                    ⚠️ You're offline. First-time login requires internet connection. Enable
+                    "Remember me" when online to allow offline access.
                   </>
                 )}
               </p>

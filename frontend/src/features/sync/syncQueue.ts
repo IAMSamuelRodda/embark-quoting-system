@@ -132,7 +132,9 @@ export async function getNextBatch(batchSize: number = 10): Promise<EnhancedSync
 
     // Check if retry time has passed
     const isReady = new Date(item.next_retry_at) <= now;
-    console.log(`[getNextBatch] Item ${item.id} retry check: ${isReady} (next_retry_at: ${item.next_retry_at})`);
+    console.log(
+      `[getNextBatch] Item ${item.id} retry check: ${isReady} (next_retry_at: ${item.next_retry_at})`,
+    );
     return isReady;
   });
 
@@ -146,7 +148,9 @@ export async function getNextBatch(batchSize: number = 10): Promise<EnhancedSync
     return a.timestamp.getTime() - b.timestamp.getTime(); // Older first
   });
 
-  console.log(`[getNextBatch] Returning ${sortedItems.slice(0, batchSize).length} items (batch size: ${batchSize})`);
+  console.log(
+    `[getNextBatch] Returning ${sortedItems.slice(0, batchSize).length} items (batch size: ${batchSize})`,
+  );
 
   // Return batch
   return sortedItems.slice(0, batchSize);

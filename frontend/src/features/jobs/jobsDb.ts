@@ -80,7 +80,9 @@ export async function createJob(data: Partial<Job>, quoteId: string): Promise<Jo
     dead_letter: false,
   });
 
-  console.log(`[jobsDb] Created job ${job.id} for quote ${quoteId} (offline-first, subtotal: $${job.subtotal})`);
+  console.log(
+    `[jobsDb] Created job ${job.id} for quote ${quoteId} (offline-first, subtotal: $${job.subtotal})`,
+  );
 
   return job;
 }
@@ -157,7 +159,9 @@ export async function updateJob(jobId: string, updates: Partial<Job>): Promise<v
     dead_letter: false,
   });
 
-  console.log(`[jobsDb] Updated job ${jobId} (offline-first, subtotal: $${finalUpdates.subtotal ?? job.subtotal})`);
+  console.log(
+    `[jobsDb] Updated job ${jobId} (offline-first, subtotal: $${finalUpdates.subtotal ?? job.subtotal})`,
+  );
 }
 
 /**
@@ -237,14 +241,18 @@ export async function reorderJobs(
  * @param jobId - Job ID
  * @param backendJob - Job data from backend API (includes calculated values)
  */
-export async function updateJobFromBackend(jobId: string, backendJob: Record<string, unknown>): Promise<void> {
+export async function updateJobFromBackend(
+  jobId: string,
+  backendJob: Record<string, unknown>,
+): Promise<void> {
   // Convert backend decimal strings to numbers
   const normalizedJob: Partial<Job> = {
     ...backendJob,
     // Backend returns subtotal as string (from DECIMAL type), convert to number
-    subtotal: typeof backendJob.subtotal === 'string'
-      ? parseFloat(backendJob.subtotal)
-      : backendJob.subtotal,
+    subtotal:
+      typeof backendJob.subtotal === 'string'
+        ? parseFloat(backendJob.subtotal)
+        : backendJob.subtotal,
   };
 
   // Update IndexedDB with backend-calculated values
@@ -258,9 +266,7 @@ export async function updateJobFromBackend(jobId: string, backendJob: Record<str
   const updatedJob = await db.jobs.get(jobId);
 
   if (updatedJob) {
-    console.log(
-      `[jobsDb] ✓ Updated job ${jobId} in IndexedDB (subtotal: $${updatedJob.subtotal})`,
-    );
+    console.log(`[jobsDb] ✓ Updated job ${jobId} in IndexedDB (subtotal: $${updatedJob.subtotal})`);
   }
 }
 

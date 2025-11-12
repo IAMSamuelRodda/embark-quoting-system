@@ -210,7 +210,9 @@ export class EmbarkDatabase extends Dexie {
         return true;
       }
       const isReady = new Date(item.next_retry_at) <= now;
-      console.log(`[getSyncQueueSize] Item ${item.id} retry check: ${isReady} (next_retry_at: ${item.next_retry_at})`);
+      console.log(
+        `[getSyncQueueSize] Item ${item.id} retry check: ${isReady} (next_retry_at: ${item.next_retry_at})`,
+      );
       return isReady;
     });
 
