@@ -174,8 +174,8 @@ jobs:
           # Export environment variables for Playwright
           export E2E_BASE_URL
           export E2E_API_URL
-          export E2E_TEST_USER_EMAIL
-          export E2E_TEST_USER_PASSWORD
+          export TEST_USER_EMAIL
+          export TEST_USER_PASSWORD
 
           # Run all E2E tests
           echo "Running all E2E tests"
@@ -183,8 +183,8 @@ jobs:
         env:
           E2E_BASE_URL: ${{ steps.resolve-urls.outputs.base-url }}
           E2E_API_URL: ${{ steps.resolve-urls.outputs.api-url }}
-          E2E_TEST_USER_EMAIL: ${{ secrets.test-user-email }}
-          E2E_TEST_USER_PASSWORD: ${{ secrets.test-user-password }}
+          TEST_USER_EMAIL: ${{ secrets.test-user-email }}
+          TEST_USER_PASSWORD: ${{ secrets.test-user-password }}
 
       - name: Upload Playwright report
         if: always()
