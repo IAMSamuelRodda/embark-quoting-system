@@ -112,6 +112,7 @@ export async function pushChanges(batchSize: number = 10): Promise<{
       // Handle errors
       let errorMessage = 'Unknown error';
       if (error instanceof ApiError) {
+        /* eslint-disable @typescript-eslint/no-explicit-any */
         console.error(`API Error Details:`, {
           status: (error.response as any)?.status,
           statusText: (error.response as any)?.statusText,
@@ -119,6 +120,7 @@ export async function pushChanges(batchSize: number = 10): Promise<{
           url: (error as any).config?.url,
           method: (error as any).config?.method,
         });
+        /* eslint-enable @typescript-eslint/no-explicit-any */
 
         if (isApiErrorResponse(error.response)) {
           errorMessage = error.response.message || error.response.error || error.statusText;
@@ -132,6 +134,7 @@ export async function pushChanges(batchSize: number = 10): Promise<{
       }
 
       console.error(`Processed Error Message: ${errorMessage}`);
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       console.error(`Quote Data Preview:`, {
         quote_number: (item.data as any)?.quote_number,
         customer_name: (item.data as any)?.customer_name,
@@ -139,6 +142,7 @@ export async function pushChanges(batchSize: number = 10): Promise<{
         has_jobs: Array.isArray((item.data as any)?.jobs),
         job_count: (item.data as any)?.jobs?.length || 0,
       });
+      /* eslint-enable @typescript-eslint/no-explicit-any */
       console.error(`===========================`);
 
       errors.push(`Quote ${item.quote_id}: ${errorMessage}`);
