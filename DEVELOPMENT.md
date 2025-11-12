@@ -529,7 +529,39 @@ const { email, password } = getAndValidateCredentials();
 
 ## 📦 Local Development Setup
 
-### Backend Setup
+### Quick Start (Recommended)
+
+**One-command full-stack startup** - complete development environment:
+
+```bash
+./scripts/dev-start.sh
+```
+
+This comprehensive script:
+- ✅ Validates prerequisites (Docker, AWS CLI, Node.js)
+- ✅ Starts PostgreSQL database (Docker container)
+- ✅ Runs database migrations
+- ✅ Retrieves AWS Cognito credentials from Secrets Manager
+- ✅ Starts backend API server (port 4000)
+- ✅ Starts frontend dev server (port 3000)
+- ✅ Auto-logs in using Playwright browser automation
+
+**Result:** Browser opens at `http://localhost:3000`, logged in and ready to test!
+
+**Prerequisites:**
+- Docker Desktop running
+- AWS CLI configured with appropriate credentials
+- Node.js 18+ installed
+
+**Stop:** Press `Ctrl+C` to stop all services
+
+---
+
+### Manual Setup (Alternative)
+
+If you prefer to run services individually in separate terminals:
+
+#### Backend Setup
 
 ```bash
 cd backend
@@ -548,7 +580,7 @@ npm run db:migrate
 npm run dev
 ```
 
-### Frontend Setup
+#### Frontend Setup
 
 ```bash
 cd frontend

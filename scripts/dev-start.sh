@@ -36,8 +36,8 @@ AUTO_LOGIN_SCRIPT="$FRONTEND_DIR/auto-login.mjs"
 
 # Configuration
 FRONTEND_URL="http://localhost:3000"
-BACKEND_URL="http://localhost:3001"
-BACKEND_PORT=3001
+BACKEND_URL="http://localhost:4000"
+BACKEND_PORT=4000
 TEST_EMAIL="e2e-test@embark-quoting.local"
 SECRET_NAME="embark-quoting/staging/e2e-test-credentials"
 

@@ -48,26 +48,34 @@ gh issue edit 1 --remove-label "status: pending" --add-label "status: in-progres
 
 **🚀 Quick Start (Automated)**
 
-One command to launch the full local development stack:
+One command to launch both frontend and backend development servers:
 
 ```bash
 # Clone repository
 git clone https://github.com/IAMSamuelRodda/embark-quoting-system.git
 cd embark-quoting-system
 
-# Launch full stack (database + backend + frontend + auto-login)
+# Set up environment files (first time only)
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+# Edit .env files with your credentials
+
+# Launch full development stack
 ./scripts/dev-start.sh
 ```
 
 **What it does:**
-- ✅ Starts PostgreSQL database (Docker)
+- ✅ Validates prerequisites (Docker, AWS CLI, Node.js)
+- ✅ Starts PostgreSQL database (Docker container)
 - ✅ Runs database migrations
-- ✅ Starts backend API (port 3001)
+- ✅ Retrieves AWS Cognito credentials
+- ✅ Starts backend API (port 4000)
 - ✅ Starts frontend dev server (port 3000)
-- ✅ Retrieves credentials from AWS
-- ✅ Opens browser and auto-logs in
+- ✅ Auto-logs in with Playwright
 
-**Result:** Browser opens at `http://localhost:3000`, logged in and ready to test!
+**Access:**
+- Frontend: http://localhost:3000 (auto-opens and logs in)
+- Backend: http://localhost:4000
 
 **Credentials (if needed manually):**
 - Email: `e2e-test@embark-quoting.local`
