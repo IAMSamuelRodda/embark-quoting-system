@@ -114,29 +114,18 @@ export async function getNextBatch(batchSize: number = 10): Promise<EnhancedSync
 
   // Get all queue items (handle both boolean false and number 0 for dead_letter)
   const allItems = await db.syncQueue.toArray();
-  console.log(`[getNextBatch] Total items in queue: ${allItems.length}`);
 
   // Filter items ready for retry (not dead-letter, past retry time)
   const readyItems = allItems.filter((item) => {
     // Exclude dead-letter items (truthy values - handle both boolean and number)
-    if (item.dead_letter) {
-      console.log(`[getNextBatch] Excluding dead-letter item ${item.id}`);
-      return false;
-    }
+    if (item.dead_letter) return false;
 
     // If no next_retry_at, it's ready
-    if (!item.next_retry_at) {
-      console.log(`[getNextBatch] Including item ${item.id} (no retry time)`);
-      return true;
-    }
+    if (!item.next_retry_at) return true;
 
     // Check if retry time has passed
-    const isReady = new Date(item.next_retry_at) <= now;
-    console.log(`[getNextBatch] Item ${item.id} retry check: ${isReady} (next_retry_at: ${item.next_retry_at})`);
-    return isReady;
+    return new Date(item.next_retry_at) <= now;
   });
-
-  console.log(`[getNextBatch] Ready items after filtering: ${readyItems.length}`);
 
   // Sort by priority (lower = higher priority), then by timestamp (older first)
   const sortedItems = readyItems.sort((a, b) => {
@@ -145,8 +134,6 @@ export async function getNextBatch(batchSize: number = 10): Promise<EnhancedSync
     }
     return a.timestamp.getTime() - b.timestamp.getTime(); // Older first
   });
-
-  console.log(`[getNextBatch] Returning ${sortedItems.slice(0, batchSize).length} items (batch size: ${batchSize})`);
 
   // Return batch
   return sortedItems.slice(0, batchSize);

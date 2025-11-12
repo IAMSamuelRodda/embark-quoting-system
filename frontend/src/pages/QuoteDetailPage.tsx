@@ -37,9 +37,7 @@ export function QuoteDetailPage() {
       clearSelectedQuote();
       clearJobs();
     };
-    // Only depend on `id` - Zustand actions are stable and don't need to be in deps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, loadQuoteDetails, loadJobsForQuote, clearSelectedQuote, clearJobs]);
 
   // Feature 5.5: Check for conflict data when quote is loaded
   useEffect(() => {
@@ -120,18 +118,15 @@ export function QuoteDetailPage() {
   };
 
   const handleSaveJob = async (jobData: Partial<Job>) => {
-    console.log('[Sync] handleSaveJob - Starting:', jobData.job_type);
     try {
-      const newJob = await createJob(jobData);
-      console.log('[Sync] handleSaveJob - Job created:', newJob.id);
-
+      await createJob(jobData);
       setIsAddingJob(false);
-      console.log('[Sync] handleSaveJob - Modal closed');
-
-      // Don't reload - createJob already updated the store
-      // Reloading causes unnecessary churn
+      // Reload quote to get updated financials
+      if (id) {
+        await loadQuoteDetails(id);
+      }
     } catch (error) {
-      console.error('[Sync] handleSaveJob - ERROR:', error);
+      console.error('Failed to save job:', error);
       alert('Failed to save job. Please try again.');
     }
   };

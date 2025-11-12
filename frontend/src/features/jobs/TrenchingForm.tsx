@@ -71,11 +71,11 @@ export function TrenchingForm({ quoteId, onSave, onCancel, existingJob }: Trench
           downpipe_adaptors: (existingJob.parameters.downpipe_adaptors as number) || 0,
         }
       : {
-          length: 10,
+          length: 0,
           width: '600',
-          depth: 0.5,
+          depth: 0,
           for_stormwater: false,
-          pipe_length: 10,
+          pipe_length: 0,
           t_joints: 0,
           elbows: 0,
           downpipe_adaptors: 0,
