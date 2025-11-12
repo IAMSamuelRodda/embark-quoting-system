@@ -3,7 +3,7 @@
 > **Purpose**: Current work, active bugs, and recent changes (~2 week rolling window)
 > **Lifecycle**: Living document (update daily/weekly during active development)
 
-**Last Updated:** 2025-11-12 (Session: Fixed E2E test UI selectors + identified data seeding gap)
+**Last Updated:** 2025-11-12 (Session: Manual testing - discovered 10 issues including admin dashboard gap)
 **Current Phase:** Post-MVP Bug Fixes & Test Infrastructure
 **Version:** 1.0.0-beta
 
@@ -18,14 +18,24 @@
 | **CI/CD Pipeline** | 🟢 Passing | All workflows operational |
 | **Documentation** | 🟢 Current | Updated Nov 11, 2025 |
 | **E2E Test Coverage** | 🟢 Excellent | 8 core tests passing (offline auth + sync) |
-| **Known Bugs** | 🟢 Resolved | 3 critical issues fixed (sync queue + backend calc + frontend calc) |
+| **Known Bugs** | 🟡 Active | 10 issues discovered (#110-#119, includes admin dashboard gap) |
 | **Technical Debt** | 🟡 Moderate | See [Known Issues](#known-issues) below |
 
 ---
 
 ## Current Focus
 
-**Completed Nov 12 (Today's Session):**
+**Completed Nov 12 (Latest Session - Manual Testing):**
+- ✅ **Development Environment Started** - Used `scripts/dev-start.sh` to launch full-stack environment
+- ✅ **Manual Testing Completed** - Tested quote creation, job addition, sync functionality
+- ✅ **10 Issues Discovered** - All issues documented and tracked in GitHub (#110-#119)
+  - 4 high-priority items (quote status button, job editing, stormwater job broken, admin dashboard)
+  - 5 medium-priority issues (sync error, price display, header cosmetics, PVC field UI)
+  - 1 low-priority enhancement (calculation breakdown display)
+- ✅ **Major Gap Identified** - No admin dashboard for pricing management (Issue #119)
+- ✅ **STATUS.md Updated** - Documented all findings with investigation notes
+
+**Completed Nov 12 (Earlier Session - E2E Tests):**
 - ✅ **E2E Test UI Fixes** - All 3/3 tests passing (driveway $610, retaining wall $1,715, multiple jobs $312 + $880.50)
 - ✅ **Test Regex Fix** - Updated job type matching from underscores to spaces (`RETAINING_WALL` → `RETAINING WALL`)
 - ✅ **Modal Timing Fix** - Changed wait strategy from "modal close" to "job card appears" (more robust)
@@ -482,6 +492,101 @@ npm run test:e2e -- job-calculations.spec.ts
 
 ---
 
+### UI/UX Issues Discovered (Nov 12, 2025)
+
+**Context:** Manual testing session revealed 10 issues affecting user experience and identified major feature gap. All issues logged and tracked in GitHub.
+
+#### Issue #110: No button to change quote status 🔴
+**Status:** Open - High Priority
+**Symptom:** No UI control to transition quote status from draft to completed
+**Impact:** Users cannot finalize quotes, blocking workflow progression
+**GitHub:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues/110
+**Proposed Solution:** Add "Finalize Quote" button on quote detail page
+
+#### Issue #111: Cannot edit jobs after creation 🔴
+**Status:** Open - High Priority
+**Symptom:** Once job is created, only deletion is possible (no edit button)
+**Impact:** Users must delete and recreate jobs to fix mistakes
+**GitHub:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues/111
+**Technical Note:** `updateJob()` function already exists in `frontend/src/features/jobs/jobsDb.ts:119`, just needs UI integration
+
+#### Issue #112: Sync error after creating quote 🔴
+**Status:** Open - High Priority
+**Symptom:** Sync status shows 'error' after creating new quote with jobs
+**Impact:** Prevents data synchronization to backend, offline-first architecture compromised
+**GitHub:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues/112
+**Investigation Needed:** Check sync queue error handling, backend API responses
+
+#### Issue #113: No price displayed on quote tile 🟡
+**Status:** Open - Medium Priority
+**Symptom:** Quote cards on main dashboard show "No price" instead of calculated total
+**Impact:** Reduces dashboard usability, users cannot see quote values at a glance
+**GitHub:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues/113
+**Technical Context:** May be related to sync error (Issue #112) preventing price calculation
+
+#### Issue #115: Distracting role text in header 🟡
+**Status:** Open - Medium Priority
+**Symptom:** Header displays "(field_worker)" role descriptor next to email
+**Impact:** Cosmetic issue that distracts users during testing
+**GitHub:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues/115
+**Proposed Solution:** Remove role text or show only for admin users / debug mode
+
+#### Issue #114: Email instead of username in header 🟡
+**Status:** Open - Medium Priority
+**Symptom:** Full email address shown in header instead of friendly username
+**Impact:** Privacy concern, poor UX (email too long/technical)
+**GitHub:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues/114
+**Requirements:**
+- Add `username` field to user profile
+- Make username required during registration
+- Fallback: Derive from First Name + Last Name
+- Update header component to display username
+
+#### Issue #116: Stormwater jobs cannot be added 🔴
+**Status:** Open - High Priority
+**Symptom:** "Add Job" button does not work when adding stormwater job to quote
+**Impact:** Blocks users from adding stormwater jobs entirely, one of 5 core job types unusable
+**GitHub:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues/116
+**Investigation Needed:**
+- Check StormwaterForm.tsx validation schema
+- Verify onSubmit handler is called
+- Compare with working forms (driveway, retaining wall)
+- Check browser console for validation errors
+
+#### Issue #117: Stormwater PVC field is text input instead of dropdown 🟡
+**Status:** Open - Medium Priority
+**Symptom:** PVC pipe field allows free-text input instead of dropdown selection
+**Impact:** Could lead to data inconsistency, calculator expects specific key ('pvc 90mm pipe')
+**GitHub:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues/117
+**Proposed Solution:** Convert to dropdown with standard pipe sizes (90mm, 100mm, etc.)
+
+#### Issue #118: Add calculation breakdown display 🟢
+**Status:** Open - Low Priority (Nice-to-Have)
+**Symptom:** No way to view detailed calculation breakdown for troubleshooting
+**Impact:** Difficult to verify calculations, debug pricing issues, or educate users
+**GitHub:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues/118
+**Proposed Solution:** Add "Show Calculation" debug panel or "View Details" modal
+
+#### Issue #119: Admin dashboard for pricing management 🔴
+**Status:** Open - High Priority (Major Feature Gap)
+**Symptom:** No admin dashboard exists for managing job component prices and markup
+**Impact:** Cannot update pricing data, no way to test admin functionality, blocks production readiness
+**GitHub:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues/119
+**Scope:**
+- Admin test account setup (AWS Cognito + Secrets Manager)
+- Admin dashboard UI for viewing/editing prices
+- Offline-first price editing with sync
+- Real-time price propagation to field worker devices
+- Automatic draft quote recalculation on price changes
+- Warning indicators for completed quotes with outdated pricing
+- Performance testing for bulk recalculation (edge case)
+**Implementation Phases:**
+1. Phase 1: Admin account + dashboard UI + basic sync (High Priority)
+2. Phase 2: Offline editing + real-time propagation + quote recalculation (Medium Priority)
+3. Phase 3: Price history + performance optimization (Low Priority)
+
+---
+
 ## Recent Achievements (Nov 11, 2025)
 
 ### Offline Authentication Feature (Issue #108) ✅
@@ -738,6 +843,7 @@ All core documentation is current (updated Nov 11, 2025):
 | 2025-11-09 | Claude Code | Initial STATUS.md creation |
 | 2025-11-10 | Claude Code | Updated deployment status, resolved documentation issues |
 | 2025-11-11 | Claude Code | Offline auth completion, identified critical sync/calculation bugs |
+| 2025-11-12 | Claude Code | Manual testing session - documented 6 UI/UX issues (#110-#115) |
 
 ---
 
