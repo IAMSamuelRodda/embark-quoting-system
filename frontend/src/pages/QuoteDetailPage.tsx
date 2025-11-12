@@ -17,9 +17,17 @@ import { mergeVersionVectors, incrementVersion } from '../features/sync/versionV
 export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { selectedQuote, isLoading, error, loadQuoteDetails, clearSelectedQuote } = useQuotes();
+  const {
+    selectedQuote,
+    isLoading,
+    error,
+    loadQuoteDetails,
+    clearSelectedQuote,
+    updateQuoteAction,
+  } = useQuotes();
   const { jobs, loadJobsForQuote, createJob, deleteJob, clearJobs } = useJobs();
   const [isAddingJob, setIsAddingJob] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // Feature 5.5: Conflict Resolution
   const [showConflictResolver, setShowConflictResolver] = useState(false);
@@ -37,7 +45,9 @@ export function QuoteDetailPage() {
       clearSelectedQuote();
       clearJobs();
     };
-  }, [id, loadQuoteDetails, loadJobsForQuote, clearSelectedQuote, clearJobs]);
+    // Only depend on `id` - Zustand actions are stable and don't need to be in deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // Feature 5.5: Check for conflict data when quote is loaded
   useEffect(() => {
@@ -117,16 +127,39 @@ export function QuoteDetailPage() {
     navigate('/dashboard');
   };
 
-  const handleSaveJob = async (jobData: Partial<Job>) => {
+  const handleFinalizeQuote = async () => {
+    if (!selectedQuote || !id) return;
+
+    if (!confirm('Finalize this quote? This will change the status from draft to approved.')) {
+      return;
+    }
+
+    setIsUpdatingStatus(true);
     try {
-      await createJob(jobData);
-      setIsAddingJob(false);
-      // Reload quote to get updated financials
-      if (id) {
-        await loadQuoteDetails(id);
-      }
+      await updateQuoteAction(id, { status: 'approved' });
+      // Reload to get updated quote
+      await loadQuoteDetails(id);
     } catch (error) {
-      console.error('Failed to save job:', error);
+      console.error('Failed to finalize quote:', error);
+      alert('Failed to finalize quote. Please try again.');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleSaveJob = async (jobData: Partial<Job>) => {
+    console.log('[Sync] handleSaveJob - Starting:', jobData.job_type);
+    try {
+      const newJob = await createJob(jobData);
+      console.log('[Sync] handleSaveJob - Job created:', newJob.id);
+
+      setIsAddingJob(false);
+      console.log('[Sync] handleSaveJob - Modal closed');
+
+      // Don't reload - createJob already updated the store
+      // Reloading causes unnecessary churn
+    } catch (error) {
+      console.error('[Sync] handleSaveJob - ERROR:', error);
       alert('Failed to save job. Please try again.');
     }
   };
@@ -295,17 +328,28 @@ export function QuoteDetailPage() {
               <h1 className="text-3xl font-bold text-gray-900">{selectedQuote.quote_number}</h1>
               <p className="text-gray-600 mt-2">{selectedQuote.customer_name}</p>
             </div>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                selectedQuote.status === 'draft'
-                  ? 'bg-gray-100 text-gray-800'
-                  : selectedQuote.status === 'approved'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-blue-100 text-blue-800'
-              }`}
-            >
-              {selectedQuote.status.charAt(0).toUpperCase() + selectedQuote.status.slice(1)}
-            </span>
+            <div className="flex items-center gap-3">
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  selectedQuote.status === 'draft'
+                    ? 'bg-gray-100 text-gray-800'
+                    : selectedQuote.status === 'approved'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-blue-100 text-blue-800'
+                }`}
+              >
+                {selectedQuote.status.charAt(0).toUpperCase() + selectedQuote.status.slice(1)}
+              </span>
+              {selectedQuote.status === 'draft' && (
+                <button
+                  onClick={handleFinalizeQuote}
+                  disabled={isUpdatingStatus}
+                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUpdatingStatus ? 'Finalizing...' : 'Finalize Quote'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -402,7 +446,7 @@ export function QuoteDetailPage() {
                       <h3 className="font-medium text-gray-900 mb-2">
                         Job {index + 1}: {job.job_type.replace(/_/g, ' ').toUpperCase()}
                       </h3>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600" data-testid="job-subtotal">
                         Subtotal: {formatCurrency(job.subtotal)}
                       </p>
                     </div>

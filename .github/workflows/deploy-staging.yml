@@ -1,10 +1,13 @@
 name: Deploy to Staging
 
 on:
-  # Deploy to staging only on dev branch pushes (after tests pass)
+  # Deploy to staging when pushing tags with 'staging-' prefix
+  # Example: git tag staging-v1.2.3 && git push origin staging-v1.2.3
   push:
-    branches: [dev]
-  # Allow manual triggers for debugging (restricted to dev branch only)
+    tags:
+      - 'staging-v*'     # staging-v1.0.0, staging-v1.2.3, etc.
+      - 'staging-*'       # staging-20250109, staging-feature-name, etc.
+  # Allow manual triggers for debugging
   workflow_dispatch:
 
 env:
@@ -33,15 +36,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Enforce dev branch only
+      - name: Verify staging tag
         run: |
-          if [ "${{ github.ref }}" != "refs/heads/dev" ]; then
-            echo "❌ ERROR: Staging deployments must run from 'dev' branch only"
-            echo "   Current branch: ${{ github.ref }}"
-            echo "   This workflow can only deploy from 'dev' branch"
-            exit 1
+          if [[ "${{ github.ref }}" == refs/tags/staging-* ]]; then
+            echo "✅ Tag check passed: Deploying from staging tag ${{ github.ref_name }}"
+          else
+            echo "ℹ️ Manual workflow dispatch detected"
           fi
-          echo "✅ Branch check passed: Running from dev branch"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -160,12 +161,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Enforce dev branch only
+      - name: Verify staging tag
         run: |
-          if [ "${{ github.ref }}" != "refs/heads/dev" ]; then
-            echo "❌ ERROR: Staging deployments must run from 'dev' branch only"
-            echo "   Current branch: ${{ github.ref }}"
-            exit 1
+          if [[ "${{ github.ref }}" == refs/tags/staging-* ]]; then
+            echo "✅ Tag check passed: Deploying from staging tag ${{ github.ref_name }}"
+          else
+            echo "ℹ️ Manual workflow dispatch detected"
           fi
 
       - name: Setup Node.js 20

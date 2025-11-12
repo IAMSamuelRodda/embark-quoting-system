@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './features/auth/useAuth';
+import { enableAutoSync } from './features/sync/syncService';
 
 // Eager load: LoginPage (needed immediately for unauthenticated users)
 import { LoginPage } from './features/auth/LoginPage';
@@ -31,6 +32,23 @@ function App() {
     checkAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
+
+  // Enable automatic background sync ONLY when authenticated
+  // This prevents 401 errors from sync firing before auth completes
+  useEffect(() => {
+    if (!isAuthenticated) {
+      console.log('[App] Waiting for authentication before enabling auto-sync...');
+      return;
+    }
+
+    console.log('[App] Authentication complete. Initializing auto-sync service...');
+    const unsubscribe = enableAutoSync();
+
+    return () => {
+      console.log('[App] Cleaning up auto-sync service...');
+      unsubscribe();
+    };
+  }, [isAuthenticated]); // Dependency on isAuthenticated - only enable after auth succeeds
 
   if (isLoading) {
     return (

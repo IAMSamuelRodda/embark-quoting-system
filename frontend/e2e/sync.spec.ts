@@ -10,6 +10,7 @@
  */
 
 import { test, expect, type Page } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
 
 test.describe('Sync Engine E2E', () => {
   // ============================================================================
@@ -18,8 +19,7 @@ test.describe('Sync Engine E2E', () => {
 
   // Helper to login on a page
   async function login(page: Page) {
-    const email = process.env.E2E_TEST_USER_EMAIL || 'e2e-test@embark-quoting.local';
-    const password = process.env.E2E_TEST_USER_PASSWORD || 'fallback-password';
+    const { email, password } = getAndValidateCredentials();
 
     await page.goto('/login');
     await page.getByLabel(/email/i).fill(email);

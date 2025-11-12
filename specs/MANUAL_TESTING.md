@@ -1,0 +1,736 @@
+# Manual Testing Guide - Embark Quoting System
+
+> **Purpose**: Step-by-step instructions for manually testing the production application on desktop and mobile devices.
+
+---
+
+## 📋 Table of Contents
+
+1. [Quick Start](#quick-start)
+2. [Desktop Testing](#desktop-testing)
+3. [Mobile Testing (PWA)](#mobile-testing-pwa)
+4. [Feature Testing Checklist](#feature-testing-checklist)
+5. [Troubleshooting](#troubleshooting)
+
+---
+
+## Quick Start
+
+> **📋 Environment Configuration**: See **[ENVIRONMENTS.md](./ENVIRONMENTS.md)** for URLs, credentials, and AWS resource IDs.
+
+### 🏭 Production Environment
+
+- **Frontend**: https://dtfaaynfdzwhd.cloudfront.net
+- **Test Email**: `e2e-test@embark-quoting.local`
+- **Test Password**: See [ENVIRONMENTS.md](./ENVIRONMENTS.md) (stored in AWS Secrets Manager)
+
+### 🧪 Staging Environment
+
+- **Frontend**: https://d1aekrwrb8e93r.cloudfront.net
+- **Test Email**: `e2e-test@embark-quoting.local`
+- **Test Password**: See [ENVIRONMENTS.md](./ENVIRONMENTS.md) (stored in AWS Secrets Manager)
+
+> **IMPORTANT**: Each environment has a **different password** for the same email. See [ENVIRONMENTS.md](./ENVIRONMENTS.md) for details.
+
+---
+
+## Desktop Testing
+
+### Step 1: Access the Application
+
+1. Open your web browser (Chrome, Firefox, Safari, or Edge)
+2. Navigate to: **https://dtfaaynfdzwhd.cloudfront.net**
+3. You should see the Embark Quoting System login page
+
+### Step 2: Login
+
+1. Enter the **production** test credentials:
+   - **Email**: `e2e-test@embark-quoting.local`
+   - **Password**: See [ENVIRONMENTS.md](./ENVIRONMENTS.md) (stored in AWS Secrets Manager)
+2. Click **"Sign In"**
+3. You should be redirected to the quotes dashboard
+
+> **Note**: For staging, use the staging credentials from [ENVIRONMENTS.md](./ENVIRONMENTS.md). Each environment has a different password.
+
+### Step 3: Verify Backend Connection
+
+1. Open browser DevTools (F12 or Right-click → Inspect)
+2. Go to the **Network** tab
+3. Refresh the page
+4. Look for API calls to the backend
+5. Verify responses are coming from the production ALB URL
+
+**Direct Backend Health Check**:
+```bash
+curl http://embark-quoting-production-alb-185300723.ap-southeast-2.elb.amazonaws.com/health
+```
+
+Expected response:
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-11-08T05:30:45.409Z",
+  "service": "embark-quoting-backend",
+  "version": "1.0.0",
+  "environment": "production",
+  "database": "connected"
+}
+```
+
+### Step 4: Test Quote Creation
+
+1. Click **"New Quote"** or **"Create Quote"** button
+2. Fill in customer details:
+   - **Name**: `Test Customer`
+   - **Email**: `test@example.com`
+   - **Phone**: `0400 000 000`
+3. Click **"Save"** or **"Next"**
+
+### Step 5: Add a Job to the Quote
+
+1. Click **"Add Job"** or select job type
+2. Choose **"Retaining Wall"** (or any job type)
+3. Enter job parameters:
+   - **Length**: `10` meters
+   - **Height**: `1.5` meters
+   - **Material Type**: `Concrete` (or select from dropdown)
+   - **Material Cost**: `$2,000`
+4. Click **"Calculate"** or **"Save Job"**
+
+### Step 6: Verify Financial Calculations
+
+The app uses **Profit-First methodology**:
+
+**Formula**: `Quote Price = Material Cost ÷ 0.30`
+
+For the example above:
+- **Material Cost**: $2,000
+- **Expected Quote Price**: $2,000 ÷ 0.30 = **$6,666.67**
+
+**Verify**:
+- Quote price shows $6,666.67
+- Material cost shows $2,000.00 (30%)
+- Labor/Profit shows $4,666.67 (70%)
+
+### Step 7: Test Quote List
+
+1. Navigate back to the quotes dashboard
+2. Verify your new quote appears in the list
+3. Click on the quote to view details
+4. Verify all information is correct
+
+### Step 8: Test Quote Editing
+
+1. Click **"Edit"** on an existing quote
+2. Change a value (e.g., material cost to `$3,000`)
+3. Click **"Save"**
+4. Verify the quote price updates correctly:
+   - New price should be: $3,000 ÷ 0.30 = **$10,000.00**
+
+### Step 9: Test Offline Mode (Desktop)
+
+1. Open browser DevTools (F12)
+2. Go to **Network** tab
+3. Select **"Offline"** from the throttling dropdown (at top of Network tab)
+4. Try to create or edit a quote
+5. **Expected**: The app should still work (data saves to IndexedDB)
+6. Switch back to **"Online"**
+7. **Expected**: Changes sync to the server
+
+---
+
+## Mobile Testing (PWA)
+
+### Prerequisites
+
+- **iPhone**: iOS 14.0+ with Safari
+- **Android**: Android 9.0+ with Chrome
+
+### Step 1: Access on Mobile Browser
+
+1. Open **Safari** (iPhone) or **Chrome** (Android)
+2. Navigate to: **https://dtfaaynfdzwhd.cloudfront.net**
+3. Wait for the page to load
+
+### Step 2: Login on Mobile
+
+1. Tap on the **Email** field
+2. Enter: `e2e-test@embark-quoting.local`
+3. Tap on the **Password** field
+4. Enter the password from [ENVIRONMENTS.md](./ENVIRONMENTS.md) (different for production vs staging)
+5. Tap **"Sign In"**
+
+**Tip**: Retrieve the password from AWS Secrets Manager or GitHub Secrets as documented in [ENVIRONMENTS.md](./ENVIRONMENTS.md).
+
+### Step 3: Install as PWA (iPhone)
+
+#### iPhone Installation Steps:
+
+1. **Tap the Share button** at the bottom center of Safari
+   - Icon looks like a square with an arrow pointing up (⬆️)
+
+2. **Scroll down** in the share menu
+
+3. **Tap "Add to Home Screen"**
+   - Icon looks like a plus sign (+) inside a square
+
+4. **Customize the name** (optional):
+   - Default: "Embark Quoting"
+   - You can keep it or change it
+
+5. **Tap "Add"** in the top-right corner
+
+6. **Exit Safari** and go to your home screen
+
+7. **Find the app icon** on your home screen
+   - Should show the Embark logo
+   - Looks like a native app
+
+8. **Tap the icon** to open the app
+
+**Expected Result**: The app opens **without** Safari's browser UI (no address bar, no toolbar). It looks and feels like a native iOS app.
+
+---
+
+### Step 3: Install as PWA (Android)
+
+#### Android Installation Steps:
+
+1. **Tap the three-dot menu** (⋮) in the top-right corner of Chrome
+
+2. Look for one of these options:
+   - **"Add to Home Screen"**, OR
+   - **"Install App"**, OR
+   - **"Install Embark Quoting"**
+
+3. **Tap the install option**
+
+4. **Review the app details** in the popup:
+   - App name: "Embark Quoting"
+   - Website: dtfaaynfdzwhd.cloudfront.net
+
+5. **Tap "Add"** or **"Install"**
+
+6. **Wait for installation** (a few seconds)
+
+7. **Exit Chrome** and go to your home screen
+
+8. **Find the app icon** on your home screen or app drawer
+   - Should show the Embark logo
+   - Appears alongside your other apps
+
+9. **Tap the icon** to open the app
+
+**Expected Result**: The app opens in **standalone mode** (no browser UI). It has its own app switcher entry and runs like a native Android app.
+
+---
+
+### Step 4: Verify PWA Installation
+
+After installing, verify these PWA features:
+
+#### Check 1: Standalone Mode
+- ✅ No browser address bar visible
+- ✅ No browser toolbar/navigation
+- ✅ Full-screen app experience
+- ✅ Custom splash screen on launch
+
+#### Check 2: App Switcher
+- **iPhone**: Double-tap home button or swipe up
+- **Android**: Tap the square/recent apps button
+- ✅ App appears as separate entry (not in Safari/Chrome)
+
+#### Check 3: Offline Capability
+- See "Step 5: Test Offline Mode" below
+
+---
+
+### Step 5: Test Offline Mode (Mobile - Most Important!)
+
+This is the **killer feature** of the app - it works completely offline.
+
+#### Offline Test Procedure:
+
+1. **While Online**:
+   - Open the installed PWA app
+   - Login (if not already logged in)
+   - Create a new quote:
+     - Customer: "Offline Test Customer"
+     - Add a job (any type)
+     - Save the quote
+
+2. **Enable Airplane Mode**:
+   - **iPhone**: Swipe down from top-right → Tap airplane icon ✈️
+   - **Android**: Swipe down from top → Tap airplane mode ✈️
+
+3. **Test Offline Functionality**:
+   - Open the app (if closed, reopen it from home screen)
+   - **Expected**: App loads successfully
+   - Try to create a new quote
+   - **Expected**: You can create and save quotes
+   - Try to edit existing quote
+   - **Expected**: Edits save locally
+
+4. **Verify Local Storage**:
+   - All changes should be happening instantly
+   - No loading spinners waiting for network
+   - Data saves to **IndexedDB** (browser storage)
+
+5. **Disable Airplane Mode**:
+   - Turn airplane mode off
+   - Wait 5-10 seconds
+
+6. **Verify Sync**:
+   - **Expected**: Background sync occurs automatically
+   - Open the app on desktop browser
+   - Login with same credentials
+   - **Expected**: You should see the quotes you created offline on your phone!
+
+---
+
+### Step 6: Test Touch Interface
+
+Mobile-specific UI testing:
+
+#### Screen 1: Login Page
+- ✅ Email input focuses with mobile keyboard
+- ✅ Password input shows secure entry
+- ✅ "Sign In" button is large and easy to tap
+- ✅ No need to zoom to read text
+
+#### Screen 2: Quote List
+- ✅ Quotes display in readable cards/list
+- ✅ Scroll smoothly with finger swipe
+- ✅ Tap a quote to view details
+- ✅ "New Quote" button easily accessible
+
+#### Screen 3: Quote Form
+- ✅ Input fields are large and touch-friendly
+- ✅ Appropriate mobile keyboards appear:
+  - Email: Shows @ and .com
+  - Phone: Shows number pad
+  - Currency: Shows decimal keyboard
+- ✅ Dropdowns work with native mobile pickers
+- ✅ Save button doesn't require precise tap
+
+---
+
+### Step 7: Test Real Field Scenario
+
+Simulate actual contractor workflow:
+
+#### Scenario: On-Site Quote Creation
+
+1. **Take your phone outside** (or to another room)
+
+2. **Enable Airplane Mode** ✈️ (simulate remote job site)
+
+3. **Open the installed PWA**
+
+4. **Create a quote**:
+   - Customer: "Field Test - [Your Name]"
+   - Job Type: "Driveway"
+   - Dimensions:
+     - Length: 15 meters
+     - Width: 4 meters
+     - Area: 60 sq meters
+   - Material cost: $5,000
+   - **Expected Price**: $5,000 ÷ 0.30 = $16,666.67
+
+5. **Add notes**: "Created offline in airplane mode"
+
+6. **Save the quote** - should save instantly
+
+7. **Walk around** for 2-3 minutes
+   - App should stay open
+   - Data should persist
+
+8. **Return to WiFi area**
+
+9. **Disable Airplane Mode**
+
+10. **Wait 30 seconds** for sync
+
+11. **Check on desktop**:
+    - Open https://dtfaaynfdzwhd.cloudfront.net on computer
+    - Login
+    - **Expected**: "Field Test - [Your Name]" quote appears!
+
+---
+
+### Step 8: Test Multi-Device Sync
+
+Verify cloud synchronization between devices:
+
+#### Test A: Phone → Desktop Sync
+
+1. **On Phone** (while online):
+   - Create a quote: "Phone Quote Test"
+   - Save it
+
+2. **On Desktop** (within 1 minute):
+   - Refresh the quotes page
+   - **Expected**: "Phone Quote Test" appears in the list
+
+#### Test B: Desktop → Phone Sync
+
+1. **On Desktop**:
+   - Create a quote: "Desktop Quote Test"
+   - Save it
+
+2. **On Phone**:
+   - Pull to refresh (or navigate away and back)
+   - **Expected**: "Desktop Quote Test" appears in the list
+
+#### Test C: Offline → Online Sync
+
+1. **Phone in Airplane Mode**:
+   - Create quote: "Offline Sync Test"
+   - Save it
+
+2. **Turn Airplane Mode off**
+
+3. **On Desktop** (within 1 minute):
+   - Refresh quotes page
+   - **Expected**: "Offline Sync Test" appears
+
+---
+
+## Feature Testing Checklist
+
+Use this checklist to ensure all features work correctly:
+
+### ✅ Authentication
+
+- [ ] Can login with test credentials
+- [ ] Invalid credentials show error
+- [ ] Can logout successfully
+- [ ] Session persists after closing app
+- [ ] Session expires after timeout (if configured)
+
+### ✅ Quote Management
+
+- [ ] Can create new quote
+- [ ] Can view quote list
+- [ ] Can view quote details
+- [ ] Can edit existing quote
+- [ ] Can delete quote (if implemented)
+- [ ] Quote search works (if implemented)
+- [ ] Quote filtering works (if implemented)
+
+### ✅ Job Types
+
+Test all 5 job types:
+
+- [ ] Retaining Wall
+- [ ] Driveway
+- [ ] Trenching
+- [ ] Stormwater
+- [ ] Site Preparation
+
+For each job type:
+- [ ] Can add to quote
+- [ ] Input fields appear correctly
+- [ ] Can enter measurements
+- [ ] Can calculate cost
+
+### ✅ Financial Calculations
+
+- [ ] Material cost input works
+- [ ] Quote price calculates correctly (÷ 0.30)
+- [ ] Price updates when material cost changes
+- [ ] 30% / 70% breakdown shown
+- [ ] Currency formatting correct ($X,XXX.XX)
+
+### ✅ Offline Functionality (Critical!)
+
+- [ ] App loads in airplane mode
+- [ ] Can create quote offline
+- [ ] Can edit quote offline
+- [ ] Can view quotes offline
+- [ ] Data persists after closing app
+- [ ] Sync occurs when back online
+- [ ] No data loss during offline/online transitions
+
+### ✅ PWA Features (Mobile)
+
+- [ ] Can install to home screen
+- [ ] App icon appears on home screen
+- [ ] Opens in standalone mode (no browser UI)
+- [ ] Splash screen shows on launch
+- [ ] Appears in app switcher separately
+- [ ] Works like native app
+
+### ✅ Responsive Design
+
+- [ ] Desktop layout (>1024px)
+- [ ] Tablet layout (768px - 1024px)
+- [ ] Mobile layout (<768px)
+- [ ] Text readable without zooming
+- [ ] Buttons large enough to tap
+- [ ] No horizontal scrolling
+
+### ✅ Performance
+
+- [ ] Initial load < 3 seconds
+- [ ] Page transitions smooth
+- [ ] Form inputs respond instantly
+- [ ] No lag when typing
+- [ ] Images load quickly (if any)
+
+### ✅ Data Persistence
+
+- [ ] Quotes saved to database
+- [ ] Can refresh without losing data
+- [ ] Can close and reopen app
+- [ ] Data syncs across devices
+- [ ] No duplicate quotes created
+
+---
+
+## Troubleshooting
+
+### Issue: Login Fails with "Incorrect username or password"
+
+**Solutions**:
+
+1. **Verify you're using the correct environment-specific password**:
+   - **Production**: `M<##+Xu&B8hb%-10`
+   - **Staging**: `2UnkuFUrILJv8z)p`
+   - Email is the same: `e2e-test@embark-quoting.local`
+
+2. **Copy-paste the credentials** instead of typing (passwords are case-sensitive!)
+
+3. **Check user status**:
+   ```bash
+   aws cognito-idp admin-get-user \
+     --user-pool-id ap-southeast-2_v2Jk8B9EK \
+     --username e2e-test@embark-quoting.local \
+     --region ap-southeast-2
+   ```
+
+4. **Reset password** if needed:
+   ```bash
+   # Production
+   aws cognito-idp admin-set-user-password \
+     --user-pool-id ap-southeast-2_v2Jk8B9EK \
+     --username e2e-test@embark-quoting.local \
+     --password 'M<##+Xu&B8hb%-10' \
+     --permanent \
+     --region ap-southeast-2
+
+   # Staging
+   aws cognito-idp admin-set-user-password \
+     --user-pool-id ap-southeast-2_D2t5oQs37 \
+     --username e2e-test@embark-quoting.local \
+     --password '2UnkuFUrILJv8z)p' \
+     --permanent \
+     --region ap-southeast-2
+   ```
+
+---
+
+### Issue: "Add to Home Screen" option not showing (iPhone)
+
+**Solutions**:
+
+1. **Ensure you're using Safari** (not Chrome or other browsers)
+2. **Update iOS** to 14.0 or newer
+3. **Clear Safari cache**:
+   - Settings → Safari → Clear History and Website Data
+4. **Try again** after clearing cache
+
+---
+
+### Issue: "Install App" option not showing (Android)
+
+**Solutions**:
+
+1. **Ensure you're using Chrome** (not Firefox or other browsers)
+2. **Update Chrome** to latest version
+3. **Check if already installed**:
+   - Look for app icon on home screen
+   - Check app drawer
+4. **Clear Chrome cache**:
+   - Chrome → Settings → Privacy → Clear browsing data
+5. **Try again** after clearing cache
+
+---
+
+### Issue: App doesn't work offline
+
+**Diagnostics**:
+
+1. **Check Service Worker**:
+   - Open DevTools (desktop)
+   - Go to Application tab
+   - Click "Service Workers" in left sidebar
+   - Verify service worker is registered
+
+2. **Check IndexedDB**:
+   - DevTools → Application → IndexedDB
+   - Look for "embark-quoting" database
+   - Verify quotes table exists
+
+3. **Clear cache and reload**:
+   - May need to reinstall PWA
+   - Delete app from home screen
+   - Reinstall using "Add to Home Screen"
+
+---
+
+### Issue: Quotes not syncing between devices
+
+**Diagnostics**:
+
+1. **Check backend connectivity**:
+   ```bash
+   curl http://embark-quoting-production-alb-185300723.ap-southeast-2.elb.amazonaws.com/health
+   ```
+
+2. **Verify you're logged in** with same account on both devices
+
+3. **Check network tab** in DevTools:
+   - Look for API calls
+   - Check for errors (red entries)
+
+4. **Wait longer**: Sync may take 10-30 seconds
+
+5. **Manual refresh**: Pull to refresh or reload page
+
+---
+
+### Issue: Database shows "disconnected" in health check
+
+**Solutions**:
+
+1. **Check RDS status**:
+   ```bash
+   aws rds describe-db-instances \
+     --region ap-southeast-2 \
+     --query 'DBInstances[?DBInstanceIdentifier==`embark-quoting-production-db`].DBInstanceStatus'
+   ```
+
+2. **Check security groups**: RDS must allow traffic from ECS
+
+3. **Check secrets**: Verify database credentials in Secrets Manager
+
+---
+
+### Issue: Frontend shows 403 Forbidden
+
+**Solutions**:
+
+1. **Check S3 bucket has files**:
+   ```bash
+   aws s3 ls s3://embark-quoting-production-frontend/ --region ap-southeast-2
+   ```
+
+2. **Verify CloudFront distribution** is enabled
+
+3. **Check bucket policy**: Ensure CloudFront OAI has read access
+
+4. **Trigger frontend deployment**:
+   - Manually run deploy-prod.yml workflow
+   - Or deploy via CI/CD pipeline
+
+---
+
+### Issue: Calculations are wrong
+
+**Expected Formula**: `Quote Price = Material Cost ÷ 0.30`
+
+**Examples**:
+- Material: $1,000 → Quote: $3,333.33
+- Material: $2,000 → Quote: $6,666.67
+- Material: $5,000 → Quote: $16,666.67
+
+**If wrong**:
+1. Check calculation logic in frontend code
+2. Verify no rounding errors
+3. Test with simple values ($100, $1000) first
+
+---
+
+## Support & Resources
+
+### Documentation
+- **Project README**: `../README.md`
+- **Development Guide**: `../DEVELOPMENT.md`
+- **Contributing Guide**: `../CONTRIBUTING.md`
+- **Project Status**: `../PROJECT_STATUS.md`
+
+### Infrastructure
+- **Terraform Outputs**:
+  ```bash
+  cd infrastructure/terraform
+  terraform output
+  ```
+
+### Logs
+- **Backend Logs** (CloudWatch):
+  ```bash
+  aws logs tail /ecs/embark-quoting-production-backend \
+    --follow \
+    --region ap-southeast-2
+  ```
+
+- **ECS Service Events**:
+  ```bash
+  aws ecs describe-services \
+    --cluster embark-quoting-production-cluster \
+    --services embark-quoting-production-backend-service \
+    --region ap-southeast-2 \
+    --query 'services[0].events[0:5]'
+  ```
+
+### GitHub
+- **Actions Workflows**: https://github.com/IAMSamuelRodda/embark-quoting-system/actions
+- **Issues**: https://github.com/IAMSamuelRodda/embark-quoting-system/issues
+
+---
+
+## Test Report Template
+
+Use this template to document your testing results:
+
+```markdown
+# Test Report - [Date]
+
+**Tester**: [Your Name]
+**Environment**: Production
+**Devices Tested**: [e.g., iPhone 14 Pro, Desktop Chrome]
+
+## Summary
+- [ ] All tests passed
+- [ ] Some issues found
+- [ ] Critical issues found
+
+## Desktop Testing
+- Login: ✅ / ❌
+- Quote Creation: ✅ / ❌
+- Quote Editing: ✅ / ❌
+- Financial Calculations: ✅ / ❌
+- Offline Mode: ✅ / ❌
+
+## Mobile Testing
+- PWA Installation: ✅ / ❌
+- Touch Interface: ✅ / ❌
+- Offline Mode: ✅ / ❌
+- Multi-Device Sync: ✅ / ❌
+
+## Issues Found
+1. [Description of issue]
+   - Steps to reproduce
+   - Expected behavior
+   - Actual behavior
+
+## Notes
+[Any additional observations]
+```
+
+---
+
+**Last Updated**: 2025-11-08
+**Version**: 1.0.0
+**Production URL**: https://dtfaaynfdzwhd.cloudfront.net

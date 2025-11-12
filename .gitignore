@@ -60,3 +60,11 @@ terraform.tfvars
 *.key
 credentials.json
 secrets.json
+
+# Playwright test results
+test-results/
+playwright-report/
+
+# Development logs
+backend.log
+frontend.log

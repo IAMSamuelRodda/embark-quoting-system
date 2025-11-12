@@ -1,11 +1,16 @@
 # Embark Quoting System
 
+> **Purpose**: Project introduction and quick start guide for developers and AI agents
+> **Lifecycle**: Stable (update when project fundamentals change)
+
 Offline-first PWA quoting application for Embark Landscaping & Earthworks.
 
 ## Project Status
 
-**Current Phase**: In Development
 **Architecture**: Vertical Slice, Offline-First PWA
+
+**Current Work**: See [`STATUS.md`](./STATUS.md) for active work, known issues, and recent changes
+
 **Progress**: [View Project Board](https://github.com/users/IAMSamuelRodda/projects/2) | [View Issues](https://github.com/IAMSamuelRodda/embark-quoting-system/issues)
 
 ---
@@ -41,17 +46,45 @@ gh issue edit 1 --remove-label "status: pending" --add-label "status: in-progres
 
 ### For Developers
 
+**🚀 Quick Start (Automated)**
+
+One command to launch both frontend and backend development servers:
+
 ```bash
 # Clone repository
 git clone https://github.com/IAMSamuelRodda/embark-quoting-system.git
 cd embark-quoting-system
 
-# View implementation plan
-cat specs/BLUEPRINT.yaml
+# Set up environment files (first time only)
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+# Edit .env files with your credentials
 
-# View financial model
-cat docs/financial-model.md
+# Launch full development stack
+./scripts/dev-start.sh
 ```
+
+**What it does:**
+- ✅ Validates prerequisites (Docker, AWS CLI, Node.js)
+- ✅ Starts PostgreSQL database (Docker container)
+- ✅ Runs database migrations
+- ✅ Retrieves AWS Cognito credentials
+- ✅ Starts backend API (port 4000)
+- ✅ Starts frontend dev server (port 3000)
+- ✅ Auto-logs in with Playwright
+
+**Access:**
+- Frontend: http://localhost:3000 (auto-opens and logs in)
+- Backend: http://localhost:4000
+
+**Credentials (if needed manually):**
+- Email: `e2e-test@embark-quoting.local`
+- Password: Retrieve with `aws secretsmanager get-secret-value --secret-id embark-quoting/staging/e2e-test-credentials --query SecretString --output text | jq -r '.password'`
+
+**See also:**
+- [`specs/ENVIRONMENTS.md`](./specs/ENVIRONMENTS.md) - Complete environment setup guide
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) - System architecture and technical details
+- [`specs/FINANCIAL_MODEL.md`](./specs/FINANCIAL_MODEL.md) - Financial methodology
 
 ---
 
@@ -66,11 +99,18 @@ cat docs/financial-model.md
 
 **Backend**:
 - Node.js 20 + Express
-- PostgreSQL (RDS)
+- PostgreSQL (local: Docker, cloud: RDS)
 - Drizzle ORM
 - Docker containerized
 
-**Infrastructure** (AWS):
+**Local Development Stack:**
+- PostgreSQL 15 (Docker container: `embark-dev-db`)
+- Backend API on port 3001 (Express with `--watch` for hot-reload)
+- Frontend on port 3000 (Vite dev server)
+- Staging Cognito for authentication
+- Logs: `/tmp/embark-*.log` (backend, frontend, migrations)
+
+**Production Infrastructure** (AWS):
 - ECS Fargate (compute)
 - RDS PostgreSQL (database)
 - Cognito (authentication)
@@ -78,7 +118,7 @@ cat docs/financial-model.md
 - SES (email)
 - CloudFront (CDN)
 
-**Cost**: ~$45/month (low-moderate usage)
+**Cost**: ~$45/month (production, low-moderate usage)
 
 ---
 
@@ -88,7 +128,7 @@ The project is organized into 7 major epics with features and tasks tracked in G
 
 **View Current Status**: [GitHub Issues](https://github.com/IAMSamuelRodda/embark-quoting-system/issues) | [Project Board](https://github.com/users/IAMSamuelRodda/projects/2)
 
-**Implementation Details**: See [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml) for complete technical specifications.
+**Technical Details**: See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for complete system architecture, database schema, and implementation specifications.
 
 ---
 
@@ -103,7 +143,7 @@ Supports 5 specialized job types for landscaping and earthworks:
 4. **Stormwater**
 5. **Site Prep**
 
-**Details**: See [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml) for complete parameters and calculation logic.
+**Details**: See [`ARCHITECTURE.md`](./ARCHITECTURE.md) § Database Schema for job parameters and calculation logic.
 
 ### Financial Model
 
@@ -111,7 +151,7 @@ Uses **Profit-First methodology** with configurable allocation percentages for b
 
 **Formula**: `Quote Price = Raw Materials ÷ 0.30`
 
-**Full Details**: See [`docs/financial-model.md`](./docs/financial-model.md) for complete methodology and rationale.
+**Full Details**: See [`specs/FINANCIAL_MODEL.md`](./specs/FINANCIAL_MODEL.md) for complete methodology and rationale.
 
 ### Offline Sync
 
@@ -119,14 +159,14 @@ Uses **Profit-First methodology** with configurable allocation percentages for b
 - **Auto-Merge**: Non-critical fields (notes, metadata)
 - **Manual Resolution**: Critical fields (customer contact, status, totals)
 
-**Implementation**: See Epic 5 in [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml)
+**Implementation**: See [`ARCHITECTURE.md`](./ARCHITECTURE.md) § Offline-First Strategy → Sync Engine
 
 ---
 
 ## Documentation
 
-- **[`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml)**: Complete implementation plan (complexity-validated)
-- **[`docs/financial-model.md`](./docs/financial-model.md)**: Profit-First calculation methodology
+- **[`ARCHITECTURE.md`](./ARCHITECTURE.md)**: System architecture, database schema, tech stack, ADRs
+- **[`specs/FINANCIAL_MODEL.md`](./specs/FINANCIAL_MODEL.md)**: Profit-First calculation methodology
 - **[`CONTRIBUTING.md`](./CONTRIBUTING.md)**: Agent workflow and progress tracking guide
 
 ---
@@ -157,7 +197,7 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for complete workflow.
 
 ## Success Criteria
 
-See [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml) for complete functional, performance, security, and UX requirements.
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) and [`STATUS.md`](./STATUS.md) for current status and requirements.
 
 **Key Goals**:
 - Full offline functionality
@@ -165,6 +205,32 @@ See [`specs/BLUEPRINT.yaml`](./specs/BLUEPRINT.yaml) for complete functional, pe
 - Sub-3s load times
 - WCAG AA accessibility
 - Secure authentication & RBAC
+
+---
+
+## Testing
+
+**E2E Tests** (Playwright):
+```bash
+cd frontend
+
+# Run all E2E tests (credentials auto-retrieved from AWS)
+npm run test:e2e
+
+# Run specific test suite
+npx playwright test e2e/offline-auth.spec.ts
+npx playwright test e2e/sync_verification.spec.ts
+```
+
+**Test Coverage**:
+- ✅ Offline authentication workflow (4 tests)
+- ✅ Auto-sync verification (4 tests)
+
+**See [`DEVELOPMENT.md`](./DEVELOPMENT.md)** for:
+- E2E test credential setup (environment variables or AWS Secrets Manager)
+- Pre-commit checklist (linting, formatting, unit tests)
+- CI/CD workflow expectations
+- Troubleshooting guide
 
 ---
 

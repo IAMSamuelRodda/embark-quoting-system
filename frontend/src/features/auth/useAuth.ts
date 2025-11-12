@@ -1,14 +1,24 @@
 import { create } from 'zustand';
 import { authService, type SignInData, type SignUpData, type AuthUser } from './authService';
+import {
+  storeCredentials,
+  getStoredCredentials,
+  clearStoredCredentials,
+  hasStoredCredentials,
+  getDaysUntilExpiry,
+} from '../../shared/utils/secureStorage';
+import { connectionMonitor } from '../../shared/utils/connection';
 
 interface AuthState {
   user: AuthUser | null;
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  isOfflineMode: boolean; // True if authenticated offline
+  offlineAuthExpiry: Date | null; // When offline auth expires
 
   // Actions
-  signIn: (data: SignInData) => Promise<void>;
+  signIn: (data: SignInData & { rememberMe?: boolean }) => Promise<void>;
   signUp: (data: SignUpData) => Promise<void>;
   signOut: () => Promise<void>;
   confirmSignUp: (email: string, code: string) => Promise<void>;
@@ -18,6 +28,8 @@ interface AuthState {
   checkAuth: () => Promise<void>;
   clearError: () => void;
   setUser: (user: AuthUser) => void;
+  hasOfflineAuth: () => boolean;
+  forceOnlineAuth: () => Promise<void>;
 }
 
 export const useAuth = create<AuthState>((set) => ({
@@ -25,9 +37,65 @@ export const useAuth = create<AuthState>((set) => ({
   isLoading: true, // Start with true to prevent flash of wrong route
   error: null,
   isAuthenticated: false,
+  isOfflineMode: false,
+  offlineAuthExpiry: null,
 
-  signIn: async (data: SignInData) => {
+  signIn: async (data: SignInData & { rememberMe?: boolean }) => {
     set({ isLoading: true, error: null });
+
+    // Check if online
+    const isOnline = connectionMonitor.isOnline();
+
+    if (!isOnline) {
+      // Offline login - try cached credentials
+      console.log('[Auth] Offline detected, attempting offline authentication');
+
+      try {
+        const stored = await getStoredCredentials();
+
+        if (!stored) {
+          throw new Error(
+            'No cached credentials available. Please connect to the internet to log in.',
+          );
+        }
+
+        // Verify credentials match
+        if (stored.username !== data.email || stored.password !== data.password) {
+          throw new Error('Invalid credentials');
+        }
+
+        // Offline authentication successful
+        const expiryDays = getDaysUntilExpiry();
+        console.log(`[Auth] Offline authentication successful (expires in ${expiryDays} days)`);
+
+        // Create offline user object
+        const offlineUser: AuthUser = {
+          email: stored.username,
+          role: 'user', // Can't determine role offline
+          groups: [], // Can't determine groups offline
+        };
+
+        set({
+          user: offlineUser,
+          isAuthenticated: true,
+          isOfflineMode: true,
+          offlineAuthExpiry: expiryDays
+            ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000)
+            : null,
+          isLoading: false,
+        });
+
+        return;
+      } catch (error) {
+        set({
+          error: error instanceof Error ? error.message : 'Offline authentication failed',
+          isLoading: false,
+        });
+        throw error;
+      }
+    }
+
+    // Online login - normal Cognito flow
     try {
       const result = await authService.signIn(data);
 
@@ -39,7 +107,23 @@ export const useAuth = create<AuthState>((set) => ({
       }
 
       // Normal login success - result is AuthUser
-      set({ user: result, isAuthenticated: true, isLoading: false });
+      set({
+        user: result,
+        isAuthenticated: true,
+        isOfflineMode: false,
+        offlineAuthExpiry: null,
+        isLoading: false,
+      });
+
+      // Store credentials if rememberMe is enabled
+      if (data.rememberMe) {
+        console.log('[Auth] Storing credentials for offline use');
+        await storeCredentials({
+          username: data.email,
+          password: data.password,
+          rememberMe: true,
+        });
+      }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to sign in',
@@ -66,8 +150,26 @@ export const useAuth = create<AuthState>((set) => ({
   signOut: async () => {
     set({ isLoading: true, error: null });
     try {
-      await authService.signOut();
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      // Clear stored credentials
+      await clearStoredCredentials();
+      console.log('[Auth] Cleared stored credentials on sign out');
+
+      // Sign out from Cognito (will fail silently if offline)
+      try {
+        await authService.signOut();
+      } catch {
+        console.log(
+          '[Auth] Could not sign out from Cognito (offline or error), continuing with local signout',
+        );
+      }
+
+      set({
+        user: null,
+        isAuthenticated: false,
+        isOfflineMode: false,
+        offlineAuthExpiry: null,
+        isLoading: false,
+      });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to sign out',
@@ -136,24 +238,84 @@ export const useAuth = create<AuthState>((set) => ({
   checkAuth: async () => {
     set({ isLoading: true, error: null });
     try {
+      // Try online authentication first
       const user = await authService.getCurrentUser();
       if (user) {
-        set({ user, isAuthenticated: true, isLoading: false });
-      } else {
-        set({ user: null, isAuthenticated: false, isLoading: false });
+        set({
+          user,
+          isAuthenticated: true,
+          isOfflineMode: false,
+          offlineAuthExpiry: null,
+          isLoading: false,
+        });
+        return;
       }
     } catch {
-      // No user authenticated is not an error - just set state to unauthenticated
-      set({
-        user: null,
-        isAuthenticated: false,
-        error: null, // Don't show error for missing auth
-        isLoading: false,
-      });
+      // Online auth failed - try offline auth if available
+      console.log('[Auth] Online auth check failed, trying offline auth');
+
+      try {
+        const stored = await getStoredCredentials();
+        if (stored) {
+          const expiryDays = getDaysUntilExpiry();
+          console.log(`[Auth] Offline credentials found (expires in ${expiryDays} days)`);
+
+          // Create offline user object
+          const offlineUser: AuthUser = {
+            email: stored.username,
+            role: 'user', // Can't determine role offline
+            groups: [], // Can't determine groups offline
+          };
+
+          set({
+            user: offlineUser,
+            isAuthenticated: true,
+            isOfflineMode: true,
+            offlineAuthExpiry: expiryDays
+              ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000)
+              : null,
+            isLoading: false,
+          });
+          return;
+        }
+      } catch {
+        console.log('[Auth] Offline auth also failed');
+      }
     }
+
+    // No authentication available
+    set({
+      user: null,
+      isAuthenticated: false,
+      isOfflineMode: false,
+      offlineAuthExpiry: null,
+      error: null, // Don't show error for missing auth
+      isLoading: false,
+    });
   },
 
   clearError: () => set({ error: null }),
 
-  setUser: (user: AuthUser) => set({ user, isAuthenticated: true, isLoading: false }),
+  setUser: (user: AuthUser) =>
+    set({
+      user,
+      isAuthenticated: true,
+      isOfflineMode: false,
+      offlineAuthExpiry: null,
+      isLoading: false,
+    }),
+
+  hasOfflineAuth: () => hasStoredCredentials(),
+
+  forceOnlineAuth: async () => {
+    // Clear cached credentials and force online re-authentication
+    await clearStoredCredentials();
+    set({
+      user: null,
+      isAuthenticated: false,
+      isOfflineMode: false,
+      offlineAuthExpiry: null,
+      error: 'Please log in again to verify your credentials',
+    });
+  },
 }));

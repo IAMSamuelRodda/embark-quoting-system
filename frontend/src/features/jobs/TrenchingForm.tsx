@@ -71,11 +71,11 @@ export function TrenchingForm({ quoteId, onSave, onCancel, existingJob }: Trench
           downpipe_adaptors: (existingJob.parameters.downpipe_adaptors as number) || 0,
         }
       : {
-          length: 0,
+          length: 10,
           width: '600',
-          depth: 0,
+          depth: 0.5,
           for_stormwater: false,
-          pipe_length: 0,
+          pipe_length: 10,
           t_joints: 0,
           elbows: 0,
           downpipe_adaptors: 0,
@@ -117,7 +117,7 @@ export function TrenchingForm({ quoteId, onSave, onCancel, existingJob }: Trench
           downpipe_adaptors: data.downpipe_adaptors,
         }),
       },
-      subtotal: 0,
+      // Backend will calculate materials, labour, calculations, and subtotal
     };
 
     await onSave(jobData);

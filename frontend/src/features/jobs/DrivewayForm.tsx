@@ -98,7 +98,7 @@ export function DrivewayForm({ quoteId, onSave, onCancel, existingJob }: Drivewa
         topping_thickness: data.topping_enabled ? data.topping_thickness : undefined,
         topping_type: data.topping_enabled ? data.topping_type : undefined,
       },
-      subtotal: 0,
+      // Backend will calculate materials, labour, calculations, and subtotal
     };
 
     await onSave(jobData);
