@@ -160,8 +160,8 @@ resource "aws_lb" "main" {
   security_groups    = [aws_security_group.alb.id]
   subnets            = aws_subnet.public[*].id
 
-  enable_deletion_protection = var.environment == "production"
-  enable_http2               = true
+  enable_deletion_protection       = var.environment == "production"
+  enable_http2                     = true
   enable_cross_zone_load_balancing = true
 
   tags = {
@@ -172,7 +172,7 @@ resource "aws_lb" "main" {
 # Target Group for ECS Service
 resource "aws_lb_target_group" "backend" {
   count       = var.enable_alb ? 1 : 0
-  name        = "eq-${var.environment}-backend-tg"  # Shortened to fit 32 char limit
+  name        = "eq-${var.environment}-backend-tg" # Shortened to fit 32 char limit
   port        = 3000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
