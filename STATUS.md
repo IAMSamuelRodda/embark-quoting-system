@@ -3,8 +3,8 @@
 > **Purpose**: Current work, active bugs, and recent changes (~2 week rolling window)
 > **Lifecycle**: Living document (update daily/weekly during active development)
 
-**Last Updated:** 2025-11-12 (Session: Manual testing - discovered 10 issues including admin dashboard gap)
-**Current Phase:** Post-MVP Bug Fixes & Test Infrastructure
+**Last Updated:** 2025-11-12 (Session: E2E CI/Local Parity + Staging HTTPS Fix)
+**Current Phase:** Infrastructure Fixes & CI/CD Reliability
 **Version:** 1.0.0-beta
 
 ---
@@ -15,10 +15,10 @@
 |--------|--------|-------|
 | **Frontend Deployment** | 🟢 Live | https://d1aekrwrb8e93r.cloudfront.net |
 | **Backend Deployment** | 🟢 Live | ECS task healthy, ALB target healthy |
-| **CI/CD Pipeline** | 🟢 Passing | All workflows operational |
-| **Documentation** | 🟢 Current | Updated Nov 11, 2025 |
-| **E2E Test Coverage** | 🟢 Excellent | 8 core tests passing (offline auth + sync) |
-| **Known Bugs** | 🟡 Active | 10 issues discovered (#110-#119, includes admin dashboard gap) |
+| **CI/CD Pipeline** | 🟡 Degraded | E2E tests failing in CI (pass locally) - See Issue #130 |
+| **Documentation** | 🟢 Current | Updated Nov 12, 2025 |
+| **E2E Test Coverage** | 🟢 Excellent | 8 core tests passing locally (auth + sync + calculations) |
+| **Known Bugs** | 🟡 Active | 11 issues (#110-#119, #130 E2E CI/local parity) |
 | **Technical Debt** | 🟡 Moderate | See [Known Issues](#known-issues) below |
 
 ---

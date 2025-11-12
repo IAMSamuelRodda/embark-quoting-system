@@ -23,7 +23,7 @@ github_branch = "main"
 # Database (smaller instance for staging)
 db_instance_class    = "db.t4g.micro"
 db_allocated_storage = 20
-db_engine_version    = "15.5"
+db_engine_version    = "15.14"
 db_name              = "embark_quoting_staging"
 db_username          = "embark_admin"
 # db_password - MUST be passed via -var flag or environment variable
