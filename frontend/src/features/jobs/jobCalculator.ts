@@ -257,7 +257,9 @@ function calculateDriveway(params: Record<string, unknown>): JobCalculation {
     calculations: {
       baseM3,
       toppingM3:
-        topping_enabled && topping_thickness ? numLength * numWidth * ((topping_thickness as number) / 1000) : 0,
+        topping_enabled && topping_thickness
+          ? numLength * numWidth * ((topping_thickness as number) / 1000)
+          : 0,
       labourHours,
     },
     subtotal: parseFloat((materialsCost + labour.total).toFixed(2)),

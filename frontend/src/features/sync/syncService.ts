@@ -118,7 +118,10 @@ export async function pushChanges(batchSize: number = 10): Promise<{
             if (createJobResponse.success && createJobResponse.data) {
               const jobId = (item.data as { id: string }).id;
               // Backend returns subtotal as string (DECIMAL type), updateJobFromBackend handles conversion
-              await updateJobFromBackend(jobId, createJobResponse.data as unknown as Record<string, unknown>);
+              await updateJobFromBackend(
+                jobId,
+                createJobResponse.data as unknown as Record<string, unknown>,
+              );
 
               // Refresh Zustand state to trigger UI update with calculated values
               const updatedJobs = await getJobsByQuoteId(item.quote_id);
@@ -169,7 +172,10 @@ export async function pushChanges(batchSize: number = 10): Promise<{
             // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
             if (updateJobResponse.success && updateJobResponse.data) {
               // Backend returns subtotal as string (DECIMAL type), updateJobFromBackend handles conversion
-              await updateJobFromBackend(jobId, updateJobResponse.data as unknown as Record<string, unknown>);
+              await updateJobFromBackend(
+                jobId,
+                updateJobResponse.data as unknown as Record<string, unknown>,
+              );
 
               // Refresh Zustand state to trigger UI update with calculated values
               const updatedJobs = await getJobsByQuoteId(item.quote_id);
