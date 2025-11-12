@@ -101,9 +101,14 @@ See `CONTRIBUTING.md` for complete workflow.
 
 ## 🔄 GitHub Workflow
 
-**Branch Protection**: NEVER push directly to `dev` or `main`. Use feature/fix branches → PR. See `DEVELOPMENT.md` § Git Branching Strategy.
+**Branch Protection**: NEVER push directly to `dev` or `main`. Use feature/fix branches → PR.
 
-**Commit-Issue Linking**: Every commit MUST reference a GitHub issue (`Closes #N`, `Relates to #N`). See `CONTRIBUTING.md` § Link Commits to Issues.
+**Auto-Merge**: ALWAYS enable auto-merge on PRs to `dev` (prevents stale branches):
+```bash
+gh pr merge <PR-NUMBER> --auto --squash --delete-branch
+```
+
+**Commit-Issue Linking**: Every commit MUST reference a GitHub issue (`Closes #N`, `Relates to #N`).
 
 ---
 
