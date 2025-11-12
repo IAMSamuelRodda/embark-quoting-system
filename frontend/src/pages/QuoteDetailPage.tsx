@@ -17,7 +17,14 @@ import { mergeVersionVectors, incrementVersion } from '../features/sync/versionV
 export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { selectedQuote, isLoading, error, loadQuoteDetails, clearSelectedQuote, updateQuoteAction } = useQuotes();
+  const {
+    selectedQuote,
+    isLoading,
+    error,
+    loadQuoteDetails,
+    clearSelectedQuote,
+    updateQuoteAction,
+  } = useQuotes();
   const { jobs, loadJobsForQuote, createJob, deleteJob, clearJobs } = useJobs();
   const [isAddingJob, setIsAddingJob] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
