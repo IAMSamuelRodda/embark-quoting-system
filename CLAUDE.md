@@ -138,3 +138,4 @@ const { email, password } = getAndValidateCredentials();
   2. Label mismatches break selectors: Tests caught "Length (m)" vs "Length (meters)", "Save Quote" vs "Create Quote", "Save Job" vs "Add Job" - all invisible to unit tests
   3. Dropdown vs input fields matter: Tests revealed <select> vs <input> differences requiring .selectOption() vs .fill() - Playwright enforces real browser behavior
   4. Test-driven debugging: Running E2E tests iteratively exposed each UI layer issue systematically (authentication → form labels → button text → submit behavior)
+- it's important to run npm run format:check before pushing to catch formatting issues early
