@@ -46,6 +46,22 @@ gh pr create --base main --head dev --title "Release: v1.2.0"
 # 10. Production deployment triggered automatically on main merge
 ```
 
+### Branch Protection
+
+**Git Hook**: A pre-push hook prevents direct pushes to `dev` and `main` branches.
+
+**Setup** (after cloning):
+```bash
+./scripts/install-git-hooks.sh
+```
+
+**What it does**: Blocks pushes if you're on `dev` or `main`, reminding you to use feature branches.
+
+**If you need to bypass** (emergency hotfixes only):
+```bash
+git push --no-verify origin main  # Use with extreme caution
+```
+
 ### PR Merge Strategy
 
 **RULE**: Use `--merge` (merge commit) for all PRs to preserve complete feature branch history.
