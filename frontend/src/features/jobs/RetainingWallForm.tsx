@@ -87,8 +87,7 @@ export function RetainingWallForm({
         ag_pipe: data.ag_pipe,
         orange_plastic: data.orange_plastic,
       },
-      // Backend will calculate materials, labour, and subtotal
-      subtotal: 0,
+      // Backend will calculate materials, labour, calculations, and subtotal
     };
 
     await onSave(jobData);

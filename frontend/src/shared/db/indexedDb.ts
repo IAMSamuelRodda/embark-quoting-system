@@ -51,12 +51,15 @@ export class EmbarkDatabase extends Dexie {
       `,
 
       // Jobs table
-      // Indexes: quote_id, job_type, order_index
+      // Indexes: quote_id, job_type, order_index, sync_status
       jobs: `
         id,
         quote_id,
         job_type,
-        order_index
+        order_index,
+        sync_status,
+        created_at,
+        updated_at
       `,
 
       // Financials table (one per quote)
@@ -140,6 +143,14 @@ export class EmbarkDatabase extends Dexie {
 
     this.jobs.hook('creating', (_primKey, obj) => {
       if (!obj.id) obj.id = crypto.randomUUID();
+      if (!obj.created_at) obj.created_at = new Date();
+      if (!obj.updated_at) obj.updated_at = new Date();
+      if (!obj.device_id) obj.device_id = getDeviceId();
+      if (!obj.sync_status) obj.sync_status = 'pending';
+    });
+
+    this.jobs.hook('updating', (modifications) => {
+      return { ...modifications, updated_at: new Date() };
     });
 
     this.syncQueue.hook('creating', (_primKey, obj) => {
@@ -172,10 +183,41 @@ export class EmbarkDatabase extends Dexie {
   }
 
   /**
-   * Get sync queue size (pending changes)
+   * Get sync queue size (pending changes ready to sync)
+   * Only counts items that are:
+   * - Not in dead-letter queue (dead_letter = 0 or false)
+   * - Past their retry time (next_retry_at <= now or null)
    */
   async getSyncQueueSize(): Promise<number> {
-    return await this.syncQueue.count();
+    const now = new Date();
+
+    // Get all active items (not in dead-letter queue)
+    // Handle both boolean false and number 0 for dead_letter field
+    const allItems = await this.syncQueue.toArray();
+    console.log(`[getSyncQueueSize] Total items in queue: ${allItems.length}`);
+
+    // Filter to only items ready for sync (not dead-letter, past retry time)
+    const readyItems = allItems.filter((item) => {
+      // Exclude dead-letter items (truthy values - handle both boolean and number)
+      if (item.dead_letter) {
+        console.log(`[getSyncQueueSize] Excluding dead-letter item ${item.id}`);
+        return false;
+      }
+
+      // Include items with no retry time or past retry time
+      if (!item.next_retry_at) {
+        console.log(`[getSyncQueueSize] Including item ${item.id} (no retry time)`);
+        return true;
+      }
+      const isReady = new Date(item.next_retry_at) <= now;
+      console.log(
+        `[getSyncQueueSize] Item ${item.id} retry check: ${isReady} (next_retry_at: ${item.next_retry_at})`,
+      );
+      return isReady;
+    });
+
+    console.log(`[getSyncQueueSize] Ready items: ${readyItems.length}`);
+    return readyItems.length;
   }
 
   /**

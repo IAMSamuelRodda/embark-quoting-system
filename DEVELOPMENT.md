@@ -1,6 +1,7 @@
 # Development Workflow
 
-> **Purpose**: Developer and agent workflow for code quality, testing, and CI/CD integration.
+> **Purpose**: Git workflow, CI/CD pipelines, and pre-commit checklist
+> **Lifecycle**: Stable (update when branching strategy or CI/CD processes change)
 
 ---
 
@@ -33,7 +34,7 @@ git push -u origin feature/my-feature
 gh pr create --base dev --title "Feature: X" --body "Implements X (Closes #42)"
 
 # 4. CI runs: validate → test → build
-# 5. Auto-merge to dev when CI passes
+# 5. Auto-merge to dev when CI passes (uses --merge to preserve history)
 
 # 6. Staging deployment triggered automatically from dev
 # 7. E2E tests run on staging
@@ -44,6 +45,25 @@ gh pr create --base main --head dev --title "Release: v1.2.0"
 # 9. Human approval required for main merge
 # 10. Production deployment triggered automatically on main merge
 ```
+
+### PR Merge Strategy
+
+**RULE**: Use `--merge` (merge commit) for all PRs to preserve complete feature branch history.
+
+**Why**: Merge commits show the true branch flow in git graph and preserve individual commit history (each commit was tested by CI). Squash merging creates "orphaned" commits that don't show merging back into the main line.
+
+**How to Merge**:
+```bash
+# Automatic (when CI passes) - GitHub Actions uses --merge
+# Manual merge if needed:
+gh pr merge <PR-number> --merge --auto
+
+# Do NOT use:
+gh pr merge <PR-number> --squash  # ❌ Loses individual commit history
+gh pr merge <PR-number> --rebase  # ❌ Rewrites commit SHAs
+```
+
+**Exception**: Only use `--squash` for rare cases with genuinely messy WIP commits that shouldn't be preserved.
 
 ### CI/CD Pipeline by Branch
 
@@ -151,15 +171,21 @@ cd frontend && npm run format
 cd backend && npm run test:unit
 cd frontend && npm run test:unit
 
-# 4. Review staged changes
+# 4. Run E2E tests (if authentication or sync changes)
+#    See "E2E Test Credentials" section for setup
+cd frontend && npm run test:e2e
+
+# 5. Review staged changes
 git status
 git diff --staged
 
-# 5. Verify commit message includes issue reference
+# 6. Verify commit message includes issue reference
 #    Use: "Closes #N", "Relates to #N", "Fixes #N"
 ```
 
 **Why**: CI runs these same checks. Catching issues locally saves time and prevents broken builds.
+
+**Note**: E2E tests require credentials from environment variables or AWS Secrets Manager. See the "E2E Test Credentials" section below for setup instructions.
 
 ---
 
@@ -350,9 +376,192 @@ DATABASE_URL="postgresql://embark_test:test_password@localhost:5432/embark_quoti
 
 ---
 
+## 🔐 E2E Test Credentials
+
+All Playwright E2E tests use centralized credential management via `frontend/e2e/test-utils.ts`. Tests automatically retrieve credentials and fail fast with clear error messages if unavailable.
+
+### How It Works
+
+The `getAndValidateCredentials()` function retrieves credentials in this order:
+
+1. **Environment variables** (if set):
+   - `TEST_USER_EMAIL`
+   - `TEST_USER_PASSWORD`
+
+2. **AWS Secrets Manager** (fallback):
+   - Secret: `embark-quoting/staging/e2e-test-credentials`
+   - Fields: `email`, `password`
+
+3. **Fail fast** with detailed error message if neither source available
+
+**Why**: Prevents tests from hanging at login for 15+ seconds with empty passwords. Tests now fail immediately with actionable error messages.
+
+### Running E2E Tests
+
+```bash
+cd frontend
+
+# Option 1: Auto-retrieve from AWS (recommended)
+# No setup needed - credentials fetched automatically
+npx playwright test e2e/offline-auth.spec.ts
+npx playwright test e2e/sync_verification.spec.ts
+
+# Option 2: Use environment variables
+export TEST_USER_EMAIL="e2e-test@embark-quoting.local"
+export TEST_USER_PASSWORD="<password>"
+npx playwright test
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run with UI (headed mode)
+npx playwright test e2e/offline-auth.spec.ts --headed
+```
+
+### Test Suites
+
+| Test Suite | Tests | Coverage |
+|------------|-------|----------|
+| **offline-auth.spec.ts** | 4 | Offline authentication flow, Remember Me, credential expiry, invalid credentials |
+| **sync_verification.spec.ts** | 4 | Auto-sync initialization, quote/job sync, sync status UI, offline scenarios |
+
+**Total**: 8 E2E tests validating offline-first architecture and authentication.
+
+### Troubleshooting
+
+#### Error: "Cannot retrieve test credentials"
+
+**Cause**: Neither environment variables nor AWS credentials are available.
+
+**Solutions**:
+
+1. **Set environment variables**:
+   ```bash
+   export TEST_USER_EMAIL="e2e-test@embark-quoting.local"
+   export TEST_USER_PASSWORD="<password>"
+   ```
+
+2. **Configure AWS CLI** (if using AWS fallback):
+   ```bash
+   # Configure AWS credentials
+   aws configure
+
+   # Verify access to secrets
+   aws secretsmanager get-secret-value \
+     --secret-id embark-quoting/staging/e2e-test-credentials
+   ```
+
+3. **Check AWS permissions**: Ensure IAM user has `secretsmanager:GetSecretValue` permission for the staging secrets.
+
+#### Tests Hang at Login (15+ seconds)
+
+**Symptom**: Test times out waiting for navigation after clicking "Sign In".
+
+**Root Cause** (FIXED): Tests previously used `|| ''` fallback for missing passwords, causing indefinite hangs.
+
+**Current Behavior**: Tests now fail fast with clear error message instead of hanging.
+
+**If still occurring**:
+- Check that `test-utils.ts` is being used: `import { getAndValidateCredentials } from './test-utils';`
+- Verify credentials are not empty: `console.log` output should show "Credentials validated successfully"
+
+#### Password Too Short Warning
+
+**Error**: `Password looks invalid (too short). Expected: At least 8 characters for Cognito`
+
+**Cause**: AWS Cognito requires passwords to be at least 8 characters.
+
+**Solution**: Check that the correct password is being retrieved (not a truncated or test placeholder value).
+
+#### AWS CLI Not Configured
+
+**Error**: `Unable to locate credentials. You can configure credentials by running "aws configure"`
+
+**Solution**:
+```bash
+aws configure
+# Enter AWS Access Key ID
+# Enter AWS Secret Access Key
+# Default region: ap-southeast-2 (or your staging region)
+# Default output format: json
+```
+
+### Writing New E2E Tests
+
+When creating new E2E tests, always use centralized credential management:
+
+```typescript
+import { test, expect } from '@playwright/test';
+import { getAndValidateCredentials } from './test-utils';
+
+// Get credentials at module level (fails fast if not available)
+const { email, password } = getAndValidateCredentials();
+
+test.describe('My Test Suite', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login flow
+    await page.goto('http://localhost:3000/login');
+    await page.getByPlaceholder(/email/i).fill(email);
+    await page.getByPlaceholder(/password/i).fill(password);
+    await page.getByRole('button', { name: /sign in/i }).click();
+    await page.waitForURL(/\/(dashboard|quotes)/, { timeout: 15000 });
+  });
+
+  test('my test', async ({ page }) => {
+    // Test logic...
+  });
+});
+```
+
+**DO NOT** use hardcoded credentials or empty string fallbacks:
+```typescript
+// ❌ WRONG - causes hanging tests
+const password = process.env.TEST_USER_PASSWORD || '';
+
+// ❌ WRONG - hardcoded credentials
+const password = 'hardcoded-password-123';
+
+// ✅ CORRECT - centralized with validation
+const { email, password } = getAndValidateCredentials();
+```
+
+---
+
 ## 📦 Local Development Setup
 
-### Backend Setup
+### Quick Start (Recommended)
+
+**One-command full-stack startup** - complete development environment:
+
+```bash
+./scripts/dev-start.sh
+```
+
+This comprehensive script:
+- ✅ Validates prerequisites (Docker, AWS CLI, Node.js)
+- ✅ Starts PostgreSQL database (Docker container)
+- ✅ Runs database migrations
+- ✅ Retrieves AWS Cognito credentials from Secrets Manager
+- ✅ Starts backend API server (port 4000)
+- ✅ Starts frontend dev server (port 3000)
+- ✅ Auto-logs in using Playwright browser automation
+
+**Result:** Browser opens at `http://localhost:3000`, logged in and ready to test!
+
+**Prerequisites:**
+- Docker Desktop running
+- AWS CLI configured with appropriate credentials
+- Node.js 18+ installed
+
+**Stop:** Press `Ctrl+C` to stop all services
+
+---
+
+### Manual Setup (Alternative)
+
+If you prefer to run services individually in separate terminals:
+
+#### Backend Setup
 
 ```bash
 cd backend
@@ -371,7 +580,7 @@ npm run db:migrate
 npm run dev
 ```
 
-### Frontend Setup
+#### Frontend Setup
 
 ```bash
 cd frontend
@@ -450,13 +659,72 @@ npm run test:integration 2>&1 | tee test-output.log
 
 ---
 
+## ❌ Anti-Patterns: Critical Mistakes to Avoid
+
+### 🚨 NEVER Hardcode E2E Test Credentials
+
+**ANTI-PATTERN (DO NOT DO THIS)**:
+```typescript
+// ❌ WRONG - Hardcoded environment variable that doesn't exist
+const password = process.env.E2E_TEST_PASSWORD || '';
+const email = 'e2e-test@embark-quoting.local';
+
+// ❌ WRONG - Hardcoded fallback password
+const password = process.env.E2E_TEST_PASSWORD || 'AutoTest123!';
+```
+
+**Why This Is Catastrophic**:
+1. **Silent Failures**: If `E2E_TEST_PASSWORD` doesn't exist, password is empty string (`''`)
+2. **Tests Pass Login Stage**: Playwright successfully fills empty string into password field
+3. **Authentication Fails**: Cognito returns "Incorrect username or password"
+4. **Cascading Failures**: All downstream tests fail (sync, job creation, etc.)
+5. **Wasted Debugging Time**: Developers debug sync/API code when the problem is test setup
+6. **False Root Cause**: Looks like application bug when it's actually missing credentials
+
+**Real-World Impact**:
+- **Session 1**: Debugged sync service code for 2+ hours
+- **Session 2**: Fixed scope errors, type mismatches - all irrelevant
+- **Session 3**: Deployed debug-specialist subagent to investigate sync failures
+- **Actual Problem**: Tests couldn't log in because password was empty string
+
+**CORRECT PATTERN (ALWAYS DO THIS)**:
+```typescript
+// ✅ CORRECT - Use centralized credential retrieval
+import { getAndValidateCredentials } from './test-utils';
+
+const { email, password } = getAndValidateCredentials();
+```
+
+**What `getAndValidateCredentials()` Does**:
+1. **Tries environment variables first**: `TEST_USER_EMAIL`, `TEST_USER_PASSWORD`
+2. **Falls back to AWS Secrets Manager**: `embark-quoting/staging/e2e-test-credentials`
+3. **Validates credentials are not empty**: Checks password length >= 8 chars
+4. **Fails fast with clear error**: Tells developer exactly how to fix the issue
+5. **Logs credential status**: Shows redacted password length for debugging
+
+**Enforcement**:
+- **Pre-commit check**: `grep -r "E2E_TEST.*PASSWORD" --include="*.spec.ts" frontend/e2e/`
+- **If matches found**: Reject commit with error message pointing to this documentation
+- **CI/CD validation**: Same check in GitHub Actions to prevent merging
+
+**Why This Pattern Exists**:
+- AWS Secrets Manager is authoritative source for staging/production credentials
+- Environment variables allow local override without committing secrets
+- Centralized validation prevents multiple implementations with different error handling
+- Fail-fast approach saves hours of debugging downstream failures
+
+**Historical Context**:
+This anti-pattern was encountered in commit 09c2653 where 8 test files used hardcoded `process.env.E2E_TEST_PASSWORD` that didn't exist, causing all E2E tests to fail authentication silently. The debugging process consumed 3+ sessions across multiple agents before identifying the root cause.
+
+---
+
 ## 📚 Additional Resources
 
 - **Architecture**: `specs/BLUEPRINT.yaml` - Complete technical specifications
-- **Financial Model**: `docs/financial-model.md` - Profit-First calculation details
+- **Financial Model**: `specs/FINANCIAL_MODEL.md` - Profit-First calculation details
 - **Progress Tracking**: `CONTRIBUTING.md` - Issue workflow and GitHub CLI commands
 - **Project Navigation**: `CLAUDE.md` - Quick reference for finding information
 
 ---
 
-**Last Updated**: 2025-11-06 (Initial version - extracted from CLAUDE.md and CONTRIBUTING.md)
+**Last Updated**: 2025-11-11 (Added anti-pattern documentation for hardcoded E2E credentials)

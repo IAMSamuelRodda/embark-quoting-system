@@ -133,6 +133,13 @@ export interface Job {
   labour?: Labour;
   calculations?: Record<string, unknown>;
   subtotal: number;
+  created_at?: Date;
+  updated_at?: Date;
+
+  // Offline-first fields (not in PostgreSQL)
+  sync_status?: SyncStatus;
+  last_synced_at?: Date;
+  device_id?: string;
 }
 
 export interface Material {

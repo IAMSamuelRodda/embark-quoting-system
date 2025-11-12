@@ -1,6 +1,117 @@
 # Contributing to Embark Quoting System
 
+> **Purpose**: GitHub workflow, progress tracking, and planning new features
+> **Lifecycle**: Stable (update when workflow processes change)
+
 > **Before submitting code**: See `DEVELOPMENT.md` for pre-commit checklist, CI/CD expectations, and test organization.
+
+## Getting Started: Local Development
+
+**🚀 Quick Start**
+
+Launch the full local development stack with one command:
+
+```bash
+./scripts/dev-start.sh
+```
+
+**What it sets up:**
+- PostgreSQL database (Docker container: `embark-dev-db`)
+- Backend API on port 3001 (with hot-reload)
+- Frontend dev server on port 3000
+- Database migrations
+- Auto-login with staging credentials
+
+**Result:** Browser opens at `http://localhost:3000`, fully set up and ready to code!
+
+**Monitoring logs:**
+```bash
+# Watch backend logs (API requests, database queries, errors)
+tail -f /tmp/embark-backend.log
+
+# Watch frontend logs
+tail -f /tmp/embark-frontend.log
+
+# View all logs
+tail -f /tmp/embark-*.log
+```
+
+**Stopping services:** Press `Ctrl+C` in the terminal running `dev-start.sh`
+
+**Full setup details:** See [`specs/ENVIRONMENTS.md`](./specs/ENVIRONMENTS.md) for complete environment configuration and manual setup instructions.
+
+---
+
+## Definition of Done: UI Bug Fixes
+
+**⚠️ CRITICAL REQUIREMENT**: All UI bug fixes MUST include a passing E2E test that verifies the fix works in the actual UI.
+
+### Why This Matters
+
+The offline-first architecture adds complexity - data flows through multiple layers (**UI → IndexedDB → Sync → API → Response → IndexedDB → UI**), and any broken link causes silent failures. Backend tests alone don't catch UI display issues.
+
+**Example from November 2025 session:**
+- Issue: Job calculations showed "$0.00" even after backend calculated correctly
+- Root cause: Frontend wasn't capturing API responses with calculated values
+- Backend tests: ✅ Passing (calculations worked)
+- Frontend unit tests: ✅ Passing (components rendered)
+- **E2E test: ❌ Failed - exposed the bug!**
+
+### Requirements for UI Fixes
+
+1. **Write E2E test first** (Test-Driven Development):
+   ```bash
+   cd frontend
+   npm run test:e2e -- <test-file>.spec.ts
+   ```
+
+2. **Test must fail initially** - proves it reproduces the bug
+
+3. **Apply fix** - update code to resolve the issue
+
+4. **Test must pass** - verifies the fix works end-to-end
+
+5. **Keep test in suite** - prevents regression
+
+### What Counts as a UI Bug
+
+- Data not displaying correctly
+- Form submissions not working
+- Sync status not updating
+- Calculations showing incorrect values
+- Navigation/routing issues
+- Any user-facing display or interaction problem
+
+### E2E Test Resources
+
+- **Test location**: `frontend/e2e/*.spec.ts`
+- **Run tests**: `npm run test:e2e`
+- **Example**: `frontend/e2e/job-calculations.spec.ts` (comprehensive 3-scenario test)
+- **Skill**: Use `playwright-testing-advanced` skill for test generation and best practices
+
+### Debugging E2E Test Failures
+
+When E2E tests fail, use **systematic debugging** with adaptive polling:
+
+```bash
+# Use adaptive test monitor (catches fast failures in 10s, not 150s)
+~/.claude/skills/systematic-debugging/scripts/adaptive_test_monitor.sh \
+  "cd frontend && npm run test:e2e -- <test-file>.spec.ts" \
+  /tmp/test-output.log
+```
+
+**Why adaptive polling?**
+- Fast failures (auth errors, selectors): 5-10s
+- Medium tests (sync waits): 30-40s
+- Full suite: 60-120s+
+
+Adaptive intervals (10s, 30s, 60s) catch 80% of failures within 30s instead of waiting 150s.
+
+**For complex debugging**: Delegate to `debug-specialist` agent or load `systematic-debugging` skill.
+
+**Bottom line**: If a user can see it's broken in the UI, an E2E test must verify the fix. No exceptions.
+
+---
 
 ## Progress Tracking with Hierarchical Sub-Issues
 
@@ -198,166 +309,36 @@ gh issue comment 17 --body "✅ Unblocked: Sync engine approach decided, can pro
 
 ## Git Workflow: Feature → Dev → Main
 
-This project uses a **three-tier branching strategy** with clean separation between development and production code.
+This project uses a **three-tier branching strategy**: `feature/*` → `dev` → `main`
 
-### Branch Structure
+**Complete git workflow details**: See [`DEVELOPMENT.md`](./DEVELOPMENT.md) for branch policies, CI/CD pipelines, hotfix workflow, and test organization.
 
-```
-feature/* → dev → main
-            ↓      ↓
-         staging  production
-```
-
-### Branch Policies
-
-| Branch | Purpose | Deployments | Tests Required | Approval Required |
-|--------|---------|-------------|----------------|-------------------|
-| `feature/*` | Development work | None | Unit + Integration | No |
-| `dev` | Integration & testing | Staging (AWS ECS) | Full suite + E2E | No (auto-merge) |
-| `main` | Production-ready code | Production | Smoke tests only | **Yes** (human approval) |
-
-### Creating a Feature Branch
+### Quick Reference
 
 ```bash
-# Always branch from dev, not main
-git checkout dev
-git pull origin dev
-
-# Create feature branch
-git checkout -b feature/quote-crud-api
-
-# Work on the feature
-# ... make changes ...
-
-# Commit work (link to issue)
-git add .
-git commit -m "feat: implement quote CRUD API endpoints
-
-Implements backend endpoints for quote management.
-
-Closes #26"
-```
-
-### Feature → Dev: Pull Request
-
-```bash
-# Push feature branch
-git push -u origin feature/quote-crud-api
-
-# Create PR to dev
-gh pr create \
-  --base dev \
-  --title "Feature: Quote CRUD API" \
-  --body "Implements backend quote API endpoints (Closes #26)"
-```
-
-**CI Checks (Auto-run)**:
-- ✓ Validate (lint, security, typecheck)
-- ✓ Test (unit + integration)
-- ✓ Build (Docker build + smoke test)
-
-**Merge**: Auto-merge when all checks pass (no approval required for dev)
-- Use `--merge` (merge commit) to preserve feature branch history
-- Do NOT use `--squash` (keeps git graph clean and shows true branch flow)
-
-### Dev → Main: Pull Request (Production Release)
-
-```bash
-# Only create dev → main PR when ready for production deployment
-gh pr create \
-  --base main \
-  --head dev \
-  --title "Release: v1.2.0" \
-  --body "Production release with Quote API and Job Types features"
-```
-
-**CI Checks (Auto-run)**:
-- ✓ Validate (quick sanity check)
-- ✓ Build (smoke test only)
-- ✓ Verify staging deployment is healthy
-
-**Merge**: **Human approval required** (you must approve before merge)
-
-**Post-Merge**:
-- Main branch automatically deploys to production
-- Smoke tests run on production
-- GitHub release created (if tagged)
-
-### Clean Production Code
-
-**Test files** exist on all branches but are **excluded from production deployments** via `.gitattributes`:
-
-```bash
-# Tests exist in git (for traceability)
-ls frontend/e2e/
-# ✓ Files visible
-
-# Tests excluded from production builds
-git archive --format=tar HEAD | tar -t | grep "e2e"
-# ✗ No e2e files in archive
-```
-
-This ensures:
-- Full test coverage in development branches
-- Clean production deployments without test infrastructure
-- Git history preserved for all code
-
-### Branch Cleanup
-
-```bash
-# After feature → dev merge, delete feature branch
-git checkout dev
-git pull origin dev
-git branch -d feature/quote-crud-api
-git push origin --delete feature/quote-crud-api
-```
-
-### Hotfix Workflow
-
-For urgent production fixes:
-
-```bash
-# Branch from main, not dev
-git checkout main
-git pull origin main
-git checkout -b hotfix/critical-auth-bug
-
-# Fix the issue
-# ... make changes ...
+# Create feature branch from dev
+git checkout dev && git pull origin dev
+git checkout -b feature/my-feature
 
 # Commit with issue reference
-git commit -m "fix: resolve auth token expiration bug
+git commit -m "feat: implement feature X
 
-Critical fix for production auth issue.
+Implements feature X with Y and Z.
 
-Fixes #89"
+Closes #42"
 
-# Create PR directly to main
-gh pr create \
-  --base main \
-  --title "Hotfix: Auth Token Expiration" \
-  --body "Critical production fix (Fixes #89)"
+# Create PR to dev (auto-merge when CI passes)
+gh pr create --base dev --title "Feature: X" --body "Closes #42"
 
-# After merge, backport to dev
-git checkout dev
-git merge main
-git push origin dev
+# When ready for production: dev → main PR (requires approval)
+gh pr create --base main --head dev --title "Release: v1.2.0"
 ```
 
-### Workflow Summary
+**Branch Protection**:
+- `feature/*` → `dev`: Auto-merge when CI passes (validate + test + build)
+- `dev` → `main`: Human approval required (you confirm staging is healthy)
 
-```bash
-# Normal development flow
-feature/my-feature → dev → staging → main → production
-      ↓               ↓                ↓
-  unit tests    full test suite   smoke tests
-  integration   E2E tests         deployment
-                staging deploy
-
-# Approval gates
-feature → dev: Auto-merge (CI passes)
-dev → main:    Human approval required (you confirm staging is healthy)
-```
+**See [`DEVELOPMENT.md`](./DEVELOPMENT.md)** for complete git workflow, CI/CD expectations, and troubleshooting.
 
 ---
 
@@ -672,10 +653,128 @@ gh issue list --state open --search "sort:updated-desc"
 
 ---
 
+## Planning New Features
+
+### BLUEPRINT.yaml Lifecycle
+
+**BLUEPRINT.yaml is a planning tool for generating GitHub issues, NOT a living reference document.**
+
+**When to Use:**
+- Planning NEW features/epics before converting to GitHub issues
+- Initial project setup with `github-project-setup` skill (generates hierarchical issues)
+- Major scope expansions requiring systematic breakdown
+
+**When NOT to Use:**
+- ❌ Looking up architecture details → Use `ARCHITECTURE.md`
+- ❌ Tracking implementation progress → Use GitHub Issues
+- ❌ Documenting completed work → Use `STATUS.md` and git commits
+
+### Lifecycle Flow
+
+```
+1. Plan Feature → Write BLUEPRINT.yaml structure (milestones → epics → features → tasks)
+2. Generate Issues → Use `github-project-setup` skill to create GitHub issues from YAML
+3. Archive → BLUEPRINT.yaml section becomes historical once issues exist
+4. Track Progress → Use GitHub Issues (source of truth), NOT BLUEPRINT.yaml
+```
+
+**Key Principle**: Once GitHub issues are created from BLUEPRINT.yaml, the YAML becomes **historical documentation** of the original plan. GitHub Issues become the living source of truth.
+
+### When Plans Change During Implementation
+
+**DO NOT update BLUEPRINT.yaml** - Reality always diverges from the original plan. Use GitHub workflow instead:
+
+```bash
+# Document plan changes in GitHub issues
+gh issue comment <issue-number> --body "🚧 Plan Change: Need auth middleware first. Splitting into separate task.
+
+**Original plan**: Implement quote API with inline validation
+**New approach**: Extract auth middleware as separate task (#45)
+**Reason**: Multiple endpoints need JWT validation, better to centralize
+**Impact**: +1 day, blocks quote API until complete"
+
+# Create new tasks as needed
+gh issue create --title "Implement JWT auth middleware" \
+  --label "type: task" \
+  --body "Extracted from #26. Required before quote API implementation."
+
+# Update STATUS.md with investigation notes
+# Update ARCHITECTURE.md if architecture changed (e.g., new middleware pattern)
+
+# Commit with issue references
+git commit -m "feat: add JWT auth middleware
+
+Implements centralized authentication for API endpoints.
+
+Closes #45
+Unblocks #26"
+```
+
+### Source of Truth by Use Case
+
+| Need | Source of Truth | Why |
+|------|----------------|-----|
+| **Current work status** | GitHub Issues (labels) | `status: pending`, `status: in-progress`, `status: completed` |
+| **Blocking dependencies** | GitHub Issues (comments) | Links to blockers, discussion, resolution |
+| **Timeline changes** | GitHub Issues + Milestones | Issue comments, milestone dates |
+| **Scope changes** | GitHub Issues | New issues, closed issues, updated descriptions |
+| **Architecture details** | `ARCHITECTURE.md` | Database schema, tech stack, ADRs |
+| **Current bugs/fixes** | `STATUS.md` | Active investigations, recent changes |
+| **Original plan** | `specs/BLUEPRINT.yaml` | Historical: what we PLANNED (not what we BUILT) |
+
+### Example: Planning a New Feature
+
+**Scenario**: Add email notification system (not in original BLUEPRINT)
+
+**Step 1: Add to BLUEPRINT.yaml**
+```yaml
+# specs/BLUEPRINT.yaml
+epic_8:
+  name: Email Notifications
+  complexity: 2.8
+  estimated_days: 7
+  features:
+    feature_8_1:
+      name: SES Integration
+      complexity: 2.0
+      estimated_days: 3
+      tasks:
+        task_8_1_1:
+          name: Configure AWS SES
+          estimated_days: 1
+        task_8_1_2:
+          name: Email template system
+          estimated_days: 2
+```
+
+**Step 2: Generate GitHub Issues**
+```bash
+# Use github-project-setup skill to create issues from YAML
+# Creates Epic #50, Feature #51, Tasks #52-53 with hierarchy
+```
+
+**Step 3: BLUEPRINT.yaml becomes historical**
+- ✅ GitHub Issues are now the source of truth
+- ✅ Track progress in Issues (#50, #51, #52, #53)
+- ✅ Update ARCHITECTURE.md with SES integration details as you build
+- ❌ Don't update BLUEPRINT.yaml during implementation
+
+**Step 4: When plans change during implementation**
+```bash
+# Discovered: Need email bounce handling (not in original plan)
+gh issue create --title "Implement email bounce handling" \
+  --label "type: task" \
+  --body "Required for production SES compliance. Relates to #51"
+
+# BLUEPRINT.yaml is NOT updated - GitHub issue is sufficient
+```
+
+---
+
 ## Technical References
 
 - **BLUEPRINT**: `specs/BLUEPRINT.yaml` - Complete technical specifications
-- **Financial Model**: `docs/financial-model.md` - Profit-First calculation details
+- **Financial Model**: `specs/FINANCIAL_MODEL.md` - Profit-First calculation details
 - **GitHub Setup Skill**: `~/.claude/skills/github-project-setup/` - Project setup automation
 - **CLAUDE.md**: `~/.claude/CLAUDE.md` - Global GitHub workflow patterns
 
@@ -685,7 +784,7 @@ gh issue list --state open --search "sort:updated-desc"
 
 ### Documentation
 - Review `specs/BLUEPRINT.yaml` for feature requirements
-- Check `docs/` for technical specifications
+- Check `specs/` for technical specifications
 - View git history: `git log --oneline --graph`
 
 ### Progress Tracking

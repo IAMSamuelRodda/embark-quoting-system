@@ -9,22 +9,27 @@ import { CognitoUserPool } from 'amazon-cognito-identity-js';
 import type { Quote, Job, Financial } from '../types/models';
 
 // API Configuration
-// TODO: Move to environment variable (VITE_API_URL)
-// For now using ECS task public IP (changes on restart - production should use ALB)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://13.239.96.47:3000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-// Cognito configuration (matches authService.ts)
+// Cognito configuration (must match authService.ts - use environment variables)
 const poolData = {
-  UserPoolId: 'ap-southeast-2_WCrUlLwIE',
-  ClientId: '61p5378jhhm40ud2m92m3kv7jv',
+  UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
+  ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
 };
-const userPool = new CognitoUserPool(poolData);
+// Lazy initialization to allow tests to mock before instantiation
+let userPool: CognitoUserPool | null = null;
+function getUserPool(): CognitoUserPool {
+  if (!userPool) {
+    userPool = new CognitoUserPool(poolData);
+  }
+  return userPool;
+}
 
 /**
  * Get current JWT token from Cognito
  */
 async function getAuthToken(): Promise<string | null> {
-  const cognitoUser = userPool.getCurrentUser();
+  const cognitoUser = getUserPool().getCurrentUser();
   if (!cognitoUser) return null;
 
   return new Promise((resolve) => {
@@ -36,13 +41,13 @@ async function getAuthToken(): Promise<string | null> {
       // Type assertion after null check
       const validSession = session as {
         isValid: () => boolean;
-        getIdToken: () => { getJwtToken: () => string };
+        getAccessToken: () => { getJwtToken: () => string };
       };
       if (!validSession.isValid()) {
         resolve(null);
         return;
       }
-      const token = validSession.getIdToken().getJwtToken();
+      const token = validSession.getAccessToken().getJwtToken();
       resolve(token);
     });
   });
@@ -193,10 +198,34 @@ export const api = {
 
   // Jobs
   jobs: {
+    getByQuoteId: (quoteId: string) => {
+      return apiRequest<Job[]>(`/api/quotes/${quoteId}/jobs`);
+    },
+
     create: (quoteId: string, data: Partial<Job>) => {
       return apiRequest<Job>(`/api/quotes/${quoteId}/jobs`, {
         method: 'POST',
         body: data,
+      });
+    },
+
+    update: (jobId: string, data: Partial<Job>) => {
+      return apiRequest<Job>(`/api/jobs/${jobId}`, {
+        method: 'PUT',
+        body: data,
+      });
+    },
+
+    delete: (jobId: string) => {
+      return apiRequest<{ success: boolean }>(`/api/jobs/${jobId}`, {
+        method: 'DELETE',
+      });
+    },
+
+    reorder: (quoteId: string, jobOrders: { id: string; order_index: number }[]) => {
+      return apiRequest<Job[]>(`/api/quotes/${quoteId}/jobs/reorder`, {
+        method: 'POST',
+        body: jobOrders,
       });
     },
   },

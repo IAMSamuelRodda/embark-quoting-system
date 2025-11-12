@@ -14,11 +14,14 @@ import { db } from '../../shared/db/indexedDb';
 import { api, ApiError } from '../../shared/api/apiClient';
 import { connectionMonitor } from '../../shared/utils/connection';
 import { SyncOperation, SyncStatus } from '../../shared/types/models';
-import type { Quote } from '../../shared/types/models';
+import type { Quote, Job } from '../../shared/types/models';
 import { markQuoteAsSynced, markQuoteAsSyncError } from '../quotes/quotesDb';
+import { updateJobFromBackend, markJobAsSyncError, getJobsByQuoteId } from '../jobs/jobsDb';
+import { useJobs } from '../jobs/useJobs';
 import * as syncQueue from './syncQueue';
 import { detectQuoteConflict, hasCriticalConflicts, canAutoResolve } from './conflictDetection';
 import { autoMergeQuotes } from './autoMerge';
+import { useSync } from './useSync';
 
 // Type guard for API error response
 interface ApiErrorResponse {
@@ -51,8 +54,11 @@ export async function pushChanges(batchSize: number = 10): Promise<{
   count: number;
   errors: string[];
 }> {
+  console.log(`[pushChanges] Starting push, batchSize=${batchSize}`);
+
   // Check if online
   if (!connectionMonitor.isOnline()) {
+    console.log(`[pushChanges] Device is offline, aborting`);
     return {
       success: false,
       count: 0,
@@ -61,9 +67,12 @@ export async function pushChanges(batchSize: number = 10): Promise<{
   }
 
   // Get next batch of items ready for sync (priority-ordered, past retry time)
+  console.log(`[pushChanges] Getting next batch from queue...`);
   const queueItems = await syncQueue.getNextBatch(batchSize);
+  console.log(`[pushChanges] Retrieved ${queueItems.length} items from queue`);
 
   if (queueItems.length === 0) {
+    console.log(`[pushChanges] No items to sync, returning`);
     return {
       success: true,
       count: 0,
@@ -78,19 +87,128 @@ export async function pushChanges(batchSize: number = 10): Promise<{
 
   // Process each queue item
   for (const item of queueItems) {
+    // Determine if this is a job or quote operation (hoist outside try-catch for scope access)
+    const isJobOperation = item.data && typeof item.data === 'object' && 'job_type' in item.data;
+    const isReorderOperation = item.data && typeof item.data === 'object' && 'reorder' in item.data;
+
     try {
       // Execute operation based on type
       switch (item.operation) {
         case SyncOperation.CREATE:
-          await api.quotes.create(item.data as Partial<Quote>);
+          if (isJobOperation) {
+            // Job create - capture response to get backend-calculated values
+            console.log(`[Sync] Creating job for quote ${item.quote_id}`);
+
+            // Transform job data for API: Convert subtotal number to string (backend expects decimal as string)
+            const jobData = item.data as Partial<Job>;
+            const apiJobData = {
+              ...jobData,
+              subtotal:
+                typeof jobData.subtotal === 'number'
+                  ? jobData.subtotal.toFixed(2)
+                  : jobData.subtotal,
+            };
+
+            const createJobResponse = await api.jobs.create(
+              item.quote_id,
+              apiJobData as unknown as Record<string, unknown>,
+            );
+
+            // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
+            if (createJobResponse.success && createJobResponse.data) {
+              const jobId = (item.data as { id: string }).id;
+              // Backend returns subtotal as string (DECIMAL type), updateJobFromBackend handles conversion
+              await updateJobFromBackend(
+                jobId,
+                createJobResponse.data as unknown as Record<string, unknown>,
+              );
+
+              // Refresh Zustand state to trigger UI update with calculated values
+              const updatedJobs = await getJobsByQuoteId(item.quote_id);
+              useJobs.setState({ jobs: updatedJobs });
+
+              console.log(
+                `[Sync] Updated job ${jobId} with backend calculations (subtotal: ${createJobResponse.data.subtotal})`,
+              );
+            }
+          } else {
+            // Quote create
+            console.log(`[Sync] Creating quote ${item.quote_id}`);
+            await api.quotes.create(item.data as Partial<Quote>);
+          }
           break;
 
         case SyncOperation.UPDATE:
-          await api.quotes.update(item.quote_id, item.data as Partial<Quote>);
+          if (isReorderOperation) {
+            // Job reorder
+            const reorderData = item.data as { reorder: { id: string; order_index: number }[] };
+            console.log(`[Sync] Reordering jobs for quote ${item.quote_id}`);
+            await api.jobs.reorder(item.quote_id, reorderData.reorder);
+          } else if (
+            isJobOperation &&
+            item.data &&
+            typeof item.data === 'object' &&
+            'id' in item.data
+          ) {
+            // Job update - capture response to get backend-calculated values
+            const jobId = (item.data as { id: string }).id;
+            console.log(`[Sync] Updating job ${jobId}`);
+
+            // Transform job data for API: Convert subtotal number to string (backend expects decimal as string)
+            const jobData = item.data as Partial<Job>;
+            const apiJobData = {
+              ...jobData,
+              subtotal:
+                typeof jobData.subtotal === 'number'
+                  ? jobData.subtotal.toFixed(2)
+                  : jobData.subtotal,
+            };
+
+            const updateJobResponse = await api.jobs.update(
+              jobId,
+              apiJobData as unknown as Record<string, unknown>,
+            );
+
+            // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
+            if (updateJobResponse.success && updateJobResponse.data) {
+              // Backend returns subtotal as string (DECIMAL type), updateJobFromBackend handles conversion
+              await updateJobFromBackend(
+                jobId,
+                updateJobResponse.data as unknown as Record<string, unknown>,
+              );
+
+              // Refresh Zustand state to trigger UI update with calculated values
+              const updatedJobs = await getJobsByQuoteId(item.quote_id);
+              useJobs.setState({ jobs: updatedJobs });
+
+              console.log(
+                `[Sync] Updated job ${jobId} with backend calculations (subtotal: ${updateJobResponse.data.subtotal})`,
+              );
+            }
+          } else {
+            // Quote update
+            console.log(`[Sync] Updating quote ${item.quote_id}`);
+            await api.quotes.update(item.quote_id, item.data as Partial<Quote>);
+          }
           break;
 
         case SyncOperation.DELETE:
-          await api.quotes.delete(item.quote_id);
+          if (item.data && typeof item.data === 'object' && 'id' in item.data) {
+            const dataId = (item.data as { id: string }).id;
+            if (dataId !== item.quote_id) {
+              // Job delete (ID doesn't match quote_id)
+              console.log(`[Sync] Deleting job ${dataId}`);
+              await api.jobs.delete(dataId);
+            } else {
+              // Quote delete
+              console.log(`[Sync] Deleting quote ${item.quote_id}`);
+              await api.quotes.delete(item.quote_id);
+            }
+          } else {
+            // Default to quote delete
+            console.log(`[Sync] Deleting quote ${item.quote_id}`);
+            await api.quotes.delete(item.quote_id);
+          }
           break;
 
         default:
@@ -99,10 +217,16 @@ export async function pushChanges(batchSize: number = 10): Promise<{
 
       // Mark as synced and remove from queue
       await syncQueue.markSynced(item.id);
-      await markQuoteAsSynced(item.quote_id);
+
+      // Mark quote as synced (jobs are marked synced by updateJobFromBackend)
+      if (!isJobOperation) {
+        await markQuoteAsSynced(item.quote_id);
+      }
+
       successCount++;
+      console.log(`[Sync] ✓ Synced ${isJobOperation ? 'job' : 'quote'} for ${item.quote_id}`);
     } catch (error) {
-      console.error(`Sync error for quote ${item.quote_id}:`, error);
+      console.error(`Sync error for ${item.operation} on quote ${item.quote_id}:`, error);
 
       // Handle errors
       let errorMessage = 'Unknown error';
@@ -116,11 +240,18 @@ export async function pushChanges(batchSize: number = 10): Promise<{
         errorMessage = error.message;
       }
 
-      errors.push(`Quote ${item.quote_id}: ${errorMessage}`);
+      errors.push(`${isJobOperation ? 'Job' : 'Quote'} ${item.quote_id}: ${errorMessage}`);
 
       // Mark as failed with exponential backoff
       await syncQueue.markFailed(item.id, errorMessage);
-      await markQuoteAsSyncError(item.quote_id, errorMessage);
+
+      // Mark job or quote as sync error
+      if (isJobOperation && item.data && typeof item.data === 'object' && 'id' in item.data) {
+        const jobId = (item.data as { id: string }).id;
+        await markJobAsSyncError(jobId, errorMessage);
+      } else {
+        await markQuoteAsSyncError(item.quote_id, errorMessage);
+      }
 
       // Auto-prioritize items that keep failing
       await syncQueue.autoPrioritize(item.id);
@@ -327,9 +458,14 @@ export async function syncAll(): Promise<SyncResult> {
 /**
  * Auto-sync when connection restored
  * Call this once at app startup to enable auto-sync
+ *
+ * FIX: Added periodic retry mechanism to sync pending items every 30 seconds while online
+ * Previously: Sync only triggered on connection state change (offline → online)
+ * Now: Periodic checks ensure items with failed retries eventually sync
  */
 export function enableAutoSync(): () => void {
   let syncInProgress = false;
+  let periodicCheckInterval: ReturnType<typeof setInterval> | null = null;
 
   const unsubscribe = connectionMonitor.subscribe(async (state) => {
     // Only sync when coming back online
@@ -349,7 +485,57 @@ export function enableAutoSync(): () => void {
         }
       }
     }
+
+    // Start/stop periodic retry based on connection state
+    if (state.isOnline && !periodicCheckInterval) {
+      // Check for pending items every 5 seconds while online
+      console.log('[Sync] Starting periodic sync check (every 5 seconds)');
+      periodicCheckInterval = setInterval(async () => {
+        if (syncInProgress) return; // Skip if sync already in progress
+
+        const queueSize = await db.getSyncQueueSize();
+        if (queueSize > 0) {
+          console.log(`[Periodic Sync] Found ${queueSize} pending items, syncing...`);
+          syncInProgress = true;
+          try {
+            const result = await syncAll();
+
+            // Update UI state after auto-sync completes
+            const { refreshPendingCount } = useSync.getState();
+            await refreshPendingCount();
+
+            // Update sync metadata for user feedback
+            if (result.success && (result.pushedCount > 0 || result.pulledCount > 0)) {
+              useSync.setState({
+                lastSyncAt: new Date(),
+                pushedCount: result.pushedCount,
+                pulledCount: result.pulledCount,
+              });
+              console.log(
+                `[Periodic Sync] Success: pushed ${result.pushedCount}, pulled ${result.pulledCount}`,
+              );
+            }
+          } catch (error) {
+            console.error('[Periodic Sync] Auto-sync failed:', error);
+          } finally {
+            syncInProgress = false;
+          }
+        }
+      }, 5000); // 5 seconds
+    } else if (!state.isOnline && periodicCheckInterval) {
+      // Stop periodic checks when offline
+      console.log('[Sync] Stopping periodic sync check (device offline)');
+      clearInterval(periodicCheckInterval);
+      periodicCheckInterval = null;
+    }
   });
 
-  return unsubscribe;
+  // Cleanup function
+  return () => {
+    unsubscribe();
+    if (periodicCheckInterval) {
+      clearInterval(periodicCheckInterval);
+      periodicCheckInterval = null;
+    }
+  };
 }
