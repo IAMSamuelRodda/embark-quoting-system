@@ -16,13 +16,20 @@ const poolData = {
   UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
   ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
 };
-const userPool = new CognitoUserPool(poolData);
+// Lazy initialization to allow tests to mock before instantiation
+let userPool: CognitoUserPool | null = null;
+function getUserPool(): CognitoUserPool {
+  if (!userPool) {
+    userPool = new CognitoUserPool(poolData);
+  }
+  return userPool;
+}
 
 /**
  * Get current JWT token from Cognito
  */
 async function getAuthToken(): Promise<string | null> {
-  const cognitoUser = userPool.getCurrentUser();
+  const cognitoUser = getUserPool().getCurrentUser();
   if (!cognitoUser) return null;
 
   return new Promise((resolve) => {

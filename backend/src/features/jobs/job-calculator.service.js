@@ -29,7 +29,10 @@ export async function calculateJob(jobType, parameters, priceSheetId = null) {
   }
 
   // Get all price items for this sheet
-  const items = await db.select().from(priceItems).where(eq(priceItems.price_sheet_id, priceSheet.id));
+  const items = await db
+    .select()
+    .from(priceItems)
+    .where(eq(priceItems.price_sheet_id, priceSheet.id));
 
   // Create lookup map for easy price retrieval
   const priceMap = new Map();
@@ -123,7 +126,7 @@ function calculateRetainingWall(params, priceMap) {
 
   // Calculate road base (for compaction)
   // Assume 100mm base depth per linear meter
-  const roadBaseM3 = (length * 1 * 0.1); // length * width(1m) * depth(0.1m)
+  const roadBaseM3 = length * 1 * 0.1; // length * width(1m) * depth(0.1m)
   const roadBasePrice = getPrice(priceMap, 'road base');
 
   materials.push({
@@ -198,7 +201,7 @@ function calculateDriveway(params, priceMap) {
   const materials = [];
 
   // Base material calculation
-  const baseM3 = (length * width * (base_thickness_mm / 1000));
+  const baseM3 = length * width * (base_thickness_mm / 1000);
   const roadBasePrice = getPrice(priceMap, 'road base');
 
   materials.push({
@@ -211,7 +214,7 @@ function calculateDriveway(params, priceMap) {
 
   // Topping material (optional)
   if (include_topping && topping_thickness_mm) {
-    const toppingM3 = (length * width * (topping_thickness_mm / 1000));
+    const toppingM3 = length * width * (topping_thickness_mm / 1000);
     const toppingPrice = getPrice(priceMap, topping_type || '20mm gravel');
 
     materials.push({
@@ -240,7 +243,7 @@ function calculateDriveway(params, priceMap) {
     labour,
     calculations: {
       baseM3,
-      toppingM3: include_topping ? (length * width * (topping_thickness_mm / 1000)) : 0,
+      toppingM3: include_topping ? length * width * (topping_thickness_mm / 1000) : 0,
       labourHours,
     },
     subtotal: parseFloat((subtotal + labour.totalCost).toFixed(2)),
@@ -251,7 +254,16 @@ function calculateDriveway(params, priceMap) {
  * Calculate Trenching Job
  */
 function calculateTrenching(params, priceMap) {
-  const { length, width_mm, depth_mm, include_stormwater, pipe_length, t_joints, elbows, downpipe_adaptors } = params;
+  const {
+    length,
+    width_mm,
+    depth_mm,
+    include_stormwater,
+    pipe_length,
+    t_joints,
+    elbows,
+    downpipe_adaptors,
+  } = params;
 
   if (!length || !width_mm || !depth_mm) {
     throw new Error('Missing required parameters: length, width_mm, depth_mm');
@@ -260,7 +272,7 @@ function calculateTrenching(params, priceMap) {
   const materials = [];
 
   // Calculate excavation volume
-  const volumeM3 = (length * (width_mm / 1000) * (depth_mm / 1000));
+  const volumeM3 = length * (width_mm / 1000) * (depth_mm / 1000);
 
   // Labour for trenching (estimated based on volume)
   const labourHours = volumeM3 * 2; // ~2 hours per m³
@@ -336,7 +348,16 @@ function calculateTrenching(params, priceMap) {
  * Calculate Stormwater Job
  */
 function calculateStormwater(params, priceMap) {
-  const { pipe_length, pipe_type, t_joints, elbows, downpipe_adaptors, include_trenching, trench_length, trench_width_mm } = params;
+  const {
+    pipe_length,
+    pipe_type,
+    t_joints,
+    elbows,
+    downpipe_adaptors,
+    include_trenching,
+    trench_length,
+    trench_width_mm,
+  } = params;
 
   if (!pipe_length || !pipe_type) {
     throw new Error('Missing required parameters: pipe_length, pipe_type');
@@ -392,7 +413,7 @@ function calculateStormwater(params, priceMap) {
   let labourHours = pipe_length * 0.3; // ~18 min per meter of pipe installation
 
   if (include_trenching && trench_length) {
-    const trenchVolumeM3 = (trench_length * (trench_width_mm / 1000) * 0.5); // Assume 500mm depth
+    const trenchVolumeM3 = trench_length * (trench_width_mm / 1000) * 0.5; // Assume 500mm depth
     labourHours += trenchVolumeM3 * 2;
   }
 
@@ -419,7 +440,15 @@ function calculateStormwater(params, priceMap) {
  * Calculate Site Prep Job
  */
 function calculateSitePrep(params, priceMap) {
-  const { area, depth_mm, include_backfill, backfill_type, requires_dumping, dump_distance_km, supply_distance_km } = params;
+  const {
+    area,
+    depth_mm,
+    include_backfill,
+    backfill_type,
+    requires_dumping,
+    dump_distance_km,
+    supply_distance_km,
+  } = params;
 
   if (!area || !depth_mm) {
     throw new Error('Missing required parameters: area, depth_mm');
@@ -428,7 +457,7 @@ function calculateSitePrep(params, priceMap) {
   const materials = [];
 
   // Calculate volume to excavate
-  const volumeM3 = (area * (depth_mm / 1000));
+  const volumeM3 = area * (depth_mm / 1000);
 
   // Backfill material (optional)
   if (include_backfill && backfill_type) {

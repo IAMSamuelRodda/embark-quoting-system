@@ -3,7 +3,7 @@
  * This test captures ALL console output to see what's happening
  */
 
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { getTestCredentials } from './test-utils';
 
 test('minimal job sync test', async ({ page }) => {

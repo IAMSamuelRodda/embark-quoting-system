@@ -28,16 +28,15 @@ test('Visual verification of CAT Gold colors', async ({ page }) => {
   
   // Get all computed colors for elements with primary classes
   const elementColors = await page.evaluate(() => {
-    const results: any[] = [];
-    
+    const results: Array<Record<string, string>> = [];
+
     // Find all elements
     const allElements = document.querySelectorAll('*');
     allElements.forEach((el) => {
       const computed = window.getComputedStyle(el);
       const bg = computed.backgroundColor;
       const color = computed.color;
-      const border = computed.borderColor;
-      
+
       // Check if any color contains RGB values that might be gold
       if (bg.includes('230, 162') || bg.includes('255, 180')) {
         results.push({
@@ -54,7 +53,7 @@ test('Visual verification of CAT Gold colors', async ({ page }) => {
         });
       }
     });
-    
+
     return results.slice(0, 10); // First 10 matches
   });
   

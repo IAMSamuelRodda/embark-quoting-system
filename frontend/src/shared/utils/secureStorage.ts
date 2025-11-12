@@ -39,24 +39,20 @@ async function getDeviceKey(): Promise<CryptoKey> {
   if (storedKey) {
     try {
       const keyData = JSON.parse(storedKey);
-      return await crypto.subtle.importKey(
-        'jwk',
-        keyData,
-        { name: 'AES-GCM', length: 256 },
-        true,
-        ['encrypt', 'decrypt']
-      );
-    } catch (error) {
+      return await crypto.subtle.importKey('jwk', keyData, { name: 'AES-GCM', length: 256 }, true, [
+        'encrypt',
+        'decrypt',
+      ]);
+    } catch {
       console.warn('[SecureStorage] Failed to import existing key, generating new one');
     }
   }
 
   // Generate new key
-  const key = await crypto.subtle.generateKey(
-    { name: 'AES-GCM', length: 256 },
-    true,
-    ['encrypt', 'decrypt']
-  );
+  const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, [
+    'encrypt',
+    'decrypt',
+  ]);
 
   // Export and store key
   const exportedKey = await crypto.subtle.exportKey('jwk', key);
@@ -101,11 +97,7 @@ async function encryptData(data: string): Promise<{ encrypted: string; iv: strin
   const iv = crypto.getRandomValues(new Uint8Array(12));
 
   // Encrypt
-  const encryptedBuffer = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    dataBuffer
-  );
+  const encryptedBuffer = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, dataBuffer);
 
   return {
     encrypted: arrayBufferToBase64(encryptedBuffer),
@@ -125,7 +117,7 @@ async function decryptData(encrypted: string, ivString: string): Promise<string>
     const decryptedBuffer = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv },
       key,
-      encryptedBuffer
+      encryptedBuffer,
     );
 
     const decoder = new TextDecoder();
@@ -154,7 +146,11 @@ export async function storeCredentials(credentials: CachedCredentials): Promise<
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(storageItem));
-  console.log('[SecureStorage] Credentials stored securely (expires:', expiry.toLocaleDateString(), ')');
+  console.log(
+    '[SecureStorage] Credentials stored securely (expires:',
+    expiry.toLocaleDateString(),
+    ')',
+  );
 }
 
 /**

@@ -34,7 +34,9 @@ test('Complete job creation workflow', async ({ page }) => {
         try {
           const body = await res.text();
           console.log(`  Error: ${body.substring(0, 200)}`);
-        } catch (e) {}
+        } catch {
+          // Ignore response read errors
+        }
       }
     }
   });

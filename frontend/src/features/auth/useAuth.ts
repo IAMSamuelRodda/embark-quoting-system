@@ -54,7 +54,9 @@ export const useAuth = create<AuthState>((set) => ({
         const stored = await getStoredCredentials();
 
         if (!stored) {
-          throw new Error('No cached credentials available. Please connect to the internet to log in.');
+          throw new Error(
+            'No cached credentials available. Please connect to the internet to log in.',
+          );
         }
 
         // Verify credentials match
@@ -77,7 +79,9 @@ export const useAuth = create<AuthState>((set) => ({
           user: offlineUser,
           isAuthenticated: true,
           isOfflineMode: true,
-          offlineAuthExpiry: expiryDays ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000) : null,
+          offlineAuthExpiry: expiryDays
+            ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000)
+            : null,
           isLoading: false,
         });
 
@@ -153,8 +157,10 @@ export const useAuth = create<AuthState>((set) => ({
       // Sign out from Cognito (will fail silently if offline)
       try {
         await authService.signOut();
-      } catch (error) {
-        console.log('[Auth] Could not sign out from Cognito (offline or error), continuing with local signout');
+      } catch {
+        console.log(
+          '[Auth] Could not sign out from Cognito (offline or error), continuing with local signout',
+        );
       }
 
       set({
@@ -244,7 +250,7 @@ export const useAuth = create<AuthState>((set) => ({
         });
         return;
       }
-    } catch (error) {
+    } catch {
       // Online auth failed - try offline auth if available
       console.log('[Auth] Online auth check failed, trying offline auth');
 
@@ -265,12 +271,14 @@ export const useAuth = create<AuthState>((set) => ({
             user: offlineUser,
             isAuthenticated: true,
             isOfflineMode: true,
-            offlineAuthExpiry: expiryDays ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000) : null,
+            offlineAuthExpiry: expiryDays
+              ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000)
+              : null,
             isLoading: false,
           });
           return;
         }
-      } catch (offlineError) {
+      } catch {
         console.log('[Auth] Offline auth also failed');
       }
     }
@@ -288,13 +296,14 @@ export const useAuth = create<AuthState>((set) => ({
 
   clearError: () => set({ error: null }),
 
-  setUser: (user: AuthUser) => set({
-    user,
-    isAuthenticated: true,
-    isOfflineMode: false,
-    offlineAuthExpiry: null,
-    isLoading: false,
-  }),
+  setUser: (user: AuthUser) =>
+    set({
+      user,
+      isAuthenticated: true,
+      isOfflineMode: false,
+      offlineAuthExpiry: null,
+      isLoading: false,
+    }),
 
   hasOfflineAuth: () => hasStoredCredentials(),
 

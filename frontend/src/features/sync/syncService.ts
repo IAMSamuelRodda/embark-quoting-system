@@ -92,7 +92,6 @@ export async function pushChanges(batchSize: number = 10): Promise<{
     const isReorderOperation = item.data && typeof item.data === 'object' && 'reorder' in item.data;
 
     try {
-
       // Execute operation based on type
       switch (item.operation) {
         case SyncOperation.CREATE:
@@ -104,22 +103,33 @@ export async function pushChanges(batchSize: number = 10): Promise<{
             const jobData = item.data as Partial<Job>;
             const apiJobData = {
               ...jobData,
-              subtotal: typeof jobData.subtotal === 'number' ? jobData.subtotal.toFixed(2) : jobData.subtotal,
+              subtotal:
+                typeof jobData.subtotal === 'number'
+                  ? jobData.subtotal.toFixed(2)
+                  : jobData.subtotal,
             };
 
-            const createJobResponse = await api.jobs.create(item.quote_id, apiJobData as any);
+            const createJobResponse = await api.jobs.create(
+              item.quote_id,
+              apiJobData as unknown as Record<string, unknown>,
+            );
 
             // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
             if (createJobResponse.success && createJobResponse.data) {
               const jobId = (item.data as { id: string }).id;
               // Backend returns subtotal as string (DECIMAL type), updateJobFromBackend handles conversion
-              await updateJobFromBackend(jobId, createJobResponse.data as any);
+              await updateJobFromBackend(
+                jobId,
+                createJobResponse.data as unknown as Record<string, unknown>,
+              );
 
               // Refresh Zustand state to trigger UI update with calculated values
               const updatedJobs = await getJobsByQuoteId(item.quote_id);
               useJobs.setState({ jobs: updatedJobs });
 
-              console.log(`[Sync] Updated job ${jobId} with backend calculations (subtotal: ${createJobResponse.data.subtotal})`);
+              console.log(
+                `[Sync] Updated job ${jobId} with backend calculations (subtotal: ${createJobResponse.data.subtotal})`,
+              );
             }
           } else {
             // Quote create
@@ -134,7 +144,12 @@ export async function pushChanges(batchSize: number = 10): Promise<{
             const reorderData = item.data as { reorder: { id: string; order_index: number }[] };
             console.log(`[Sync] Reordering jobs for quote ${item.quote_id}`);
             await api.jobs.reorder(item.quote_id, reorderData.reorder);
-          } else if (isJobOperation && item.data && typeof item.data === 'object' && 'id' in item.data) {
+          } else if (
+            isJobOperation &&
+            item.data &&
+            typeof item.data === 'object' &&
+            'id' in item.data
+          ) {
             // Job update - capture response to get backend-calculated values
             const jobId = (item.data as { id: string }).id;
             console.log(`[Sync] Updating job ${jobId}`);
@@ -143,21 +158,32 @@ export async function pushChanges(batchSize: number = 10): Promise<{
             const jobData = item.data as Partial<Job>;
             const apiJobData = {
               ...jobData,
-              subtotal: typeof jobData.subtotal === 'number' ? jobData.subtotal.toFixed(2) : jobData.subtotal,
+              subtotal:
+                typeof jobData.subtotal === 'number'
+                  ? jobData.subtotal.toFixed(2)
+                  : jobData.subtotal,
             };
 
-            const updateJobResponse = await api.jobs.update(jobId, apiJobData as any);
+            const updateJobResponse = await api.jobs.update(
+              jobId,
+              apiJobData as unknown as Record<string, unknown>,
+            );
 
             // Update IndexedDB with backend-calculated values (subtotal, materials, labour)
             if (updateJobResponse.success && updateJobResponse.data) {
               // Backend returns subtotal as string (DECIMAL type), updateJobFromBackend handles conversion
-              await updateJobFromBackend(jobId, updateJobResponse.data as any);
+              await updateJobFromBackend(
+                jobId,
+                updateJobResponse.data as unknown as Record<string, unknown>,
+              );
 
               // Refresh Zustand state to trigger UI update with calculated values
               const updatedJobs = await getJobsByQuoteId(item.quote_id);
               useJobs.setState({ jobs: updatedJobs });
 
-              console.log(`[Sync] Updated job ${jobId} with backend calculations (subtotal: ${updateJobResponse.data.subtotal})`);
+              console.log(
+                `[Sync] Updated job ${jobId} with backend calculations (subtotal: ${updateJobResponse.data.subtotal})`,
+              );
             }
           } else {
             // Quote update
@@ -485,7 +511,9 @@ export function enableAutoSync(): () => void {
                 pushedCount: result.pushedCount,
                 pulledCount: result.pulledCount,
               });
-              console.log(`[Periodic Sync] Success: pushed ${result.pushedCount}, pulled ${result.pulledCount}`);
+              console.log(
+                `[Periodic Sync] Success: pushed ${result.pushedCount}, pulled ${result.pulledCount}`,
+              );
             }
           } catch (error) {
             console.error('[Periodic Sync] Auto-sync failed:', error);

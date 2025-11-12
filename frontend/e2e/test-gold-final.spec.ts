@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test('Final CAT Gold verification with app running', async ({ page }) => {
   page.on('console', msg => {

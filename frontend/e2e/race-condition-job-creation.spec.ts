@@ -85,8 +85,8 @@ test.describe('Job Creation Race Condition Bug', () => {
         try {
           const body = await response.text();
           console.log(`  Response Body: ${body.substring(0, 200)}`);
-        } catch (e) {
-          // Ignore
+        } catch {
+          // Ignore response read errors
         }
       }
     });

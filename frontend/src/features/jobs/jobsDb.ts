@@ -80,7 +80,9 @@ export async function createJob(data: Partial<Job>, quoteId: string): Promise<Jo
     dead_letter: false,
   });
 
-  console.log(`[jobsDb] Created job ${job.id} for quote ${quoteId} (offline-first, subtotal: $${job.subtotal})`);
+  console.log(
+    `[jobsDb] Created job ${job.id} for quote ${quoteId} (offline-first, subtotal: $${job.subtotal})`,
+  );
 
   return job;
 }
@@ -157,7 +159,9 @@ export async function updateJob(jobId: string, updates: Partial<Job>): Promise<v
     dead_letter: false,
   });
 
-  console.log(`[jobsDb] Updated job ${jobId} (offline-first, subtotal: $${finalUpdates.subtotal ?? job.subtotal})`);
+  console.log(
+    `[jobsDb] Updated job ${jobId} (offline-first, subtotal: $${finalUpdates.subtotal ?? job.subtotal})`,
+  );
 }
 
 /**
@@ -211,7 +215,7 @@ export async function reorderJobs(
     id: crypto.randomUUID(),
     quote_id: quoteId,
     operation: SyncOperation.UPDATE,
-    data: { reorder: jobOrders } as any, // Type assertion for custom reorder payload
+    data: { reorder: jobOrders } as Record<string, unknown>, // Type assertion for custom reorder payload
     priority: 3, // SyncPriority.NORMAL
     timestamp: new Date(),
     retry_count: 0,
@@ -237,14 +241,18 @@ export async function reorderJobs(
  * @param jobId - Job ID
  * @param backendJob - Job data from backend API (includes calculated values)
  */
-export async function updateJobFromBackend(jobId: string, backendJob: any): Promise<void> {
+export async function updateJobFromBackend(
+  jobId: string,
+  backendJob: Record<string, unknown>,
+): Promise<void> {
   // Convert backend decimal strings to numbers
   const normalizedJob: Partial<Job> = {
     ...backendJob,
     // Backend returns subtotal as string (from DECIMAL type), convert to number
-    subtotal: typeof backendJob.subtotal === 'string'
-      ? parseFloat(backendJob.subtotal)
-      : backendJob.subtotal,
+    subtotal:
+      typeof backendJob.subtotal === 'string'
+        ? parseFloat(backendJob.subtotal)
+        : (backendJob.subtotal as number | undefined),
   };
 
   // Update IndexedDB with backend-calculated values
@@ -258,9 +266,7 @@ export async function updateJobFromBackend(jobId: string, backendJob: any): Prom
   const updatedJob = await db.jobs.get(jobId);
 
   if (updatedJob) {
-    console.log(
-      `[jobsDb] ✓ Updated job ${jobId} in IndexedDB (subtotal: $${updatedJob.subtotal})`,
-    );
+    console.log(`[jobsDb] ✓ Updated job ${jobId} in IndexedDB (subtotal: $${updatedJob.subtotal})`);
   }
 }
 
@@ -293,7 +299,7 @@ export async function markJobAsSyncError(jobId: string, _errorMessage: string): 
  * @returns Jobs with pending or error sync status
  */
 export async function getJobsNeedingSync(quoteId?: string): Promise<Job[]> {
-  let query = db.jobs.where('sync_status').equals(SyncStatus.PENDING);
+  const query = db.jobs.where('sync_status').equals(SyncStatus.PENDING);
 
   if (quoteId) {
     const allJobs = await query.toArray();
