@@ -107,14 +107,25 @@ jobs:
 
           echo "ALB DNS: $ALB_DNS"
 
-          # Export for E2E tests (use stable ALB endpoint)
-          echo "backend-url=http://${ALB_DNS}" >> $GITHUB_OUTPUT
+          # Get CloudFront distribution domain name for backend API (HTTPS)
+          CF_DOMAIN=$(aws cloudfront list-distributions \
+            --region ${{ env.AWS_REGION }} \
+            --query "DistributionList.Items[?Comment=='embark-quoting-staging backend API distribution'].DomainName" \
+            --output text)
 
-          # Health check through ALB (security groups only allow traffic from ALB)
-          HEALTH_URL="http://${ALB_DNS}/health"
+          if [ -z "$CF_DOMAIN" ]; then
+            echo "⚠️  CloudFront distribution not found, using HTTP ALB URL (will cause mixed content errors)"
+            echo "backend-url=http://${ALB_DNS}" >> $GITHUB_OUTPUT
+            HEALTH_URL="http://${ALB_DNS}/health"
+          else
+            echo "✅ CloudFront distribution found: $CF_DOMAIN"
+            echo "backend-url=https://${CF_DOMAIN}" >> $GITHUB_OUTPUT
+            HEALTH_URL="https://${CF_DOMAIN}/health"
+          fi
+
           echo "Running health check on ${HEALTH_URL}"
 
-          # Retry health check with backoff (ALB target registration may take a moment)
+          # Retry health check with backoff (ALB/CloudFront target registration may take a moment)
           MAX_RETRIES=6
           RETRY_COUNT=0
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
