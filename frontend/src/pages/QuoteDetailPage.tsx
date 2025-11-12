@@ -18,8 +18,9 @@ export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedQuote, isLoading, error, loadQuoteDetails, clearSelectedQuote } = useQuotes();
-  const { jobs, loadJobsForQuote, createJob, deleteJob, clearJobs } = useJobs();
+  const { jobs, loadJobsForQuote, createJob, updateJob, deleteJob, clearJobs } = useJobs();
   const [isAddingJob, setIsAddingJob] = useState(false);
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
 
   // Feature 5.5: Conflict Resolution
   const [showConflictResolver, setShowConflictResolver] = useState(false);
@@ -119,8 +120,15 @@ export function QuoteDetailPage() {
 
   const handleSaveJob = async (jobData: Partial<Job>) => {
     try {
-      await createJob(jobData);
-      setIsAddingJob(false);
+      if (editingJobId) {
+        // Update existing job
+        await updateJob(editingJobId, jobData);
+        setEditingJobId(null);
+      } else {
+        // Create new job
+        await createJob(jobData);
+        setIsAddingJob(false);
+      }
       // Reload quote to get updated financials
       if (id) {
         await loadQuoteDetails(id);
@@ -129,6 +137,11 @@ export function QuoteDetailPage() {
       console.error('Failed to save job:', error);
       alert('Failed to save job. Please try again.');
     }
+  };
+
+  const handleEditJob = (jobId: string) => {
+    setEditingJobId(jobId);
+    setIsAddingJob(false); // Close add job form if open
   };
 
   const handleDeleteJob = async (jobId: string) => {
@@ -363,7 +376,7 @@ export function QuoteDetailPage() {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Jobs</h2>
-            {!isAddingJob && (
+            {!isAddingJob && !editingJobId && (
               <button
                 onClick={() => setIsAddingJob(true)}
                 className="btn-primary text-sm flex items-center gap-2"
@@ -393,6 +406,13 @@ export function QuoteDetailPage() {
               onSave={handleSaveJob}
               onCancel={() => setIsAddingJob(false)}
             />
+          ) : editingJobId ? (
+            <JobSelector
+              quoteId={id!}
+              onSave={handleSaveJob}
+              onCancel={() => setEditingJobId(null)}
+              existingJob={jobs.find((j) => j.id === editingJobId)}
+            />
           ) : jobs.length > 0 ? (
             <div className="space-y-4">
               {jobs.map((job, index) => (
@@ -406,26 +426,48 @@ export function QuoteDetailPage() {
                         Subtotal: {formatCurrency(job.subtotal)}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleDeleteJob(job.id)}
-                      className="text-red-600 hover:text-red-700 p-2"
-                      title="Delete job"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditJob(job.id)}
+                        className="text-primary-600 hover:text-primary-700 p-2"
+                        title="Edit job"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteJob(job.id)}
+                        className="text-red-600 hover:text-red-700 p-2"
+                        title="Delete job"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
