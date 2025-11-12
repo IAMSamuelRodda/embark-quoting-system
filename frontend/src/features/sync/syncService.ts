@@ -102,11 +102,24 @@ export async function pushChanges(batchSize: number = 10): Promise<{
       await markQuoteAsSynced(item.quote_id);
       successCount++;
     } catch (error) {
-      console.error(`Sync error for quote ${item.quote_id}:`, error);
+      // Enhanced diagnostic logging for Issue #112 investigation
+      console.error(`=== SYNC ERROR DETAILS ===`);
+      console.error(`Quote ID: ${item.quote_id}`);
+      console.error(`Operation: ${item.operation}`);
+      console.error(`Sync Queue Item ID: ${item.id}`);
+      console.error(`Error Type: ${error?.constructor?.name || 'Unknown'}`);
 
       // Handle errors
       let errorMessage = 'Unknown error';
       if (error instanceof ApiError) {
+        console.error(`API Error Details:`, {
+          status: (error.response as any)?.status,
+          statusText: (error.response as any)?.statusText,
+          data: (error.response as any)?.data,
+          url: (error as any).config?.url,
+          method: (error as any).config?.method,
+        });
+
         if (isApiErrorResponse(error.response)) {
           errorMessage = error.response.message || error.response.error || error.statusText;
         } else {
@@ -114,7 +127,19 @@ export async function pushChanges(batchSize: number = 10): Promise<{
         }
       } else if (error instanceof Error) {
         errorMessage = error.message;
+        console.error(`Error Message: ${error.message}`);
+        console.error(`Error Stack:`, error.stack);
       }
+
+      console.error(`Processed Error Message: ${errorMessage}`);
+      console.error(`Quote Data Preview:`, {
+        quote_number: (item.data as any)?.quote_number,
+        customer_name: (item.data as any)?.customer_name,
+        status: (item.data as any)?.status,
+        has_jobs: Array.isArray((item.data as any)?.jobs),
+        job_count: (item.data as any)?.jobs?.length || 0,
+      });
+      console.error(`===========================`);
 
       errors.push(`Quote ${item.quote_id}: ${errorMessage}`);
 
