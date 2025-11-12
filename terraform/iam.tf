@@ -150,7 +150,8 @@ resource "aws_iam_role_policy" "github_actions_frontend" {
         Action = [
           "cloudfront:CreateInvalidation",
           "cloudfront:GetInvalidation",
-          "cloudfront:ListInvalidations"
+          "cloudfront:ListInvalidations",
+          "cloudfront:ListDistributions"
         ]
         Resource = "*"
       }
