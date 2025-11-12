@@ -3,8 +3,8 @@
 > **Purpose**: Current work, active bugs, and recent changes (~2 week rolling window)
 > **Lifecycle**: Living document (update daily/weekly during active development)
 
-**Last Updated:** 2025-11-11 (Session: Resolved 3 critical bugs + offline-first calculator)
-**Current Phase:** Post-MVP Bug Fixes & Verification
+**Last Updated:** 2025-11-12 (Session: Fixed E2E test UI selectors + identified data seeding gap)
+**Current Phase:** Post-MVP Bug Fixes & Test Infrastructure
 **Version:** 1.0.0-beta
 
 ---
@@ -25,7 +25,20 @@
 
 ## Current Focus
 
-**Completed Nov 11 (Today's Session):**
+**Completed Nov 12 (Today's Session):**
+- ✅ **E2E Test UI Fixes** - All 3/3 tests passing (driveway $610, retaining wall $1,715, multiple jobs $312 + $880.50)
+- ✅ **Test Regex Fix** - Updated job type matching from underscores to spaces (`RETAINING_WALL` → `RETAINING WALL`)
+- ✅ **Modal Timing Fix** - Changed wait strategy from "modal close" to "job card appears" (more robust)
+- ✅ **Race Condition Fix** - Added wait between job additions in multiple jobs test
+- ✅ **Form Validation Fix** - Fixed invalid default values in trenching form (`length: 0` → `10`, `depth: 0` → `0.5`)
+- ✅ **useEffect Cleanup Fix** - Removed Zustand actions from dependency array to prevent cleanup race conditions
+
+**Architecture Verification:**
+- ✅ **Offline-First Confirmed** - All job calculations happen locally via `jobCalculator.ts`
+- ✅ **Frontend Calculator Working** - Jobs created with calculated subtotals instantly (no backend dependency)
+- ✅ **Sync Properly Queued** - Calculated results pushed to cloud after local calculation completes
+
+**Completed Nov 11 (Previous Session):**
 - ✅ **Sync Queue Fix** - Auto-sync now updates UI state (3-part fix: UI updates, accurate counting, immediate refresh)
 - ✅ **Backend Job Calculations Fix** - Backend bugs fixed + frontend captures responses (all 5 job types verified: $510-$1,715)
 - ✅ **Frontend Job Calculator** - Offline-first calculator provides instant cost feedback (parameter name mismatch fixed across 5 job types)
@@ -65,6 +78,56 @@
 ---
 
 ## Known Issues
+
+### Open Issues - Test Infrastructure
+
+#### Issue #5: E2E Test - Trenching Form Invalid Default Values ✅ RESOLVED
+**Status:** FIXED - 2025-11-12
+**Impact:** 1/3 E2E tests failing (multiple jobs test)
+**Symptom:** Second job (trenching) form submission silently failed, modal remained open
+
+**Root Cause:**
+Trenching form initialized with invalid default values that violated Zod schema:
+- `length: 0` (schema requires `positive()` - must be > 0)
+- `depth: 0` (schema requires `positive()` - must be > 0)
+
+react-hook-form validated on mount, found errors, and prevented form submission even after test filled valid values. Form never called `onSubmit` handler.
+
+**Why Single Job Tests Passed:**
+- First job (driveway) used different form with valid defaults
+- Only second job (trenching) had invalid defaults
+
+**Solution Implemented:**
+Changed trenching form default values from invalid to valid:
+```typescript
+// BEFORE (invalid - prevents submission)
+defaultValues: {
+  length: 0,  // ❌ violates positive() requirement
+  depth: 0,   // ❌ violates positive() requirement
+  ...
+}
+
+// AFTER (valid - allows submission)
+defaultValues: {
+  length: 10,  // ✅ valid positive number
+  depth: 0.5,  // ✅ valid positive number
+  ...
+}
+```
+
+**Files Modified:**
+- `frontend/src/features/jobs/TrenchingForm.tsx:74-76`
+- `frontend/src/pages/QuoteDetailPage.tsx:42` (useEffect cleanup fix)
+
+**Test Results:**
+- ✅ Driveway job: $610 (passing)
+- ✅ Retaining wall job: $1,715 (passing)
+- ✅ Multiple jobs: $312 + $880.50 (now passing!)
+
+**Architecture Confirmation:**
+This was purely a frontend form validation issue, NOT a backend or database issue. Jobs work entirely offline as designed - calculations happen locally, no backend dependency required.
+
+---
 
 ### Critical Blockers - Requires Immediate Investigation
 
@@ -260,9 +323,116 @@ Updated all 5 calculator functions to match exact form parameter names:
 
 ---
 
+### Critical Blockers - Requires Immediate Investigation
+
+#### Issue #4: Local PostgreSQL Database Not Connected ✅ RESOLVED
+**Status:** FIXED - 2025-11-11 (Docker reinstalled)
+**Symptom:** E2E tests timeout waiting for sync completion, backend shows "database: disconnected"
+
+**Root Cause:**
+Docker Desktop had API version compatibility issues preventing PostgreSQL container from starting.
+
+**Solution:**
+Docker Engine and Docker Desktop reinstalled. Fresh installation resolved all API issues.
+
+**Impact:**
+- E2E tests fail with timeouts (waiting for sync that never completes)
+- Backend API returns 500 errors for all database operations
+- Sync items enter exponential backoff (expected behavior when backend fails)
+- Local development environment non-functional
+
+**Investigation Trail (2025-11-11):**
+1. ✅ Test logs showed "2 pending items, syncing..." but items never cleared
+2. ✅ Added debug logging to `getNextBatch()` - function works correctly
+3. ✅ Logs showed "Retrieved 2 items from queue" → sync starts correctly
+4. ❌ Backend logs show: `Connection terminated due to connection timeout`
+5. ❌ Health check returns: `{"database":"disconnected"}`
+6. ❌ Docker commands fail with API version errors
+
+**Key Insight:**
+This appeared to be a frontend sync bug, but was actually a multi-layer failure:
+- Frontend → ✅ Working (queues items correctly)
+- Sync engine → ✅ Working (retrieves items, sends API requests)
+- Backend → ✅ Working (receives requests, tries to process)
+- Database → ❌ FAILING (PostgreSQL container not running)
+- Docker → ❌ FAILING (API compatibility issues)
+
+**Solutions (Choose One):**
+
+**Option 1: Fix Docker Permissions** (Recommended)
+```bash
+# Add user to docker group
+sudo usermod -aG docker $USER
+
+# Log out and log back in, then verify
+docker ps
+
+# Start database via dev-start script
+./scripts/dev-start.sh
+```
+
+**Option 2: Use Native PostgreSQL**
+```bash
+# Install PostgreSQL
+sudo apt install postgresql postgresql-contrib
+
+# Start service
+sudo systemctl start postgresql
+
+# Create database
+sudo -u postgres createuser embark_dev -P  # Password: dev_password
+sudo -u postgres createdb embark_quoting_dev -O embark_dev
+
+# Backend .env already configured for localhost:5432
+```
+
+**Option 3: Start Docker Desktop**
+If Docker Desktop is installed but not running, start it from applications menu.
+
+**Verification:**
+```bash
+# Check database connection
+curl http://localhost:3001/health | jq '.database'
+# Should return: "connected"
+
+# Check Docker container
+docker ps | grep embark-dev-db
+# Should show running container
+
+# Run E2E tests
+npm run test:e2e -- job-calculations.spec.ts
+# Should pass without timeouts
+```
+
+**Files Modified (During Investigation):**
+- `frontend/src/features/sync/syncQueue.ts` (added debug logging to getNextBatch)
+
+**Resolution (2025-11-11):**
+1. ✅ Uninstalled and reinstalled Docker Engine + Docker Desktop
+   - New versions: Engine 29.0.0, Desktop 4.50.0
+   - API compatibility issues resolved
+2. ✅ Created fresh PostgreSQL container
+   - Database: embark_quoting_dev
+   - User: embark_dev
+   - Port: 5432
+3. ✅ Configured backend `.env` file
+   - Database connection: localhost:5432
+   - Cognito: Staging pool
+4. ✅ Ran database migrations successfully
+5. ✅ Backend now shows: `"database": "connected"`
+6. ✅ E2E tests sync working (1/3 passing, remaining failures are UI issues)
+
+**Current Status:**
+- Docker: ✅ Working (Engine 29.0.0 + Desktop 4.50.0)
+- PostgreSQL: ✅ Running (Container: embark-dev-db)
+- Backend: ✅ Connected (Health check: database "connected")
+- Sync: ✅ Fixed (items sync successfully, no exponential backoff)
+
+---
+
 ### High Priority
 
-#### Issue #4: Remember Me Credentials Cleared on Sign Out ⚠️
+#### Issue #5: Remember Me Credentials Cleared on Sign Out ⚠️
 **Status:** Known App Bug - Workaround in Tests
 **Discovered:** 2025-11-11
 **Symptom:** Credentials cleared from localStorage when signing out, even with "Remember Me" checked
@@ -294,7 +464,7 @@ Updated all 5 calculator functions to match exact form parameter names:
 
 ---
 
-#### Issue #5: Color Scheme Mismatch 🟡
+#### Issue #6: Color Scheme Mismatch 🟡
 **Status:** Design System Issue
 **Issue:** `index.css` uses blue Tailwind theme, style guide specifies CAT Gold (#FFB400)
 **Impact:** Visual inconsistency, design system not fully implemented
@@ -305,7 +475,7 @@ Updated all 5 calculator functions to match exact form parameter names:
 
 ### Medium Priority
 
-#### Issue #6: PWA Service Worker Not Implemented 🟡
+#### Issue #7: PWA Service Worker Not Implemented 🟡
 **Status:** Workbox configured, but service worker not registered
 **Impact:** Offline caching incomplete, 2 E2E tests skipped
 **Tracking:** Epic 6 follow-up work

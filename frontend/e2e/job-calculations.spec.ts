@@ -131,11 +131,9 @@ test.describe('Job Financial Calculations', () => {
 
     await page.locator('form').getByRole('button', { name: 'Add Job' }).click();
 
-    // Wait for modal to close
-    await expect(page.locator('form').getByRole('button', { name: 'Add Job' })).not.toBeVisible({ timeout: 5000 });
-
-    // Get job card reference
-    const jobCard = page.getByText(/Job \d+: RETAINING_WALL/).locator('..');
+    // Wait for job card to appear (modal closes automatically)
+    const jobCard = page.getByText(/Job \d+: RETAINING WALL/).locator('..');
+    await expect(jobCard).toBeVisible({ timeout: 10000 });
 
     // Wait for calculated subtotal to appear
     await expect(async () => {
@@ -175,6 +173,9 @@ test.describe('Job Financial Calculations', () => {
     await page.getByLabel('Base Thickness (mm)').fill('100');
     await page.locator('form').getByRole('button', { name: 'Add Job' }).click();
 
+    // Wait for first job to appear before adding second
+    await expect(page.getByText(/Job 1:/)).toBeVisible({ timeout: 10000 });
+
     // Add trenching job
     await page.getByRole('button', { name: 'Add Job' }).click();
     await page.getByRole('button', { name: 'Trenching' }).click();
@@ -183,10 +184,7 @@ test.describe('Job Financial Calculations', () => {
     await page.getByLabel('Depth (meters)').fill('0.6');
     await page.locator('form').getByRole('button', { name: 'Add Job' }).click();
 
-    // Wait for modal to close
-    await expect(page.locator('form').getByRole('button', { name: 'Add Job' })).not.toBeVisible({ timeout: 5000 });
-
-    // Wait for both jobs to have calculated subtotals
+    // Wait for both jobs to appear and have calculated subtotals
     await expect(async () => {
       const job1Text = await page.getByText(/Job 1:/).locator('..').locator('[data-testid="job-subtotal"]').textContent();
       const job2Text = await page.getByText(/Job 2:/).locator('..').locator('[data-testid="job-subtotal"]').textContent();
