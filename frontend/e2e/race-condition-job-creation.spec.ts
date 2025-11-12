@@ -19,7 +19,7 @@ import { getAndValidateCredentials } from './test-utils';
  */
 
 test.describe('Job Creation Race Condition Bug', () => {
-  test('should reproduce race condition with slow network', async ({ page, context }) => {
+  test('should reproduce race condition with slow network', async ({ page, context, baseURL }) => {
     // Simulate slow network to make race condition more likely
     // Add 2-second delay to all quote API calls to simulate slow sync
     await context.route('**/api/quotes**', async (route) => {
@@ -34,7 +34,7 @@ test.describe('Job Creation Race Condition Bug', () => {
       await route.continue();
     });
 
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = baseURL || 'http://localhost:3000';
     
     const { email, password } = getAndValidateCredentials();
 
@@ -175,7 +175,7 @@ test.describe('Job Creation Race Condition Bug', () => {
     console.log('=================\n');
   });
 
-  test('should work after implementing offline-first jobs (verification test)', async ({ page }) => {
+  test('should work after implementing offline-first jobs (verification test)', async ({ page, baseURL }) => {
     /**
      * This test will PASS after implementing the fix (Option A: Make Jobs Offline-First)
      *
@@ -186,7 +186,7 @@ test.describe('Job Creation Race Condition Bug', () => {
      * 4. User sees immediate feedback, no errors
      */
 
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = baseURL || 'http://localhost:3000';
     
     const { email, password } = getAndValidateCredentials();
 

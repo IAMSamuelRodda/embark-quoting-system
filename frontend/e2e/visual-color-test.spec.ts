@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 
-test('Visual color verification', async ({ page }) => {
-  await page.goto('http://localhost:3001/');
+test('Visual color verification', async ({ page, baseURL }) => {
+  await page.goto(baseURL || '/');
   await page.waitForTimeout(2000);
 
   // Create a test page with visible colored elements

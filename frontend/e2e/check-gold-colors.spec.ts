@@ -1,8 +1,8 @@
 import { test } from '@playwright/test';
 
-test('Visual verification of CAT Gold colors', async ({ page }) => {
+test('Visual verification of CAT Gold colors', async ({ page, baseURL }) => {
   // Go to root, which should redirect to login
-  await page.goto('http://localhost:3001/');
+  await page.goto(baseURL || '/');
   
   // Wait for the page to load
   await page.waitForTimeout(2000);
