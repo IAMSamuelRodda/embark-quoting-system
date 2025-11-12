@@ -33,7 +33,7 @@ export function DashboardPage() {
               <h1 className="text-2xl font-bold text-gray-900">Embark Quoting System</h1>
               <div className="flex items-center gap-2 mt-1">
                 <p className="text-sm text-gray-600">
-                  Welcome, {user?.email} ({user?.role})
+                  Welcome, {user?.email}
                 </p>
                 {isOfflineMode && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
