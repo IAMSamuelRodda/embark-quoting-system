@@ -70,7 +70,7 @@ export interface JobCalculation {
 /**
  * Calculate materials and labour for a job
  */
-export function calculateJob(jobType: string, parameters: Record<string, any>): JobCalculation {
+export function calculateJob(jobType: string, parameters: Record<string, unknown>): JobCalculation {
   switch (jobType) {
     case 'retaining_wall':
       return calculateRetainingWall(parameters);
@@ -97,7 +97,7 @@ export function calculateJob(jobType: string, parameters: Record<string, any>): 
  * - include_ag_pipe (boolean)
  * - include_orange_plastic (boolean)
  */
-function calculateRetainingWall(params: Record<string, any>): JobCalculation {
+function calculateRetainingWall(params: Record<string, unknown>): JobCalculation {
   const { bays, height, length, ag_pipe, orange_plastic } = params;
 
   if (!bays || !height || !length) {
@@ -192,7 +192,7 @@ function calculateRetainingWall(params: Record<string, any>): JobCalculation {
  * - topping_thickness (number, in mm, optional)
  * - topping_type (string, optional)
  */
-function calculateDriveway(params: Record<string, any>): JobCalculation {
+function calculateDriveway(params: Record<string, unknown>): JobCalculation {
   const { length, width, base_thickness, topping_enabled, topping_thickness, topping_type } = params;
 
   if (!length || !width || !base_thickness) {
@@ -259,7 +259,7 @@ function calculateDriveway(params: Record<string, any>): JobCalculation {
  * - width_mm (300-1000mm)
  * - depth (meters)
  */
-function calculateTrenching(params: Record<string, any>): JobCalculation {
+function calculateTrenching(params: Record<string, unknown>): JobCalculation {
   const { length, width, depth } = params;
 
   if (!length || !width || !depth) {
@@ -312,7 +312,7 @@ function calculateTrenching(params: Record<string, any>): JobCalculation {
  * - num_elbows (number)
  * - num_downpipes (number)
  */
-function calculateStormwater(params: Record<string, any>): JobCalculation {
+function calculateStormwater(params: Record<string, unknown>): JobCalculation {
   const { pipe_length, t_joints, elbows, downpipe_adaptors } = params;
 
   if (!pipe_length) {
@@ -397,7 +397,7 @@ function calculateStormwater(params: Record<string, any>): JobCalculation {
  * - depth (compaction depth in meters)
  * - backfill_type (string: 'road_base' or 'paving_sand', optional)
  */
-function calculateSitePrep(params: Record<string, any>): JobCalculation {
+function calculateSitePrep(params: Record<string, unknown>): JobCalculation {
   const { area, depth, backfill_type } = params;
 
   if (!area || !depth) {

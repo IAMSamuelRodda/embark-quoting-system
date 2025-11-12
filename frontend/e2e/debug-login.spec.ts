@@ -21,7 +21,7 @@ test('Debug login password fill', async ({ page }) => {
   console.log('\nAttempt 1: getByPlaceholder');
   const passwordInput1 = page.getByPlaceholder(/password/i);
   await passwordInput1.fill(password);
-  let value1 = await passwordInput1.inputValue();
+  const value1 = await passwordInput1.inputValue();
   console.log('Password input value after fill:', value1.length > 0 ? `${value1.length} chars` : 'EMPTY');
 
   await page.screenshot({ path: '/tmp/debug-login-1.png', fullPage: true });
@@ -31,7 +31,7 @@ test('Debug login password fill', async ({ page }) => {
   const passwordInput2 = page.locator('input#password');
   await passwordInput2.clear();
   await passwordInput2.fill(password);
-  let value2 = await passwordInput2.inputValue();
+  const value2 = await passwordInput2.inputValue();
   console.log('Password input value after fill:', value2.length > 0 ? `${value2.length} chars` : 'EMPTY');
 
   await page.screenshot({ path: '/tmp/debug-login-2.png', fullPage: true });
@@ -41,7 +41,7 @@ test('Debug login password fill', async ({ page }) => {
   const passwordInput3 = page.locator('input#password');
   await passwordInput3.clear();
   await passwordInput3.type(password);
-  let value3 = await passwordInput3.inputValue();
+  const value3 = await passwordInput3.inputValue();
   console.log('Password input value after type:', value3.length > 0 ? `${value3.length} chars` : 'EMPTY');
 
   await page.screenshot({ path: '/tmp/debug-login-3.png', fullPage: true });

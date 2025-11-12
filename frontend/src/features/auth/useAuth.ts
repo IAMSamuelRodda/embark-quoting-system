@@ -153,7 +153,7 @@ export const useAuth = create<AuthState>((set) => ({
       // Sign out from Cognito (will fail silently if offline)
       try {
         await authService.signOut();
-      } catch (error) {
+      } catch {
         console.log('[Auth] Could not sign out from Cognito (offline or error), continuing with local signout');
       }
 
@@ -244,7 +244,7 @@ export const useAuth = create<AuthState>((set) => ({
         });
         return;
       }
-    } catch (error) {
+    } catch {
       // Online auth failed - try offline auth if available
       console.log('[Auth] Online auth check failed, trying offline auth');
 
@@ -270,7 +270,7 @@ export const useAuth = create<AuthState>((set) => ({
           });
           return;
         }
-      } catch (offlineError) {
+      } catch {
         console.log('[Auth] Offline auth also failed');
       }
     }

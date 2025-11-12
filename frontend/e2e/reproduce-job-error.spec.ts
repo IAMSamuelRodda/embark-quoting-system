@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 import { getAndValidateCredentials } from './test-utils';
 
 test('Reproduce job creation error', async ({ page, browserName }) => {
@@ -44,7 +44,9 @@ test('Reproduce job creation error', async ({ page, browserName }) => {
         try {
           const body = await res.text();
           console.log(`  Error body: ${body}`);
-        } catch (e) {}
+        } catch {
+          // Ignore response read errors
+        }
       }
     }
   });

@@ -46,7 +46,7 @@ async function getDeviceKey(): Promise<CryptoKey> {
         true,
         ['encrypt', 'decrypt']
       );
-    } catch (error) {
+    } catch {
       console.warn('[SecureStorage] Failed to import existing key, generating new one');
     }
   }

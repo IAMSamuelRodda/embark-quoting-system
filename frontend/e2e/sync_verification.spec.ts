@@ -47,7 +47,7 @@ test.describe('Offline-First Sync Verification', () => {
     await page.waitForLoadState('domcontentloaded');
 
     // Should NOT show "pending" initially if no items in queue
-    const pendingBadge = page.locator('text=/pending/i').first();
+    // const pendingBadge = page.locator('text=/pending/i').first();
 
     // Wait for initial sync to complete (if any pending items exist)
     // Use network idle to detect when initial sync operations are done
