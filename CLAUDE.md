@@ -101,9 +101,9 @@ See `CONTRIBUTING.md` for complete workflow.
 
 ## 🔄 GitHub Workflow
 
-**Commit-Issue Linking**: Every commit MUST reference a GitHub issue (`Closes #N`, `Relates to #N`). See `CONTRIBUTING.md` § Link Commits to Issues.
+**Branch Protection**: NEVER push directly to `dev` or `main`. Use feature/fix branches → PR. See `DEVELOPMENT.md` § Git Branching Strategy.
 
-**PR Merge Strategy**: Use `gh pr merge --merge` (NOT `--squash`) to preserve feature branch history. See `DEVELOPMENT.md` § Git Branching Strategy.
+**Commit-Issue Linking**: Every commit MUST reference a GitHub issue (`Closes #N`, `Relates to #N`). See `CONTRIBUTING.md` § Link Commits to Issues.
 
 ---
 
