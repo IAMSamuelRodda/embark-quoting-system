@@ -98,7 +98,7 @@ export function SitePrepForm({ quoteId, onSave, onCancel, existingJob }: SitePre
         dumping_distance: data.dumping_required ? data.dumping_distance : undefined,
         supply_distance: data.supply_distance,
       },
-      subtotal: 0,
+      // Backend will calculate materials, labour, calculations, and subtotal
     };
 
     await onSave(jobData);

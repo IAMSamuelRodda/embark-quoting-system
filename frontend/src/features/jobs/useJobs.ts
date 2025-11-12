@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { type Job } from '../../shared/types/models';
-import apiClient from '../../shared/api/apiClient';
+import * as jobsDb from './jobsDb';
 
 interface JobsState {
   jobs: Job[];
@@ -24,8 +24,10 @@ export const useJobs = create<JobsState>((set) => ({
   loadJobsForQuote: async (quoteId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await apiClient.get<Job[]>(`/jobs/quote/${quoteId}`);
-      set({ jobs: response.data!, isLoading: false });
+      // Load from IndexedDB (offline-first)
+      const jobs = await jobsDb.getJobsByQuoteId(quoteId);
+      set({ jobs, isLoading: false });
+      console.log(`[useJobs] Loaded ${jobs.length} jobs for quote ${quoteId} from IndexedDB`);
     } catch (error) {
       console.error('Failed to load jobs:', error);
       set({
@@ -38,14 +40,24 @@ export const useJobs = create<JobsState>((set) => ({
   createJob: async (jobData: Partial<Job>) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await apiClient.post<Job>('/jobs', jobData);
-      const newJob = response.data!;
+      const { quote_id } = jobData;
+      if (!quote_id) {
+        throw new Error('quote_id is required to create a job');
+      }
+
+      // Create job in IndexedDB (offline-first)
+      // No need to check backend - job will sync automatically via sync queue
+      console.log(`[useJobs] Creating job for quote ${quote_id} (offline-first)`);
+      const newJob = await jobsDb.createJob(jobData, quote_id);
 
       // Add to local state
       set((state) => ({
         jobs: [...state.jobs, newJob],
         isLoading: false,
       }));
+
+      console.log(`[useJobs] ✓ Job created: ${newJob.id} (sync_status: ${newJob.sync_status})`);
+      console.log('[useJobs] Job will sync to backend automatically via sync queue');
 
       return newJob;
     } catch (error) {
@@ -61,14 +73,23 @@ export const useJobs = create<JobsState>((set) => ({
   updateJob: async (jobId: string, updates: Partial<Job>) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await apiClient.put<Job>(`/jobs/${jobId}`, updates);
-      const updatedJob = response.data!;
+      // Update job in IndexedDB (offline-first)
+      await jobsDb.updateJob(jobId, updates);
+
+      // Get updated job from IndexedDB
+      const updatedJob = await jobsDb.getJobById(jobId);
+
+      if (!updatedJob) {
+        throw new Error(`Job ${jobId} not found after update`);
+      }
 
       // Update in local state
       set((state) => ({
         jobs: state.jobs.map((job) => (job.id === jobId ? updatedJob : job)),
         isLoading: false,
       }));
+
+      console.log(`[useJobs] ✓ Job updated: ${jobId} (sync_status: ${updatedJob.sync_status})`);
 
       return updatedJob;
     } catch (error) {
@@ -84,13 +105,16 @@ export const useJobs = create<JobsState>((set) => ({
   deleteJob: async (jobId: string) => {
     set({ isLoading: true, error: null });
     try {
-      await apiClient.delete(`/jobs/${jobId}`);
+      // Delete job from IndexedDB (offline-first)
+      await jobsDb.deleteJob(jobId);
 
       // Remove from local state
       set((state) => ({
         jobs: state.jobs.filter((job) => job.id !== jobId),
         isLoading: false,
       }));
+
+      console.log(`[useJobs] ✓ Job deleted: ${jobId}`);
     } catch (error) {
       console.error('Failed to delete job:', error);
       set({
@@ -104,7 +128,8 @@ export const useJobs = create<JobsState>((set) => ({
   reorderJobs: async (quoteId: string, jobOrders: { id: string; order_index: number }[]) => {
     set({ isLoading: true, error: null });
     try {
-      await apiClient.put<void>(`/jobs/quote/${quoteId}/reorder`, { jobOrders });
+      // Reorder jobs in IndexedDB (offline-first)
+      await jobsDb.reorderJobs(quoteId, jobOrders);
 
       // Update local state order
       const orderMap = new Map(jobOrders.map((j) => [j.id, j.order_index]));
@@ -119,6 +144,8 @@ export const useJobs = create<JobsState>((set) => ({
           .sort((a, b) => a.order_index - b.order_index),
         isLoading: false,
       }));
+
+      console.log(`[useJobs] ✓ Jobs reordered for quote ${quoteId}`);
     } catch (error) {
       console.error('Failed to reorder jobs:', error);
       set({
