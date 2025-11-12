@@ -57,23 +57,23 @@ export function StormwaterForm({ quoteId, onSave, onCancel, existingJob }: Storm
     resolver: zodResolver(stormwaterSchema),
     defaultValues: existingJob
       ? {
-          pipe_length: (existingJob.parameters.pipe_length as number) || 0,
+          pipe_length: (existingJob.parameters.pipe_length as number) || 10,
           pipe_type: (existingJob.parameters.pipe_type as string) || 'PVC 90mm',
           t_joints: (existingJob.parameters.t_joints as number) || 0,
           elbows: (existingJob.parameters.elbows as number) || 0,
           downpipe_adaptors: (existingJob.parameters.downpipe_adaptors as number) || 0,
           include_trenching: (existingJob.parameters.include_trenching as boolean) || false,
-          trench_length: (existingJob.parameters.trench_length as number) || 0,
+          trench_length: (existingJob.parameters.trench_length as number) || 10,
           trench_width: (existingJob.parameters.trench_width as number) || 600,
         }
       : {
-          pipe_length: 0,
+          pipe_length: 10,
           pipe_type: 'PVC 90mm',
           t_joints: 0,
           elbows: 0,
           downpipe_adaptors: 0,
           include_trenching: false,
-          trench_length: 0,
+          trench_length: 10,
           trench_width: 600,
         },
   });
