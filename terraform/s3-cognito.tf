@@ -136,7 +136,7 @@ resource "aws_cognito_user_pool" "main" {
   }
 
   # Email verification
-  auto_verified_attributes = ["email"]
+  auto_verified_attributes   = ["email"]
   email_verification_subject = "Your Embark Quoting verification code"
   email_verification_message = "Your verification code is {####}"
 
@@ -166,10 +166,10 @@ resource "aws_cognito_user_pool" "main" {
   }
 
   schema {
-    name                = "role"
-    attribute_data_type = "String"
-    required            = false
-    mutable             = true
+    name                     = "role"
+    attribute_data_type      = "String"
+    required                 = false
+    mutable                  = true
     developer_only_attribute = false
 
     string_attribute_constraints {
@@ -210,8 +210,8 @@ resource "aws_cognito_user_pool_client" "frontend" {
 
   # Auth flows (enable SRP authentication for username/password login)
   explicit_auth_flows = [
-    "ALLOW_USER_SRP_AUTH",        # Secure Remote Password (SRP) authentication
-    "ALLOW_REFRESH_TOKEN_AUTH"     # Allow refreshing tokens
+    "ALLOW_USER_SRP_AUTH",     # Secure Remote Password (SRP) authentication
+    "ALLOW_REFRESH_TOKEN_AUTH" # Allow refreshing tokens
   ]
 
   # OAuth configuration
@@ -235,7 +235,7 @@ resource "aws_cognito_user_pool_client" "frontend" {
 
   # Attribute read/write permissions
   read_attributes  = ["email", "name", "custom:role"]
-  write_attributes = []  # Standard attributes like 'name' cannot be written by clients
+  write_attributes = [] # Standard attributes like 'name' cannot be written by clients
 
   # Prevent user existence errors (security best practice)
   prevent_user_existence_errors = "ENABLED"

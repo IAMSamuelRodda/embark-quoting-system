@@ -100,6 +100,25 @@ output "cloudfront_url" {
 }
 
 # ===================================================================
+# CloudFront (Backend API)
+# ===================================================================
+
+output "backend_api_cloudfront_distribution_id" {
+  description = "Backend API CloudFront distribution ID"
+  value       = var.enable_alb ? aws_cloudfront_distribution.backend_api[0].id : "ALB_DISABLED"
+}
+
+output "backend_api_cloudfront_domain_name" {
+  description = "Backend API CloudFront domain name (use this for STAGING_API_URL instead of ALB DNS)"
+  value       = var.enable_alb ? aws_cloudfront_distribution.backend_api[0].domain_name : "ALB_DISABLED"
+}
+
+output "backend_api_cloudfront_url" {
+  description = "Full Backend API CloudFront URL (HTTPS)"
+  value       = var.enable_alb ? "https://${aws_cloudfront_distribution.backend_api[0].domain_name}" : "ALB_DISABLED"
+}
+
+# ===================================================================
 # Cognito (Authentication)
 # ===================================================================
 
@@ -195,7 +214,7 @@ output "private_subnet_ids" {
 
 output "setup_summary" {
   description = "Quick setup summary for GitHub Secrets"
-  value = <<-EOT
+  value       = <<-EOT
     ╔══════════════════════════════════════════════════════════════╗
     ║          GITHUB SECRETS CONFIGURATION (${upper(var.environment)})          ║
     ╚══════════════════════════════════════════════════════════════╝
@@ -211,7 +230,7 @@ output "setup_summary" {
     ${upper(var.environment)}_ECS_CLUSTER:               ${aws_ecs_cluster.main.name}
     ${upper(var.environment)}_ECS_SERVICE:               ${aws_ecs_service.backend.name}
     ${upper(var.environment)}_ECR_REPOSITORY:            ${aws_ecr_repository.backend.repository_url}
-    ${upper(var.environment)}_API_URL:                   ${var.enable_alb ? "http://${aws_lb.main[0].dns_name}" : "NO_ALB_USE_ECS_PUBLIC_IP"}
+    ${upper(var.environment)}_API_URL:                   ${var.enable_alb ? "https://${aws_cloudfront_distribution.backend_api[0].domain_name}" : "NO_ALB_USE_ECS_PUBLIC_IP"}
 
     Frontend (S3 + CloudFront):
     --------------------------

@@ -5,7 +5,7 @@
 variable "aws_region" {
   description = "AWS region for all resources"
   type        = string
-  default     = "ap-southeast-2"  # Sydney, Australia
+  default     = "ap-southeast-2" # Sydney, Australia
 }
 
 variable "environment" {
