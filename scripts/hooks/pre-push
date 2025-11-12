@@ -1,0 +1,41 @@
+#!/bin/bash
+# Pre-push hook to prevent direct pushes to protected branches (dev, main)
+# Forces use of feature/fix branches with PRs instead
+
+PROTECTED_BRANCHES="dev main"
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+# Check if current branch is protected
+for branch in $PROTECTED_BRANCHES; do
+  if [ "$CURRENT_BRANCH" = "$branch" ]; then
+    cat <<EOF
+
+❌ ERROR: Direct push to '$branch' branch is not allowed!
+
+You must use feature or fix branches and create a PR instead:
+
+  1. Create a feature/fix branch:
+     git checkout -b feature/issue-XXX-description
+     OR
+     git checkout -b fix/issue-XXX-description
+
+  2. Make your changes and commit
+
+  3. Push your feature branch:
+     git push -u origin feature/issue-XXX-description
+
+  4. Create a PR to $branch:
+     gh pr create --base $branch --title "Your PR title"
+
+For hotfixes, use:
+  git checkout -b hotfix/critical-issue-description
+
+See CLAUDE.md for complete branching policy.
+
+EOF
+    exit 1
+  fi
+done
+
+# Allow push if not on protected branch
+exit 0

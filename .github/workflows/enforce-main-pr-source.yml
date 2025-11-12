@@ -1,0 +1,42 @@
+name: Enforce Main PR Source
+
+# CRITICAL: main branch must ONLY accept PRs from dev branch
+# Feature/fix branches → dev → main (never feature → main)
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  validate-source-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR source branch
+        run: |
+          SOURCE_BRANCH="${{ github.head_ref }}"
+          TARGET_BRANCH="${{ github.base_ref }}"
+
+          echo "📋 PR Source: $SOURCE_BRANCH"
+          echo "📋 PR Target: $TARGET_BRANCH"
+
+          if [ "$TARGET_BRANCH" = "main" ] && [ "$SOURCE_BRANCH" != "dev" ]; then
+            echo ""
+            echo "❌ ERROR: main branch only accepts PRs from dev branch"
+            echo ""
+            echo "Current PR: $SOURCE_BRANCH → main (REJECTED)"
+            echo "Required:   dev → main"
+            echo ""
+            echo "To fix this:"
+            echo "1. Close this PR"
+            echo "2. Change base branch to dev:"
+            echo "   gh pr create --base dev --head $SOURCE_BRANCH"
+            echo "3. Merge to dev first"
+            echo "4. Then create dev → main PR for release"
+            echo ""
+            echo "See DEVELOPMENT.md § Git Branching Strategy for details"
+            exit 1
+          fi
+
+          echo "✅ Valid PR source: $SOURCE_BRANCH → $TARGET_BRANCH"
