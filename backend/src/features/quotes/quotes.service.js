@@ -22,6 +22,7 @@ const quoteStatusEnum = z.enum([
 ]);
 
 const createQuoteSchema = z.object({
+  id: z.string().uuid().optional(), // Allow client-generated UUID for offline-first sync
   customer_name: z.string().min(1, 'Customer name is required'),
   customer_email: z.string().email().optional().or(z.literal('')),
   customer_phone: z.string().optional(),
@@ -112,8 +113,10 @@ export async function createQuote(quoteData, userId) {
   const quote_number = await generateQuoteNumber();
 
   // Create quote
+  // Note: Client-generated UUID (from crypto.randomUUID()) is accepted for offline-first sync.
+  // If id is provided by client, use it; otherwise PostgreSQL generates one via gen_random_uuid().
   const newQuote = await repository.createQuote({
-    ...validated,
+    ...validated, // Includes client id if provided
     quote_number,
     user_id: userId,
     version: 1,
