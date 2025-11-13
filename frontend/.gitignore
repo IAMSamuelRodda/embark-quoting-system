@@ -28,3 +28,5 @@ test-results/
 *storybook.log
 storybook-static
 .env
+# Environment-specific staging config (backend IP changes on task restart)
+.env.staging

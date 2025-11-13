@@ -43,3 +43,28 @@ cloudfront_price_class = "PriceClass_100" # North America and Europe only
 # Domain (leave empty to use CloudFront default domain)
 domain_name         = ""
 acm_certificate_arn = ""
+
+# ===================================================================
+# COST OPTIMIZATION FOR DEVELOPMENT
+# ===================================================================
+# These settings reduce costs from $140/month to ~$5/month
+# ONLY enable NAT Gateway and ALB when you have paying customers!
+# ===================================================================
+
+# Disable NAT Gateway (saves $65/month)
+# ECS tasks will use public IPs instead
+enable_nat_gateway = false
+
+# Disable Application Load Balancer (saves $25/month)
+# Access ECS tasks directly via public IP
+enable_alb = false
+
+# Enable public IPs for ECS tasks (required when NAT Gateway disabled)
+ecs_assign_public_ip = true
+
+# Keep database in single AZ (saves $20/month vs Multi-AZ)
+db_multi_az = false
+
+# Backend API endpoint (ECS task public IP - update when task restarts)
+# Current task IP: 3.27.195.113 (deployed 2025-11-13)
+backend_api_endpoint = "3.27.195.113"
