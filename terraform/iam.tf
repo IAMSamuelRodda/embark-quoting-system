@@ -200,6 +200,46 @@ resource "aws_iam_role_policy" "github_actions_elb" {
   })
 }
 
+# Policy for GitHub Actions to deploy to EC2 via SSM (consolidated EC2 deployment)
+resource "aws_iam_role_policy" "github_actions_ec2_ssm" {
+  name = "${var.project_name}-${var.environment}-github-actions-ec2-ssm"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:SendCommand",
+          "ssm:GetCommandInvocation",
+          "ssm:ListCommandInvocations"
+        ]
+        Resource = [
+          "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:instance/*",
+          "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceStatus"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject"
+        ]
+        Resource = "arn:aws:s3:::${var.project_name}-*-staging-logs/*"
+      }
+    ]
+  })
+}
+
 # ===================================================================
 # ECS Task Execution Role (used by ECS to pull images, get secrets)
 # ===================================================================
