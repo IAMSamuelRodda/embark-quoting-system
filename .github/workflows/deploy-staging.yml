@@ -123,15 +123,12 @@ jobs:
 
           # Create an override file that uses the ECR image
           # This approach is more reliable than sed modification
-          cat > docker-compose.override.yml <<OVERRIDE_EOF
-          version: '3.8'
-          services:
-            backend:
-              image: $IMAGE_URI
-              # ECR image already has code baked in, no volume mount needed
-              volumes:
-                - db-data:/var/lib/postgresql/data
-          OVERRIDE_EOF
+          cat > docker-compose.override.yml <<'OVERRIDE_EOF'
+version: '3.8'
+services:
+  backend:
+    image: ${IMAGE_URI}
+OVERRIDE_EOF
 
           echo "✅ Created docker-compose.override.yml with ECR image configuration"
 
