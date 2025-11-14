@@ -1,0 +1,485 @@
+name: Deploy to Staging (EC2)
+
+on:
+  # Deploy to staging when pushing tags with 'staging-' prefix
+  # Example: git tag staging-v1.2.3 && git push origin staging-v1.2.3
+  push:
+    tags:
+      - 'staging-v*'     # staging-v1.0.0, staging-v1.2.3, etc.
+      - 'staging-*'       # staging-20250109, staging-feature-name, etc.
+  # Allow manual triggers for debugging
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-southeast-2  # Sydney region (matches deployed infrastructure)
+  ECR_REPOSITORY: embark-quoting-backend
+  EC2_INSTANCE_ID: i-0baf6a9f78a533ffc  # Consolidated instance
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend to EC2
+    runs-on: ubuntu-latest
+    outputs:
+      backend-url: ${{ steps.verify-backend.outputs.backend-url }}
+    environment:
+      name: staging
+      url: http://54.253.178.187  # EC2 public IP
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify staging tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/staging-* ]]; then
+            echo "✅ Tag check passed: Deploying from staging tag ${{ github.ref_name }}"
+          else
+            echo "ℹ️ Manual workflow dispatch detected"
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Get latest image from ECR
+        id: get-image
+        run: |
+          # Use 'latest' tag for staging deployments
+          IMAGE_TAG="latest"
+          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+          echo "image-uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
+          echo "Deploying image: ${IMAGE_URI}"
+
+      - name: Create deployment script
+        run: |
+          cat > deploy-backend.sh <<'EOF'
+          #!/bin/bash
+          set -e
+
+          IMAGE_URI="${{ steps.get-image.outputs.image-uri }}"
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          AWS_REGION="${{ env.AWS_REGION }}"
+
+          echo "🚀 Starting backend deployment..."
+          echo "Image: $IMAGE_URI"
+
+          # ===================================================================
+          # 1. Install prerequisites if needed
+          # ===================================================================
+
+          echo "📦 Checking prerequisites..."
+
+          # Check if AWS CLI is installed
+          if ! command -v aws &> /dev/null; then
+            echo "Installing AWS CLI..."
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+            cd /tmp && unzip -q awscliv2.zip && sudo ./aws/install
+          else
+            echo "✅ AWS CLI already installed"
+          fi
+
+          # Check if jq is installed
+          if ! command -v jq &> /dev/null; then
+            echo "Installing jq..."
+            sudo dnf install -y jq
+          else
+            echo "✅ jq already installed"
+          fi
+
+          # ===================================================================
+          # 2. Login to ECR and pull latest image
+          # ===================================================================
+
+          # Navigate to application directory
+          cd /opt/embark
+
+          # Login to ECR
+          echo "🔐 Logging in to ECR..."
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+          # Pull latest image
+          echo "📦 Pulling latest image..."
+          docker pull $IMAGE_URI
+
+          # ===================================================================
+          # 3. Update docker-compose.yml if needed
+          # ===================================================================
+
+          echo "📝 Checking docker-compose.yml configuration..."
+
+          # Check if already using ECR image
+          if grep -q "$IMAGE_URI" docker-compose.yml; then
+            echo "✅ docker-compose.yml already configured for ECR image"
+          else
+            echo "Updating docker-compose.yml to use ECR image..."
+
+            # Backup current config
+            cp docker-compose.yml docker-compose.yml.backup
+
+            # Replace placeholder image with ECR image
+            sed -i "s|image: public.ecr.aws/docker/library/node:18-alpine|image: $IMAGE_URI|g" docker-compose.yml
+
+            # Remove placeholder command (ECR image has proper CMD)
+            sed -i '/command: sh -c/,/"$/d' docker-compose.yml
+
+            # Remove backend-code volume mount (ECR image contains the code)
+            sed -i '/- backend-code:\/app/d' docker-compose.yml
+            sed -i '/backend-code:/,/driver: local/d' docker-compose.yml
+          fi
+
+          # ===================================================================
+          # 4. Deploy backend container
+          # ===================================================================
+
+          echo "🔄 Deploying backend container..."
+          docker-compose up -d --no-deps backend
+
+          # ===================================================================
+          # 5. Wait for backend to be healthy
+          # ===================================================================
+
+          echo "⏳ Waiting for backend to be healthy..."
+          HEALTHY=false
+          for i in {1..30}; do
+            if curl -f http://localhost:3000/health > /dev/null 2>&1; then
+              echo "✅ Backend is healthy!"
+              HEALTHY=true
+              break
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 2
+          done
+
+          if [ "$HEALTHY" = false ]; then
+            echo "❌ Backend failed to become healthy"
+            echo "Container logs:"
+            docker logs embark-backend --tail 50
+            exit 1
+          fi
+
+          # ===================================================================
+          # 6. Verify deployment
+          # ===================================================================
+
+          echo "🔍 Verifying deployment..."
+          echo "Container status:"
+          docker ps | grep embark-backend
+
+          echo ""
+          echo "Health check:"
+          curl -s http://localhost:3000/health | jq .
+
+          echo ""
+          echo "✅ Backend deployment complete!"
+          EOF
+
+          chmod +x deploy-backend.sh
+
+      - name: Deploy to EC2 via SSM
+        run: |
+          # Copy deployment script to EC2
+          aws ssm send-command \
+            --instance-ids ${{ env.EC2_INSTANCE_ID }} \
+            --document-name "AWS-RunShellScript" \
+            --parameters commands="$(cat deploy-backend.sh)" \
+            --output-s3-bucket-name "embark-quoting-staging-logs" \
+            --output-s3-key-prefix "deployments/backend" \
+            --comment "Deploy backend ${{ github.ref_name }}" \
+            --query "Command.CommandId" \
+            --output text > command_id.txt
+
+          COMMAND_ID=$(cat command_id.txt)
+          echo "SSM Command ID: $COMMAND_ID"
+
+          # Wait for command to complete
+          echo "Waiting for deployment to complete..."
+          for i in {1..60}; do
+            STATUS=$(aws ssm get-command-invocation \
+              --command-id $COMMAND_ID \
+              --instance-id ${{ env.EC2_INSTANCE_ID }} \
+              --query "Status" \
+              --output text)
+
+            echo "Status: $STATUS ($i/60)"
+
+            if [ "$STATUS" = "Success" ]; then
+              echo "✅ Deployment succeeded!"
+              break
+            elif [ "$STATUS" = "Failed" ] || [ "$STATUS" = "Cancelled" ] || [ "$STATUS" = "TimedOut" ]; then
+              echo "❌ Deployment failed with status: $STATUS"
+              aws ssm get-command-invocation \
+                --command-id $COMMAND_ID \
+                --instance-id ${{ env.EC2_INSTANCE_ID }} \
+                --query "StandardErrorContent" \
+                --output text
+              exit 1
+            fi
+
+            sleep 5
+          done
+
+      - name: Verify deployment
+        id: verify-backend
+        run: |
+          echo "Waiting for service to stabilize..."
+          sleep 10
+
+          # Get EC2 public IP
+          PUBLIC_IP=$(aws ec2 describe-instances \
+            --instance-ids ${{ env.EC2_INSTANCE_ID }} \
+            --query 'Reservations[0].Instances[0].PublicIpAddress' \
+            --output text)
+
+          BACKEND_URL="http://${PUBLIC_IP}:3000"
+          echo "backend-url=${BACKEND_URL}" >> $GITHUB_OUTPUT
+
+          # Verify backend is accessible
+          echo "Testing backend at: $BACKEND_URL"
+          curl -f $BACKEND_URL/health
+
+          echo "✅ Backend deployment verified!"
+
+  deploy-frontend:
+    name: Deploy Frontend to S3/CloudFront
+    runs-on: ubuntu-latest
+    needs: [deploy-backend]  # Frontend depends on backend being deployed
+    environment:
+      name: staging
+      url: https://d2vxgs70elbgcz.cloudfront.net  # CloudFront URL
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify staging tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/staging-* ]]; then
+            echo "✅ Tag check passed: Deploying from staging tag ${{ github.ref_name }}"
+          else
+            echo "ℹ️ Manual workflow dispatch detected"
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./frontend
+        env:
+          NODE_ENV: production
+          VITE_API_URL: ${{ secrets.STAGING_API_URL }}
+          VITE_COGNITO_USER_POOL_ID: ${{ secrets.STAGING_COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_CLIENT_ID: ${{ secrets.STAGING_COGNITO_CLIENT_ID }}
+          VITE_COGNITO_REGION: ap-southeast-2
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./frontend/dist/ s3://${{ secrets.STAGING_S3_BUCKET }}/ \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "index.html" \
+            --exclude "manifest.webmanifest" \
+            --exclude "registerSW.js"
+
+          # Upload index.html without caching (always fresh)
+          aws s3 cp ./frontend/dist/index.html s3://${{ secrets.STAGING_S3_BUCKET }}/index.html \
+            --cache-control "no-cache, no-store, must-revalidate"
+
+          # Upload PWA files with short cache
+          aws s3 cp ./frontend/dist/manifest.webmanifest s3://${{ secrets.STAGING_S3_BUCKET }}/manifest.webmanifest \
+            --cache-control "public, max-age=3600"
+
+          if [ -f ./frontend/dist/registerSW.js ]; then
+            aws s3 cp ./frontend/dist/registerSW.js s3://${{ secrets.STAGING_S3_BUCKET }}/registerSW.js \
+              --cache-control "no-cache"
+          fi
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.STAGING_CLOUDFRONT_ID }} \
+            --paths "/*"
+
+      - name: Verify frontend deployment
+        run: |
+          echo "Waiting for CloudFront invalidation to propagate..."
+          sleep 30
+
+          # Verify frontend is accessible
+          curl -f ${{ secrets.STAGING_FRONTEND_URL }}
+
+          echo "✅ Frontend deployment verified!"
+
+  e2e-tests:
+    name: Comprehensive E2E Tests (Staging)
+    uses: ./.github/workflows/e2e-tests.yml
+    needs: [deploy-backend, deploy-frontend]
+    # Make tests non-blocking so deployment can succeed even if tests fail
+    # This follows Amazon/Netflix pattern: Deploy First → Verify Second
+    if: ${{ !cancelled() }}
+    with:
+      environment: staging
+    secrets:
+      base-url-secret: ${{ secrets.STAGING_FRONTEND_URL }}
+      api-url-secret: ${{ needs.deploy-backend.outputs.backend-url }}
+      test-user-email: ${{ secrets.E2E_TEST_USER_EMAIL }}
+      test-user-password: ${{ secrets.E2E_TEST_USER_PASSWORD }}
+
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    # Run even if E2E tests fail (deployment success != test success)
+    if: ${{ !cancelled() }}
+    needs: [deploy-backend, deploy-frontend]
+
+    steps:
+      - name: Deployment Status
+        run: |
+          echo "## 🚀 Staging Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Backend Deployed**: ${{ needs.deploy-backend.outputs.backend-url }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Frontend Deployed**: ${{ secrets.STAGING_FRONTEND_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Infrastructure" >> $GITHUB_STEP_SUMMARY
+          echo "- **EC2 Instance**: ${{ env.EC2_INSTANCE_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Region**: ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor E2E test results in separate job" >> $GITHUB_STEP_SUMMARY
+          echo "- Check backend health: ${{ needs.deploy-backend.outputs.backend-url }}/health" >> $GITHUB_STEP_SUMMARY
+          echo "- Visit frontend: ${{ secrets.STAGING_FRONTEND_URL }}" >> $GITHUB_STEP_SUMMARY
+
+  notify-failure:
+    name: Alert on E2E Test Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend, e2e-tests]
+    # Only run if E2E tests failed (not if they were skipped or cancelled)
+    if: failure() && needs.e2e-tests.result == 'failure'
+
+    steps:
+      - name: Send Slack alert
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v1
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        with:
+          payload: |
+            {
+              "text": "🚨 CRITICAL: Staging E2E tests failed after deployment!",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🚨 Staging E2E Tests Failed"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Tag:*\n${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Workflow:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "⚠️ *Deployment succeeded but E2E tests are failing.*\n\nInvestigate immediately and consider rollback if critical."
+                  }
+                }
+              ]
+            }
+
+      - name: Create GitHub issue for tracking
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "🚨 Staging E2E Tests Failed - Tag ${{ github.ref_name }}" \
+            --body "## Problem
+
+          E2E tests failed after successful deployment to staging.
+
+          **Tag**: \`${{ github.ref_name }}\`
+          **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Backend**: ${{ needs.deploy-backend.outputs.backend-url }}
+          **Frontend**: ${{ secrets.STAGING_FRONTEND_URL }}
+
+          ## Investigation Checklist
+
+          - [ ] Check E2E test logs in workflow run
+          - [ ] Verify backend health endpoint: ${{ needs.deploy-backend.outputs.backend-url }}/health
+          - [ ] Check frontend loads: ${{ secrets.STAGING_FRONTEND_URL }}
+          - [ ] Review backend logs: \`ssh ec2-user@54.253.178.187 'docker logs embark-backend'\`
+          - [ ] Check database connectivity: \`docker exec embark-postgres pg_isready\`
+          - [ ] Verify Cognito credentials are valid
+
+          ## Rollback Options
+
+          **Option 1: Rollback Backend** (preserves database)
+          \`\`\`bash
+          ssh ec2-user@54.253.178.187
+          cd /opt/embark
+          # Find previous image tag
+          docker images | grep embark-quoting-backend
+          # Update docker-compose.yml to use previous image
+          docker-compose up -d --no-deps backend
+          \`\`\`
+
+          **Option 2: Rollback Frontend Only**
+          \`\`\`bash
+          git checkout <previous-tag>
+          # Re-run frontend deployment step manually
+          \`\`\`
+
+          **Option 3: Full Rollback**
+          \`\`\`bash
+          # Re-tag previous working version
+          git tag -f staging-v1.0.X <previous-commit>
+          git push origin staging-v1.0.X --force
+          \`\`\`
+
+          ## Related
+
+          - Previous deployment: Link to last successful run
+          - Recent changes: \`git log --oneline ${{ github.ref_name }}~5..${{ github.ref_name }}\`" \
+            --label "bug" \
+            --label "priority: critical" \
+            --label "status: blocked" \
+            --repo ${{ github.repository }}
