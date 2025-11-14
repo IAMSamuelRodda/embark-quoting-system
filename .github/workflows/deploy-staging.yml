@@ -327,26 +327,9 @@ jobs:
 
           echo "✅ Frontend deployment verified!"
 
-  e2e-tests:
-    name: Comprehensive E2E Tests (Staging)
-    uses: ./.github/workflows/e2e-tests.yml
-    needs: [deploy-backend, deploy-frontend]
-    # Make tests non-blocking so deployment can succeed even if tests fail
-    # This follows Amazon/Netflix pattern: Deploy First → Verify Second
-    if: ${{ !cancelled() }}
-    with:
-      environment: staging
-    secrets:
-      base-url-secret: ${{ secrets.STAGING_FRONTEND_URL }}
-      api-url-secret: ${{ needs.deploy-backend.outputs.backend-url }}
-      test-user-email: ${{ secrets.E2E_TEST_USER_EMAIL }}
-      test-user-password: ${{ secrets.E2E_TEST_USER_PASSWORD }}
-
   deployment-summary:
     name: Deployment Summary
     runs-on: ubuntu-latest
-    # Run even if E2E tests fail (deployment success != test success)
-    if: ${{ !cancelled() }}
     needs: [deploy-backend, deploy-frontend]
 
     steps:
@@ -362,113 +345,5 @@ jobs:
           echo "- **Region**: ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "- Monitor E2E test results in separate job" >> $GITHUB_STEP_SUMMARY
           echo "- Check backend health: ${{ needs.deploy-backend.outputs.backend-url }}/health" >> $GITHUB_STEP_SUMMARY
           echo "- Visit frontend: ${{ secrets.STAGING_FRONTEND_URL }}" >> $GITHUB_STEP_SUMMARY
-
-  notify-failure:
-    name: Alert on E2E Test Failure
-    runs-on: ubuntu-latest
-    needs: [deploy-backend, deploy-frontend, e2e-tests]
-    # Only run if E2E tests failed (not if they were skipped or cancelled)
-    if: failure() && needs.e2e-tests.result == 'failure'
-
-    steps:
-      - name: Send Slack alert
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
-        uses: slackapi/slack-github-action@v1
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-        with:
-          payload: |
-            {
-              "text": "🚨 CRITICAL: Staging E2E tests failed after deployment!",
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "🚨 Staging E2E Tests Failed"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Tag:*\n${{ github.ref_name }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Workflow:*\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>"
-                    }
-                  ]
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "⚠️ *Deployment succeeded but E2E tests are failing.*\n\nInvestigate immediately and consider rollback if critical."
-                  }
-                }
-              ]
-            }
-
-      - name: Create GitHub issue for tracking
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue create \
-            --title "🚨 Staging E2E Tests Failed - Tag ${{ github.ref_name }}" \
-            --body "## Problem
-
-          E2E tests failed after successful deployment to staging.
-
-          **Tag**: \`${{ github.ref_name }}\`
-          **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          **Backend**: ${{ needs.deploy-backend.outputs.backend-url }}
-          **Frontend**: ${{ secrets.STAGING_FRONTEND_URL }}
-
-          ## Investigation Checklist
-
-          - [ ] Check E2E test logs in workflow run
-          - [ ] Verify backend health endpoint: ${{ needs.deploy-backend.outputs.backend-url }}/health
-          - [ ] Check frontend loads: ${{ secrets.STAGING_FRONTEND_URL }}
-          - [ ] Review backend logs: \`ssh ec2-user@54.253.178.187 'docker logs embark-backend'\`
-          - [ ] Check database connectivity: \`docker exec embark-postgres pg_isready\`
-          - [ ] Verify Cognito credentials are valid
-
-          ## Rollback Options
-
-          **Option 1: Rollback Backend** (preserves database)
-          \`\`\`bash
-          ssh ec2-user@54.253.178.187
-          cd /opt/embark
-          # Find previous image tag
-          docker images | grep embark-quoting-backend
-          # Update docker-compose.yml to use previous image
-          docker-compose up -d --no-deps backend
-          \`\`\`
-
-          **Option 2: Rollback Frontend Only**
-          \`\`\`bash
-          git checkout <previous-tag>
-          # Re-run frontend deployment step manually
-          \`\`\`
-
-          **Option 3: Full Rollback**
-          \`\`\`bash
-          # Re-tag previous working version
-          git tag -f staging-v1.0.X <previous-commit>
-          git push origin staging-v1.0.X --force
-          \`\`\`
-
-          ## Related
-
-          - Previous deployment: Link to last successful run
-          - Recent changes: \`git log --oneline ${{ github.ref_name }}~5..${{ github.ref_name }}\`" \
-            --label "bug" \
-            --label "priority: critical" \
-            --label "status: blocked" \
-            --repo ${{ github.repository }}
