@@ -7,10 +7,6 @@ on:
     tags:
       - 'staging-v*'     # staging-v1.0.0, staging-v1.2.3, etc.
       - 'staging-*'       # staging-20250109, staging-feature-name, etc.
-    # Prevent workflow validation failures on branch pushes
-    # This workflow ONLY runs on tag pushes, not file changes
-    paths-ignore:
-      - '**'
   # Allow manual triggers for debugging
   workflow_dispatch:
 
