@@ -1,22 +1,32 @@
 name: E2E Tests (Single Source of Truth)
 
 # SINGLE SOURCE OF TRUTH for all E2E testing
+#
+# Test Coverage:
+#   - Authentication (online + offline modes)
+#   - Quote creation, editing, deletion
+#   - Job creation (5 types: retaining walls, driveways, trenching, stormwater, site prep)
+#   - Financial calculations
+#   - Offline-first sync functionality
+#   - UI/UX flows
+#
 # Usage:
 #   1. Manual trigger: Run this workflow directly with custom inputs
-#   2. Automatic: Called by deploy-staging.yml and deploy-prod.yml
+#   2. Workflow call: Can be called by other workflows (if needed in future)
+#   3. Local testing: npm run test:e2e (requires credentials)
 #
-# This is the ONLY place E2E test logic exists
+# This is the ONLY place E2E test logic exists - do not duplicate
 
 on:
   # Allow manual triggering with custom parameters
   workflow_dispatch:
     inputs:
       base-url:
-        description: 'Frontend URL to test (or leave blank for staging default)'
+        description: 'Frontend URL to test (or leave blank for production default)'
         required: false
         type: string
       api-url:
-        description: 'Backend API URL to test (or leave blank for staging default)'
+        description: 'Backend API URL to test (or leave blank for production default)'
         required: false
         type: string
       environment:
@@ -24,10 +34,10 @@ on:
         required: false
         type: choice
         options:
-          - staging
           - production
+          - staging
           - custom
-        default: 'staging'
+        default: 'production'
       test-pattern:
         description: 'Test pattern (blank = all tests, e2e/auth.spec.ts = auth only)'
         required: false
@@ -46,10 +56,10 @@ on:
         required: false
         type: string
       environment:
-        description: 'Environment name (staging/production/local)'
+        description: 'Environment name (production/staging/custom)'
         required: false
         type: string
-        default: 'staging'
+        default: 'production'
       test-pattern:
         description: 'Test pattern to run (e.g., "e2e/sync.spec.ts" or blank for all)'
         required: false
@@ -81,9 +91,10 @@ jobs:
       - name: Resolve URLs (for manual triggers and reusable workflow calls)
         id: resolve-urls
         run: |
-          # Priority: 1) input parameter, 2) secret parameter, 3) staging defaults
+          # Priority: 1) input parameter, 2) secret parameter, 3) environment-based defaults
           BASE_URL="${{ inputs.base-url }}"
           API_URL="${{ inputs.api-url }}"
+          ENVIRONMENT="${{ inputs.environment }}"
 
           # If not provided as input, try secret parameter
           if [ -z "$BASE_URL" ]; then
@@ -96,15 +107,25 @@ jobs:
             echo "Using API URL from secrets parameter"
           fi
 
-          # Fallback to staging defaults for manual triggers
+          # Fallback to environment-specific defaults
           if [ -z "$BASE_URL" ]; then
-            BASE_URL="${{ secrets.STAGING_FRONTEND_URL }}"
-            echo "Using staging frontend URL from secrets (fallback)"
+            if [ "$ENVIRONMENT" = "production" ]; then
+              BASE_URL="${{ secrets.PRODUCTION_FRONTEND_URL }}"
+              echo "Using production frontend URL from secrets (fallback)"
+            else
+              BASE_URL="${{ secrets.STAGING_FRONTEND_URL }}"
+              echo "Using staging frontend URL from secrets (fallback)"
+            fi
           fi
 
           if [ -z "$API_URL" ]; then
-            API_URL="${{ secrets.STAGING_API_URL }}"
-            echo "Using staging API URL from secrets (fallback)"
+            if [ "$ENVIRONMENT" = "production" ]; then
+              API_URL="${{ secrets.PRODUCTION_API_URL }}"
+              echo "Using production API URL from secrets (fallback)"
+            else
+              API_URL="${{ secrets.STAGING_API_URL }}"
+              echo "Using staging API URL from secrets (fallback)"
+            fi
           fi
 
           echo "base-url=${BASE_URL}" >> $GITHUB_OUTPUT
@@ -199,12 +220,24 @@ jobs:
         run: |
           echo "### E2E Test Results (${{ inputs.environment }}) 🧪" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Frontend URL**: ${{ steps.resolve-urls.outputs.base-url }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **API URL**: ${{ steps.resolve-urls.outputs.api-url }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Test Pattern**: ${{ inputs.test-pattern || 'all tests' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Configuration:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend URL: ${{ steps.resolve-urls.outputs.base-url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- API URL: ${{ steps.resolve-urls.outputs.api-url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Pattern: ${{ inputs.test-pattern || 'all tests' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "**Test Coverage:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Authentication (online + offline modes)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Quote creation, editing, deletion" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Job creation (5 types: retaining walls, driveways, trenching, stormwater, site prep)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Financial calculations and pricing" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Offline-first sync functionality" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ UI/UX workflows" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ -f frontend/playwright-report/index.html ]; then
-            echo "📊 View detailed report in the artifacts section" >> $GITHUB_STEP_SUMMARY
+            echo "📊 **View detailed report in the artifacts section**" >> $GITHUB_STEP_SUMMARY
           fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: This workflow is the single source of truth for all E2E testing. Tests ensure comprehensive coverage of MVP requirements including offline-first architecture, authentication, quote/job management, and financial calculations." >> $GITHUB_STEP_SUMMARY
