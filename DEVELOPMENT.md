@@ -94,7 +94,8 @@ gh pr merge <PR-number> --rebase  # ❌ Rewrites commit SHAs
 - ✓ Build (Docker image to ECR) - ~3-5 min
 - ✓ Deploy to Staging (AWS ECS) - ~5 min
 - ✓ E2E tests on staging - ~2 min
-- → Staging ready for testing
+- ⚠️ **If E2E tests fail**: Automatic Slack alert + GitHub issue created
+- → Staging ready for testing (or flagged for rollback)
 
 **Dev → Main PR**:
 - ✓ Validate (quick sanity) - ~1 min
@@ -266,6 +267,53 @@ gh run view <run-id> --log
 - **Test failures**: Missing database schema, incorrect env vars, logic errors
 - **Validate failures**: ESLint violations, Prettier formatting issues
 - **Build failures**: Missing Dockerfile, incorrect dependencies, AWS config issues
+
+### Staging E2E Test Failures (Critical Alerts)
+
+When E2E tests fail after staging deployment, the workflow **automatically** takes these actions:
+
+1. **Slack Alert** (if configured):
+   - 🚨 Critical notification sent to your Slack channel
+   - Includes deployment details, tag name, and workflow link
+   - Shows backend and frontend URLs for quick access
+
+2. **GitHub Issue Created**:
+   - Auto-created with label: `priority: critical`, `status: blocked`, `environment: staging`
+   - Contains full investigation checklist
+   - Includes 3 rollback options (redeploy tag, ECS rollback, full infrastructure rollback)
+   - Links to Playwright test report artifacts
+   - Links to backend health check and CloudWatch logs
+
+3. **Workflow Summary**:
+   - Quick rollback instructions printed to GitHub Actions summary
+   - Direct links to deployment URLs
+
+**Setup Slack Alerts** (optional but recommended):
+```bash
+# Create Slack webhook: https://api.slack.com/messaging/webhooks
+# Add to GitHub secrets:
+gh secret set SLACK_WEBHOOK_URL --body "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+```
+
+**Rollback Procedure**:
+```bash
+# Option 1: Redeploy previous tag (simplest)
+git tag -l 'staging-*' --sort=-v:refname | head -5
+git push origin staging-v<previous-version>
+
+# Option 2: Manual ECS rollback (backend only, fast)
+aws ecs list-task-definitions \
+  --family-prefix embark-quoting-staging-backend \
+  --sort DESC --max-items 5
+
+aws ecs update-service \
+  --cluster embark-quoting-staging-cluster \
+  --service embark-quoting-staging-backend-service \
+  --task-definition <previous-task-definition-arn> \
+  --force-new-deployment
+```
+
+**Philosophy**: Staging failures are **expected** - this is where we catch issues before production. The workflow flags failures immediately but allows you to investigate before deciding to rollback or fix forward.
 
 ---
 

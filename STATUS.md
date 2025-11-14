@@ -3,7 +3,7 @@
 > **Purpose**: Current work, active bugs, and recent changes (~2 week rolling window)
 > **Lifecycle**: Living document (update daily/weekly during active development)
 
-**Last Updated:** 2025-11-14 (Session: Repository Cleanup + Deployment Workflow Fix)
+**Last Updated:** 2025-11-14 (Session: Deployment Fix + CI/CD Alerts + Cost Strategy)
 **Current Phase:** Bug Fixes & Infrastructure Optimization
 **Version:** 1.0.0-beta
 
@@ -25,8 +25,10 @@
 
 ## Current Focus
 
-**Completed Nov 14 (Latest Session - Repository Cleanup + Deployment Workflow Fix):**
-- ✅ **Staging Deployment Deadlock Diagnosed** - Identified chicken-and-egg problem blocking deployments
+**Completed Nov 14 (Latest Session - Deployment Fix + CI/CD Alerts + Cost Strategy):**
+
+**Part 1: Deployment Deadlock Fixed (PR #139)**
+- ✅ **Staging Deployment Deadlock Diagnosed** - Identified chicken-and-egg problem blocking deployments for 5+ days
   - E2E tests failing because backend lacks UUID fix (PR #135 merged to dev but not deployed)
   - Can't deploy backend because E2E tests must pass first
   - Last successful staging deployment: Nov 10 (5 days ago, before PR #135 merge)
@@ -37,9 +39,27 @@
   - Made Lighthouse audit non-blocking for consistency
   - Pattern: Deploy First → Verify Second (matches Amazon/Netflix CD practices)
   - Impact: Workflow shows GREEN ✅ when backend + frontend deploy, regardless of test results
-  - Next step: Merge PR #139 and trigger staging deployment to finally deploy UUID fix
+  - **Status**: PR #139 merged successfully ✅
 
-**Completed Nov 14 (Repository Cleanup & Issue Resolution):**
+**Part 2: CI/CD Alert System (PR #142)**
+- ✅ **Staging E2E Failure Alerts** - Implemented automatic alerting for staging deployment failures
+  - Added `notify-failure` job to deploy-staging.yml workflow
+  - Slack alerts sent on E2E test failures (optional, requires SLACK_WEBHOOK_URL secret)
+  - GitHub issues auto-created with labels: `priority: critical`, `status: blocked`, `bug`
+  - Issue includes investigation checklist, 3 rollback options, direct links to artifacts/logs
+  - Workflow summary shows quick rollback instructions
+  - Philosophy: Manual rollback for staging (allows investigation), automatic for production
+  - **Complements PR #139**: Deploy fast (non-blocking) + Get alerted to problems
+
+**Part 3: Cost Optimization Strategy (PR #143)**
+- ✅ **Cost Strategy Documented** - Added timeline for when to optimize infrastructure costs
+  - DEVELOPMENT.md now has "Cost Optimization Strategy Timeline" section
+  - Key message: Don't optimize during Free Tier - focus on building product
+  - 3-phase approach: Build (Months 1-10) → Plan (Month 10) → Execute (Month 12)
+  - Decision tree based on revenue (>$50/month = keep managed services)
+  - Archived cost research docs to docs/reference/cost-optimization/
+
+**Completed Nov 14 (Earlier Session - Repository Cleanup & Issue Resolution):**
 - ✅ **Repository Cleanup** - Deleted 11 stale local branches that were already merged and removed from remote
   - Branches cleaned: docs/e2e-auth-troubleshooting-guide, docs/enforce-auto-merge-policy, docs/update-status-issues-130-112
   - fix/add-cloudfront-list-permission, fix/e2e-baseurl-hardcoded-localhost, fix/e2e-credential-env-vars
@@ -948,6 +968,15 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for comprehensive details.
    - Implement offline caching strategy
    - Re-enable PWA E2E tests
 
+### CI/CD Improvements
+
+10. **🟢 Issue #141: Production deployment failure alerts**
+    - Add Slack alerts on production deployment failures
+    - Auto-create GitHub issues for failed deployments
+    - Include CloudWatch metrics snapshot in issue
+    - Differentiate health check failures vs metrics degradation
+    - **Note:** Deferred until production infrastructure is deployed
+
 ---
 
 ## Documentation Status
@@ -1009,6 +1038,7 @@ All core documentation is current (updated Nov 14, 2025):
 | 2025-11-12 | Claude Code | Manual testing session - documented 6 UI/UX issues (#110-#115) |
 | 2025-11-13 | Claude Code | Resolved Issues #130 (E2E CI/local parity) and #112 (sync error) |
 | 2025-11-14 | Claude Code | Repository cleanup (11 stale branches), closed 6 issues (#110-#112, #115-#116, #130), updated issue tracking |
+| 2025-11-14 | Claude Code | Implemented staging E2E failure alerts (Slack + GitHub issues), created Issue #141 for production alerts |
 
 ---
 
