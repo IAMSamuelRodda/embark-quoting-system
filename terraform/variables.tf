@@ -5,7 +5,7 @@
 variable "aws_region" {
   description = "AWS region for all resources"
   type        = string
-  default     = "ap-southeast-2"  # Sydney, Australia
+  default     = "ap-southeast-2" # Sydney, Australia
 }
 
 variable "environment" {
@@ -216,4 +216,10 @@ variable "cloudfront_price_class" {
     condition     = contains(["PriceClass_100", "PriceClass_200", "PriceClass_All"], var.cloudfront_price_class)
     error_message = "Price class must be one of: PriceClass_100, PriceClass_200, PriceClass_All."
   }
+}
+
+variable "backend_api_endpoint" {
+  description = "Backend API endpoint (ECS task public IP when ALB is disabled). Format: IP address only (no http://)"
+  type        = string
+  default     = "localhost"
 }

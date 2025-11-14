@@ -150,3 +150,60 @@ resource "aws_cloudwatch_metric_alarm" "cloudfront_cache_hit_rate" {
     Name = "${var.project_name}-${var.environment}-cloudfront-cache-alarm"
   }
 }
+
+# ===================================================================
+# CloudFront Distribution for Backend API (HTTPS Termination)
+# ===================================================================
+
+resource "aws_cloudfront_distribution" "backend_api" {
+  count           = var.enable_alb ? 1 : 0
+  enabled         = true
+  is_ipv6_enabled = true
+  comment         = "${var.project_name}-${var.environment} backend API distribution"
+  price_class     = var.cloudfront_price_class
+
+  # ALB origin configuration
+  origin {
+    domain_name = aws_lb.main[0].dns_name
+    origin_id   = "ALB-${aws_lb.main[0].id}"
+
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only" # ALB only has HTTP listener
+      origin_ssl_protocols   = ["TLSv1.2"]
+    }
+  }
+
+  # Default cache behavior (minimal caching for API)
+  default_cache_behavior {
+    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods         = ["GET", "HEAD", "OPTIONS"]
+    target_origin_id       = "ALB-${aws_lb.main[0].id}"
+    compress               = true
+    viewer_protocol_policy = "redirect-to-https"
+
+    # Managed cache policy: CachingDisabled (for API responses)
+    cache_policy_id = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+
+    # Managed origin request policy: AllViewerExceptHostHeader
+    origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac"
+  }
+
+  # Restrictions
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  # SSL/TLS certificate configuration (use CloudFront default certificate)
+  viewer_certificate {
+    cloudfront_default_certificate = true
+    minimum_protocol_version       = "TLSv1.2_2021"
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-backend-api-distribution"
+  }
+}

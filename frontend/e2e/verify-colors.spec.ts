@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('CAT Gold Color Verification', () => {
-  test('should check computed CSS variables', async ({ page }) => {
-    await page.goto('http://localhost:3001/login');
+  test('should check computed CSS variables', async ({ page, baseURL }) => {
+    await page.goto(`${baseURL || ''}/login`);
     await page.waitForLoadState('networkidle');
     
     const cssVariables = await page.evaluate(() => {
@@ -21,14 +21,15 @@ test.describe('CAT Gold Color Verification', () => {
     console.log('Primary-600 (hover):', cssVariables['primary-600']);
     console.log('Primary-900 (text):', cssVariables['primary-900']);
     
-    // Verify CAT Gold values
+    // Verify CAT Gold values (accept both 3-char and 6-char hex notation)
     expect(cssVariables['primary-500']).toBe('#ffb400');
     expect(cssVariables['primary-600']).toBe('#e6a200');
-    expect(cssVariables['primary-900']).toBe('#996600');
+    // CSS may return #960 (shorthand) or #996600 (full) - both are valid
+    expect(['#960', '#996600']).toContain(cssVariables['primary-900']);
   });
 
-  test('should display CAT Gold on UI elements', async ({ page }) => {
-    await page.goto('http://localhost:3001/login');
+  test('should display CAT Gold on UI elements', async ({ page, baseURL }) => {
+    await page.goto(`${baseURL || ''}/login`);
     await page.waitForLoadState('networkidle');
 
     // Take screenshot

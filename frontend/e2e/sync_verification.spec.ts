@@ -26,7 +26,7 @@ test.describe('Offline-First Sync Verification', () => {
     });
 
     // Navigate to login
-    await page.goto('http://localhost:3000/login');
+    await page.goto(baseURL || '/login');
 
     // Perform login
     await page.getByPlaceholder(/email/i).fill(email);
@@ -38,12 +38,12 @@ test.describe('Offline-First Sync Verification', () => {
     console.log('✓ Login successful');
   });
 
-  test('should initialize auto-sync on app startup', async ({ page }) => {
+  test('should initialize auto-sync on app startup', async ({ page, baseURL }) => {
     // Assert: Check that auto-sync service initialized
     // This happens on app mount in App.tsx
 
     // Navigate to dashboard and check initial state
-    await page.goto('http://localhost:3000/dashboard');
+    await page.goto(baseURL || '/dashboard');
     await page.waitForLoadState('domcontentloaded');
 
     // Should NOT show "pending" initially if no items in queue
@@ -58,9 +58,9 @@ test.describe('Offline-First Sync Verification', () => {
     console.log('✓ Auto-sync service should be initialized');
   });
 
-  test('should sync quote and job to backend automatically', async ({ page, request }) => {
+  test('should sync quote and job to backend automatically', async ({ page, request, baseURL }) => {
     // Navigate to dashboard
-    await page.goto('http://localhost:3000/dashboard');
+    await page.goto(baseURL || '/dashboard');
     await page.waitForLoadState('networkidle');
 
     console.log('\n=== TEST: Auto-sync quote + job ===\n');
@@ -219,9 +219,9 @@ test.describe('Offline-First Sync Verification', () => {
     console.log('\n✅ TEST PASSED: Auto-sync working correctly\n');
   });
 
-  test('should show sync status in UI', async ({ page }) => {
+  test('should show sync status in UI', async ({ page, baseURL }) => {
     // Navigate to dashboard
-    await page.goto('http://localhost:3000/dashboard');
+    await page.goto(baseURL || '/dashboard');
 
     console.log('\n=== TEST: Sync status UI indicators ===\n');
 
@@ -264,7 +264,7 @@ test.describe('Offline-First Sync Verification', () => {
       await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
     } else {
       // Fallback: navigate directly
-      await page.goto('http://localhost:3000/dashboard');
+      await page.goto(baseURL || '/dashboard');
       await page.waitForLoadState('domcontentloaded');
       await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
     }
@@ -284,9 +284,9 @@ test.describe('Offline-First Sync Verification', () => {
     console.log('\n✅ TEST PASSED: UI sync indicators working\n');
   });
 
-  test('should handle offline scenario gracefully', async ({ page, context }) => {
+  test('should handle offline scenario gracefully', async ({ page, context, baseURL }) => {
     // Navigate to dashboard
-    await page.goto('http://localhost:3000/dashboard');
+    await page.goto(baseURL || '/dashboard');
     await page.waitForLoadState('domcontentloaded');
 
     console.log('\n=== TEST: Offline scenario ===\n');

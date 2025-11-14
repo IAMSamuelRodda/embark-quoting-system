@@ -2,14 +2,13 @@ import { test, expect } from '@playwright/test';
 import { getAndValidateCredentials } from './test-utils';
 
 test.describe('Job Creation Test', () => {
-  test('should create a quote and add a retaining wall job', async ({ page }) => {
-    const baseUrl = 'http://localhost:3000';
+  test('should create a quote and add a retaining wall job', async ({ page, baseURL }) => {
     
     const { email, password } = getAndValidateCredentials();
 
     // Step 1: Login
     console.log('Step 1: Navigating to login page...');
-    await page.goto(baseUrl);
+    await page.goto(baseURL || '/');
     await page.waitForLoadState('networkidle');
 
     // Wait for login form
@@ -32,7 +31,7 @@ test.describe('Job Creation Test', () => {
 
     // Step 2: Create a new quote
     console.log('Step 6: Creating new quote...');
-    await page.goto(`${baseUrl}/quotes/new`);
+    await page.goto((baseURL || '') + '/quotes/new');
     await page.waitForLoadState('networkidle');
 
     // Fill in quote details

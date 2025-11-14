@@ -18,14 +18,14 @@ import { getAndValidateCredentials } from './test-utils';
 const { email, password } = getAndValidateCredentials();
 
 test.describe('Offline Authentication Flow', () => {
-  test('should enable offline login with Remember Me', async ({ page, context }) => {
+  test('should enable offline login with Remember Me', async ({ page, context, baseURL }) => {
     console.log('\n=== TEST: Complete Offline Authentication Flow ===\n');
 
     // ========================================
     // STEP 1: Login online with Remember Me
     // ========================================
     console.log('STEP 1: Login online with Remember Me enabled...');
-    await page.goto('http://localhost:3000/login');
+    await page.goto(baseURL || '/login');
 
     // Fill login form
     await page.getByPlaceholder(/email/i).fill(email);
@@ -230,12 +230,12 @@ test.describe('Offline Authentication Flow', () => {
     console.log('\n✅ TEST PASSED: Complete offline authentication flow working\n');
   });
 
-  test('should reject invalid credentials in offline mode', async ({ page, context }) => {
+  test('should reject invalid credentials in offline mode', async ({ page, context, baseURL }) => {
     console.log('\n=== TEST: Offline Login - Invalid Credentials ===\n');
 
     // Setup: Login with Remember Me
     console.log('Setup: Login online with Remember Me...');
-    await page.goto('http://localhost:3000/login');
+    await page.goto(baseURL || '/login');
     await page.getByPlaceholder(/email/i).fill(email);
     await page.getByPlaceholder(/password/i).fill(password);
     await page.getByRole('checkbox', { name: /remember me/i }).check();
@@ -285,11 +285,11 @@ test.describe('Offline Authentication Flow', () => {
     console.log('\n✅ TEST PASSED: Invalid offline credentials properly rejected\n');
   });
 
-  test('should require online connection for first-time login', async ({ page, context }) => {
+  test('should require online connection for first-time login', async ({ page, context, baseURL }) => {
     console.log('\n=== TEST: First-time Login Requires Internet ===\n');
 
     // Clear all storage to simulate first-time user
-    await page.goto('http://localhost:3000/login');
+    await page.goto(baseURL || '/login');
     await page.evaluate(() => {
       localStorage.clear();
       sessionStorage.clear();
@@ -326,11 +326,11 @@ test.describe('Offline Authentication Flow', () => {
     console.log('\n✅ TEST PASSED: First-time login correctly requires online connection\n');
   });
 
-  test('should handle credential expiry (30 days)', async ({ page }) => {
+  test('should handle credential expiry (30 days)', async ({ page, baseURL }) => {
     console.log('\n=== TEST: Credential Expiry Handling ===\n');
 
     // Login with Remember Me
-    await page.goto('http://localhost:3000/login');
+    await page.goto(baseURL || '/login');
     await page.getByPlaceholder(/email/i).fill(email);
     await page.getByPlaceholder(/password/i).fill(password);
     await page.getByRole('checkbox', { name: /remember me/i }).check();

@@ -19,7 +19,7 @@ import { getAndValidateCredentials } from './test-utils';
  */
 
 test.describe('Job Creation Race Condition Bug', () => {
-  test('should reproduce race condition with slow network', async ({ page, context }) => {
+  test('should reproduce race condition with slow network', async ({ page, context, baseURL }) => {
     // Simulate slow network to make race condition more likely
     // Add 2-second delay to all quote API calls to simulate slow sync
     await context.route('**/api/quotes**', async (route) => {
@@ -34,7 +34,6 @@ test.describe('Job Creation Race Condition Bug', () => {
       await route.continue();
     });
 
-    const baseUrl = 'http://localhost:3000';
     
     const { email, password } = getAndValidateCredentials();
 
@@ -42,7 +41,7 @@ test.describe('Job Creation Race Condition Bug', () => {
 
     // Step 1: Login
     console.log('Step 1: Login');
-    await page.goto(baseUrl);
+    await page.goto(baseURL || '/');
     await page.waitForSelector('input[type="email"], input[placeholder*="email" i]');
     await page.getByPlaceholder(/email/i).fill(email);
     await page.getByPlaceholder(/password/i).fill(password);
@@ -52,7 +51,7 @@ test.describe('Job Creation Race Condition Bug', () => {
 
     // Step 2: Create quote (saved to IndexedDB, sync queued)
     console.log('Step 2: Create quote');
-    await page.goto(`${baseUrl}/quotes/new`);
+    await page.goto((baseURL || '') + '/quotes/new');
     await page.getByLabel(/customer name/i).fill('Race Condition Test Customer');
     await page.getByLabel(/email/i).fill('race-test@example.com');
     await page.getByLabel(/phone/i).fill('0400000000');
@@ -175,7 +174,7 @@ test.describe('Job Creation Race Condition Bug', () => {
     console.log('=================\n');
   });
 
-  test('should work after implementing offline-first jobs (verification test)', async ({ page }) => {
+  test('should work after implementing offline-first jobs (verification test)', async ({ page, baseURL }) => {
     /**
      * This test will PASS after implementing the fix (Option A: Make Jobs Offline-First)
      *
@@ -186,7 +185,6 @@ test.describe('Job Creation Race Condition Bug', () => {
      * 4. User sees immediate feedback, no errors
      */
 
-    const baseUrl = 'http://localhost:3000';
     
     const { email, password } = getAndValidateCredentials();
 
@@ -194,7 +192,7 @@ test.describe('Job Creation Race Condition Bug', () => {
 
     // Login
     console.log('Step 1: Login');
-    await page.goto(baseUrl);
+    await page.goto(baseURL || '/');
     await page.waitForSelector('input[type="email"], input[placeholder*="email" i]');
     await page.getByPlaceholder(/email/i).fill(email);
     await page.getByPlaceholder(/password/i).fill(password);
@@ -204,7 +202,7 @@ test.describe('Job Creation Race Condition Bug', () => {
 
     // Create quote
     console.log('Step 2: Create quote');
-    await page.goto(`${baseUrl}/quotes/new`);
+    await page.goto((baseURL || '') + '/quotes/new');
     await page.getByLabel(/customer name/i).fill('Verification Test Customer');
     await page.getByLabel(/email/i).fill('verify@example.com');
     await page.getByLabel(/phone/i).fill('0400111111');

@@ -18,6 +18,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:local": "scripts/test-e2e-with-creds.sh",
+    "test:e2e:no-auth": "playwright test e2e/check-console.spec.ts e2e/check-gold-colors.spec.ts e2e/complete-job-workflow.spec.ts e2e/job-calculations.spec.ts e2e/race-condition-job-creation.spec.ts e2e/reproduce-job-error.spec.ts e2e/screenshot-app.spec.ts e2e/sync.spec.ts e2e/sync_verification.spec.ts e2e/test-gold-final.spec.ts e2e/test-job-creation.spec.ts e2e/test-job-sync-minimal.spec.ts e2e/test-staging-gold.spec.ts e2e/verify-colors.spec.ts e2e/visual-color-test.spec.ts",
+    "test:e2e:no-auth:local": "scripts/test-e2e-with-creds.sh e2e/check-console.spec.ts e2e/check-gold-colors.spec.ts e2e/complete-job-workflow.spec.ts e2e/job-calculations.spec.ts e2e/race-condition-job-creation.spec.ts e2e/reproduce-job-error.spec.ts e2e/screenshot-app.spec.ts e2e/sync.spec.ts e2e/sync_verification.spec.ts e2e/test-gold-final.spec.ts e2e/test-job-creation.spec.ts e2e/test-job-sync-minimal.spec.ts e2e/test-staging-gold.spec.ts e2e/verify-colors.spec.ts e2e/visual-color-test.spec.ts",
     "test:e2e:validation": "playwright test e2e/auth-validation.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",

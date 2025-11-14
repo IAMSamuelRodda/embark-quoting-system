@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 
-test('Check console errors', async ({ page }) => {
+test('Check console errors', async ({ page, baseURL }) => {
   const errors: string[] = [];
 
   page.on('console', msg => {
@@ -15,7 +15,7 @@ test('Check console errors', async ({ page }) => {
     errors.push(error.message);
   });
 
-  await page.goto('http://localhost:3000/');
+  await page.goto(baseURL || '/');
   await page.waitForTimeout(3000);
 
   console.log('\n=== All Console Errors ===');

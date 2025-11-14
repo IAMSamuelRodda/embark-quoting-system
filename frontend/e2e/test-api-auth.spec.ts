@@ -1,13 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { getAndValidateCredentials } from './test-utils';
 
-test('Verify API authentication uses access token', async ({ page }) => {
-  const baseUrl = 'http://localhost:3000';
+test('Verify API authentication uses access token', async ({ page, baseURL }) => {
   
   const { email, password } = getAndValidateCredentials();
 
   // Login
-  await page.goto(baseUrl);
+  await page.goto(baseURL || '/');
   await page.waitForSelector('input[type="email"], input[placeholder*="email" i]');
   await page.getByPlaceholder(/email/i).fill(email);
   await page.getByPlaceholder(/password/i).fill(password);

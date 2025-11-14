@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 
-test('Screenshot full app with CAT Gold colors', async ({ page }) => {
-  await page.goto('http://localhost:3000/');
+test('Screenshot full app with CAT Gold colors', async ({ page, baseURL }) => {
+  await page.goto(baseURL || '/');
   await page.waitForTimeout(3000);
 
   // Take screenshot of login page

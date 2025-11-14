@@ -1,11 +1,11 @@
 import { test } from '@playwright/test';
 
-test('Final CAT Gold verification with app running', async ({ page }) => {
+test('Final CAT Gold verification with app running', async ({ page, baseURL }) => {
   page.on('console', msg => {
     if (msg.type() === 'error') console.log('ERROR:', msg.text());
   });
-  
-  await page.goto('http://localhost:3001/');
+
+  await page.goto(baseURL || '/');
   await page.waitForTimeout(3000);
   
   await page.screenshot({ path: '/tmp/final-app-loaded.png', fullPage: true });

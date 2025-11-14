@@ -66,12 +66,12 @@ resource "aws_secretsmanager_secret" "db_credentials" {
 resource "aws_secretsmanager_secret_version" "db_credentials" {
   secret_id = aws_secretsmanager_secret.db_credentials.id
   secret_string = jsonencode({
-    username            = var.db_username
-    password            = var.db_password
-    engine              = "postgres"
-    host                = aws_db_instance.main.address
-    port                = aws_db_instance.main.port
-    dbname              = var.db_name
+    username             = var.db_username
+    password             = var.db_password
+    engine               = "postgres"
+    host                 = aws_db_instance.main.address
+    port                 = aws_db_instance.main.port
+    dbname               = var.db_name
     dbInstanceIdentifier = aws_db_instance.main.id
   })
 }
@@ -112,8 +112,8 @@ resource "aws_db_instance" "main" {
   monitoring_role_arn             = aws_iam_role.rds_monitoring.arn
 
   # Performance Insights (free tier available)
-  performance_insights_enabled    = true
-  performance_insights_kms_key_id = null # Use default AWS managed key
+  performance_insights_enabled          = true
+  performance_insights_kms_key_id       = null # Use default AWS managed key
   performance_insights_retention_period = 7
 
   # High availability (multi-AZ doubles cost - use only for production)
