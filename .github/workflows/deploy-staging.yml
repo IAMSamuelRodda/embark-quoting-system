@@ -309,6 +309,155 @@ jobs:
           echo ""
           echo "Check individual job results for verification status."
 
+  notify-failure:
+    name: Alert on E2E Test Failure
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend, e2e-tests]
+    if: failure() && needs.e2e-tests.result == 'failure'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Send Slack alert
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "🚨 CRITICAL: Staging E2E tests failed after deployment!",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Staging Deployment Failed*\n\n• *Environment*: Staging\n• *Status*: E2E Tests Failed ❌\n• *Tag*: `${{ github.ref_name }}`\n• *Action Required*: Manual review and potential rollback\n• *Workflow*: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Logs>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Backend URL*\n${{ needs.deploy-backend.outputs.backend-url }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Frontend URL*\n${{ secrets.STAGING_FRONTEND_URL }}"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Create GitHub issue for tracking
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Creating GitHub issue to track E2E test failure..."
+
+          gh issue create \
+            --title "🚨 Staging E2E Tests Failed - Tag ${{ github.ref_name }}" \
+            --body "**E2E tests failed after staging deployment**
+
+          ## Deployment Details
+          - **Tag**: \`${{ github.ref_name }}\`
+          - **Workflow Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          - **Backend URL**: ${{ needs.deploy-backend.outputs.backend-url }}
+          - **Frontend URL**: ${{ secrets.STAGING_FRONTEND_URL }}
+          - **Failed At**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')
+
+          ## Test Results
+          View detailed Playwright report in workflow artifacts:
+          - Navigate to workflow run linked above
+          - Download \`playwright-report-staging-${{ github.sha }}\` artifact
+          - Open \`index.html\` to see which tests failed
+
+          ## Investigation Checklist
+          - [ ] Review E2E test failures in workflow artifacts
+          - [ ] Check if backend API is responding correctly
+          - [ ] Verify database migrations completed successfully
+          - [ ] Check CloudWatch logs for backend errors
+          - [ ] Investigate root cause (code bug vs environment issue)
+          - [ ] Decide: Fix forward or rollback?
+
+          ## Rollback Instructions (if needed)
+
+          ### Option 1: Redeploy Previous Working Tag
+          \`\`\`bash
+          # Find previous working staging tags
+          git tag -l 'staging-*' --sort=-v:refname | head -5
+
+          # Redeploy previous tag (triggers new deployment)
+          git push origin <previous-staging-tag>
+          \`\`\`
+
+          ### Option 2: Manual ECS Rollback (Backend Only)
+          \`\`\`bash
+          # List recent task definitions
+          aws ecs list-task-definitions \\
+            --family-prefix embark-quoting-staging-backend \\
+            --sort DESC --max-items 5
+
+          # Rollback ECS service to previous revision
+          aws ecs update-service \\
+            --cluster embark-quoting-staging-cluster \\
+            --service embark-quoting-staging-backend-service \\
+            --task-definition <previous-task-definition-arn> \\
+            --force-new-deployment
+
+          # Wait for rollback to complete
+          aws ecs wait services-stable \\
+            --cluster embark-quoting-staging-cluster \\
+            --services embark-quoting-staging-backend-service
+          \`\`\`
+
+          ### Option 3: Full Infrastructure Rollback
+          \`\`\`bash
+          # If database migrations caused issues, may need Terraform rollback
+          # WARNING: Only use if you understand the implications
+          cd terraform
+          terraform workspace select staging
+          terraform plan -var-file=\"staging.tfvars\"
+          # Review plan, then apply if safe
+          \`\`\`
+
+          ## Related Links
+          - [Staging Environment Dashboard](https://d2vxgs70elbgcz.cloudfront.net)
+          - [Backend Health Check](${{ needs.deploy-backend.outputs.backend-url }}/health)
+          - [CloudWatch Logs](https://ap-southeast-2.console.aws.amazon.com/cloudwatch/home?region=ap-southeast-2#logsV2:log-groups)
+
+          ---
+          **Note**: Staging failures are expected - this is where we catch issues before production. Investigate thoroughly, then decide whether to fix forward or rollback.
+          " \
+            --label "bug" \
+            --label "priority: critical" \
+            --label "status: blocked" \
+            --label "environment: staging"
+
+          echo "✅ GitHub issue created successfully"
+
+      - name: Print rollback instructions to workflow summary
+        run: |
+          echo "## 🚨 Staging E2E Tests Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Action Required**: Manual review and potential rollback" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Rollback" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# Find previous working tags" >> $GITHUB_STEP_SUMMARY
+          echo "git tag -l 'staging-*' --sort=-v:refname | head -5" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Redeploy previous tag" >> $GITHUB_STEP_SUMMARY
+          echo "git push origin <previous-staging-tag>" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Playwright Report**: Download from workflow artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend**: ${{ needs.deploy-backend.outputs.backend-url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Frontend**: ${{ secrets.STAGING_FRONTEND_URL }}" >> $GITHUB_STEP_SUMMARY
+
   lighthouse:
     name: Lighthouse Performance Audit
     runs-on: ubuntu-latest
