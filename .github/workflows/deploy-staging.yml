@@ -179,11 +179,16 @@ jobs:
 
       - name: Deploy to EC2 via SSM
         run: |
-          # Copy deployment script to EC2
+          # Create JSON parameters file for SSM (required for complex scripts)
+          jq -n \
+            --arg script "$(cat deploy-backend.sh)" \
+            '{commands: [$script]}' > ssm-params.json
+
+          # Send command to EC2 via SSM
           aws ssm send-command \
             --instance-ids ${{ env.EC2_INSTANCE_ID }} \
             --document-name "AWS-RunShellScript" \
-            --parameters commands="$(cat deploy-backend.sh)" \
+            --parameters file://ssm-params.json \
             --output-s3-bucket-name "embark-quoting-staging-logs" \
             --output-s3-key-prefix "deployments/backend" \
             --comment "Deploy backend ${{ github.ref_name }}" \
