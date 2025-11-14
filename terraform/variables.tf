@@ -73,6 +73,30 @@ variable "db_multi_az" {
   default     = false
 }
 
+variable "enable_consolidated_ec2" {
+  description = "Enable consolidated EC2 instance (backend + database containers on single instance, ~$8/month)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ec2_database" {
+  description = "Enable separate EC2 instance for database only (alternative to RDS)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_ec2_ssh_access" {
+  description = "Enable SSH access to EC2 instances (requires key pair configuration)"
+  type        = bool
+  default     = false
+}
+
+variable "db_backup_retention_days" {
+  description = "Number of days to retain database backups"
+  type        = number
+  default     = 7
+}
+
 # ===================================================================
 # GitHub OIDC Variables (Task 0.2.2)
 # ===================================================================
