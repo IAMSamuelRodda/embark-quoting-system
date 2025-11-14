@@ -633,42 +633,50 @@ export const db = new EmbarkDatabase();
 
 ### CI/CD Pipeline (GitHub Actions)
 
-**Workflows:**
+**Current Workflows:**
 1. **validate.yml** - Lint, format, typecheck
 2. **build.yml** - Build frontend & backend Docker images
 3. **test.yml** - Run unit tests
-4. **e2e-tests.yml** - Run E2E tests on staging
-5. **deploy-staging.yml** - Deploy to staging environment
-6. **deploy-prod.yml** - Deploy to production environment
-7. **sync-terraform-secrets.yml** - Sync infrastructure secrets
+4. **e2e-tests.yml** - Run E2E tests (manual or called from other workflows)
+5. **enforce-main-pr-source.yml** - Branch protection (ensures main only gets PRs from dev)
+
+**Removed Workflows:**
+- ~~deploy-staging.yml~~ - Removed (moving to manual deployments)
+- ~~deploy-prod.yml~~ - Never implemented
 
 **Branch Strategy:**
-- `feature/*` → `dev` (auto-merge on CI pass)
-- `dev` → `staging` (manual tag-based deployment: `staging-v*`)
-- `dev` → `main` (manual approval required)
-- `main` → `production` (tag-based deployment: `v*`)
+- `feature/*` → `dev` (PR with CI validation)
+- `fix/*` → `dev` (PR with CI validation)
+- `hotfix/*` → `dev` (PR with CI validation)
+- `dev` → `main` (PR only - enforced by workflow)
+
+**Deployment Strategy:**
+- **Staging**: Manual deployment from `dev` branch
+- **Production**: Manual deployment from `main` branch
+- **Rationale**: Automatic deployments proved problematic. Manual deployments provide more control and visibility.
 
 **Environment Variables:**
 - Stored in GitHub Secrets
-- Injected into ECS tasks via Terraform
+- Injected into build processes and infrastructure
 - Synchronized with AWS Secrets Manager
 
-### Deployment Process
+### Manual Deployment Process
 
 **Frontend (Static Site):**
 1. Build React app with Vite (`npm run build`)
 2. Upload `dist/` to S3 bucket
 3. Invalidate CloudFront cache
-4. Result: New version live in ~2 minutes
+4. Manual verification before going live
 
 **Backend (Docker Container):**
 1. Build Docker image from `backend/Dockerfile`
-2. Tag image with version (commit SHA)
+2. Tag image with version
 3. Push to AWS ECR
-4. Update ECS task definition with new image
-5. Deploy to ECS Fargate (rolling update)
-6. Health check on ALB (GET /health)
-7. Result: Zero-downtime deployment in ~5 minutes
+4. SSH into EC2 instance
+5. Pull latest image
+6. Update docker-compose.yml
+7. Restart services
+8. Manual health check verification
 
 ### Environment Configuration
 

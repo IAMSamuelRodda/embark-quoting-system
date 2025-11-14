@@ -3,8 +3,8 @@
 > **Purpose**: Current work, active bugs, and recent changes (~2 week rolling window)
 > **Lifecycle**: Living document (update daily/weekly during active development)
 
-**Last Updated:** 2025-11-14 (Session: Deployment Fix + CI/CD Alerts + Cost Strategy)
-**Current Phase:** Bug Fixes & Infrastructure Optimization
+**Last Updated:** 2025-11-15 (Session: Workflow Cleanup + Manual Deployment Strategy)
+**Current Phase:** Infrastructure Simplification & Manual Deployments
 **Version:** 1.0.0-beta
 
 ---
@@ -25,7 +25,31 @@
 
 ## Current Focus
 
-**Completed Nov 14 (Latest Session - Deployment Fix + CI/CD Alerts + Cost Strategy):**
+**Completed Nov 15 (Latest Session - Workflow Cleanup + Manual Deployment Strategy):**
+
+- ✅ **Workflow Cleanup** - Removed automatic deployment workflows
+  - Deleted `deploy-to-staging.yml` (automatic deployment workflow)
+  - Deleted `test-tag-trigger.yml` (debug workflow)
+  - Deleted `test-e2e-manual.yml` (redundant with e2e-tests.yml)
+  - Result: 5 essential workflows remain (validate, test, build, e2e-tests, enforce-main-pr-source)
+  - Deleted 417 lines of problematic deployment code
+
+- ✅ **Branch Cleanup** - Removed 18 merged local branches and 2 stale remote branches
+  - Local branches: All `fix/*`, `hotfix/*`, and `test/*` branches from deployment work
+  - Remote branches: `cleanup/remove-deploy-workflows`, `fix/staging-workflow-branch-push-noise`
+  - Clean repository structure: Only `dev` and `main` branches active
+
+- ✅ **Documentation Updates** - Updated architecture and status docs for new deployment approach
+  - ARCHITECTURE.md: Documented manual deployment strategy
+  - STATUS.md: Updated current focus and deployment status
+  - Rationale: Automatic deployments were blocked for 5+ days with multiple issues
+
+- ✅ **Deployment Strategy Change** - Moving from automatic to manual deployments
+  - **Staging**: Manual deployment from `dev` branch (no automatic triggers)
+  - **Production**: Manual deployment from `main` branch (when ready)
+  - **Rationale**: Automatic deployments proved problematic - manual provides more control
+
+**Completed Nov 14 (Earlier Session - Deployment Fix + CI/CD Alerts + Cost Strategy):**
 
 **Part 1: Deployment Deadlock Fixed (PR #139)**
 - ✅ **Staging Deployment Deadlock Diagnosed** - Identified chicken-and-egg problem blocking deployments for 5+ days
@@ -131,24 +155,23 @@
 ## Deployment Status
 
 ### Production
-- **Status:** Not deployed yet (manual approval required)
-- **Target:** Main branch → production environment
+- **Status:** Not deployed yet
+- **Target:** Main branch → production environment (manual deployment when ready)
 - **Readiness:** Blocked by critical bugs (sync + calculations)
 
 ### Staging
 - **Frontend:** ✅ https://dtfaaynfdzwhd.cloudfront.net (CloudFront)
-- **Backend:** 🟡 ECS Fargate task healthy BUT outdated code
-  - ECS Service: ACTIVE, 1/1 tasks running
-  - ALB Target Health: healthy
-  - Deployment Status: COMPLETED (but using old code from Nov 10)
-  - **Issue:** Last successful deployment Nov 10 (before PR #135 UUID fix)
-  - **Impact:** E2E tests fail because deployed backend lacks client UUID support
-  - **Fix:** PR #139 restructures workflow to enable deployment (awaiting merge)
+- **Backend:** 🟡 EC2 instance (manual deployments only)
+  - **Deployment Strategy:** Manual deployments from `dev` branch
+  - **Infrastructure:** EC2 t3.micro instance running Docker containers
+  - **Status:** Automatic deployment workflows removed (Nov 15)
+  - **Rationale:** 5+ days of deployment issues led to manual deployment strategy
+  - **Next Deployment:** Will be performed manually when ready
 
 ### Development
 - **Local:** ✅ Both frontend and backend running successfully
 - **Tests:** ✅ 8/8 core E2E tests passing (offline-auth + sync_verification)
-- **Git:** ✅ Clean working directory, 15 commits pushed to dev
+- **Git:** ✅ Clean working directory, on `dev` branch
 
 ---
 
@@ -1039,6 +1062,7 @@ All core documentation is current (updated Nov 14, 2025):
 | 2025-11-13 | Claude Code | Resolved Issues #130 (E2E CI/local parity) and #112 (sync error) |
 | 2025-11-14 | Claude Code | Repository cleanup (11 stale branches), closed 6 issues (#110-#112, #115-#116, #130), updated issue tracking |
 | 2025-11-14 | Claude Code | Implemented staging E2E failure alerts (Slack + GitHub issues), created Issue #141 for production alerts |
+| 2025-11-15 | Claude Code | Workflow cleanup (removed 3 workflows), branch cleanup (18 local + 2 remote), changed to manual deployment strategy, updated ARCHITECTURE.md and STATUS.md |
 
 ---
 

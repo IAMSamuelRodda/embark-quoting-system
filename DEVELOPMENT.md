@@ -14,8 +14,8 @@ This project uses a **three-tier branching model**: `feature/*` → `dev` → `m
 | Branch | Purpose | Deployments | Auto-Merge | Approval Required |
 |--------|---------|-------------|-----------|-------------------|
 | `feature/*` | Active development | None | ✅ Yes (CI passes) | No |
-| `dev` | Integration & staging | Staging (AWS ECS) | ✅ Yes (CI passes) | No |
-| `main` | Production-ready | Production | ❌ No | **Yes** (human-in-loop) |
+| `dev` | Integration & staging | **Manual only** | ✅ Yes (CI passes) | No |
+| `main` | Production-ready | **Manual only** | ❌ No | **Yes** (human-in-loop) |
 
 ### Development Flow
 
@@ -92,26 +92,21 @@ gh pr merge <PR-number> --rebase  # ❌ Rewrites commit SHAs
 **Dev Branch** (after merge):
 - ✓ Full test suite (unit + integration) - ~2-3 min
 - ✓ Build (Docker image to ECR) - ~3-5 min
-- ✓ Deploy to Staging (AWS ECS) - ~5 min
-- ✓ E2E tests on staging - ~2 min
-- ⚠️ **If E2E tests fail**: Automatic Slack alert + GitHub issue created
-- → Staging ready for testing (or flagged for rollback)
+- → **Manual deployment to staging** (when ready)
 
 **Dev → Main PR**:
 - ✓ Validate (quick sanity) - ~1 min
 - ✓ Build (smoke test only) - ~2 min
-- ✓ Verify staging deployment health - ~30 sec
 - → **Human approval required** (you confirm)
 
-**Main Branch** (after tag push like `v1.0.0`):
-- ✓ Pre-deployment validation (tag format check) - ~30 sec
-- ✓ Deploy to Production (AWS ECS + S3/CloudFront) - ~10-15 min
-- ✓ Post-deployment verification (health checks only) - ~1-2 min
-- ✓ Monitor CloudWatch metrics (5 min with auto-rollback) - ~5 min
-- ✓ Create GitHub release - ~30 sec
-- → Production live
+**Main Branch**:
+- → **Manual deployment to production** (when ready)
 
-**Amazon-style deployment**: Full testing happens in staging. Production deployment only verifies health and monitors metrics for degradation. If error rates spike or targets become unhealthy, automatic rollback is triggered.
+**Deployment Strategy (Updated Nov 15, 2025)**:
+- **Staging**: Manual deployment from `dev` branch
+- **Production**: Manual deployment from `main` branch
+- **Rationale**: Automatic deployments proved problematic (5+ days of issues). Manual deployments provide more control and visibility.
+- **E2E Tests**: Run manually via `npm run test:e2e` or GitHub Actions workflow_dispatch
 
 ### Test Files & Clean Production
 
@@ -215,8 +210,8 @@ After pushing to **feature branches** or **dev**, GitHub Actions automatically r
 | **Validate** | PRs to dev/main, pushes to dev/main | ESLint + Prettier + TypeCheck | No violations | ~1 min |
 | **Test** | PRs to dev, pushes to dev | Unit + integration tests | All tests pass | ~2-3 min |
 | **Build** | PRs to dev/main, pushes to dev/main | Docker build (conditional by branch) | Image builds successfully | ~3-5 min |
-| **Deploy Staging** | Pushes to dev only | Deploy to AWS ECS + E2E tests | Services healthy, tests pass | ~7-12 min |
-| **Deploy Production** | Pushes to main only | Deploy to production + smoke tests | Services healthy | ~5-10 min |
+| **E2E Tests** | Manual trigger (workflow_dispatch) | End-to-end tests on staging/production | Tests pass | ~5-10 min |
+| **Enforce Main PR Source** | PRs to main | Verify PR is from dev branch | PR source is dev | ~30 sec |
 
 ### Branch-Specific Workflows
 
@@ -226,22 +221,18 @@ After pushing to **feature branches** or **dev**, GitHub Actions automatically r
 
 **On `dev` branch push** (after feature merge):
 1. Validate → Test → Build (full)
-2. Deploy to Staging
-3. E2E tests on staging
+2. **Manual deployment when ready**
 
 **On `dev` → `main` PR**:
 1. Validate (quick sanity)
 2. Build (smoke test only)
-3. **Manual approval required** → merge
+3. Enforce Main PR Source check
+4. **Manual approval required** → merge
 
-**On `main` branch tag push** (e.g., `git tag v1.0.0 && git push origin v1.0.0`):
-1. Pre-deployment validation (tag format check)
-2. Deploy to Production (ECS + S3/CloudFront)
-3. Post-deployment verification (health checks only)
-4. Monitor CloudWatch metrics (5 min, auto-rollback on degradation)
-5. Create GitHub release
+**On `main` branch**:
+1. **Manual deployment when ready**
 
-**Note**: Production uses **Amazon-style deployment** - no full E2E tests, only health verification + metrics monitoring. All comprehensive testing was already done in staging.
+**Note**: All deployments are now manual. E2E tests can be triggered manually via GitHub Actions workflow_dispatch or run locally with `npm run test:e2e`.
 
 ### Monitoring Workflow Status
 
