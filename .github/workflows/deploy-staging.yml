@@ -107,27 +107,21 @@ jobs:
           # 3. Update docker-compose.yml if needed
           # ===================================================================
 
-          echo "📝 Checking docker-compose.yml configuration..."
+          echo "📝 Creating docker-compose.override.yml for ECR deployment..."
 
-          # Check if already using ECR image
-          if grep -q "$IMAGE_URI" docker-compose.yml; then
-            echo "✅ docker-compose.yml already configured for ECR image"
-          else
-            echo "Updating docker-compose.yml to use ECR image..."
+          # Create an override file that uses the ECR image
+          # This approach is more reliable than sed modification
+          cat > docker-compose.override.yml <<OVERRIDE_EOF
+          version: '3.8'
+          services:
+            backend:
+              image: $IMAGE_URI
+              # ECR image already has code baked in, no volume mount needed
+              volumes:
+                - db-data:/var/lib/postgresql/data
+          OVERRIDE_EOF
 
-            # Backup current config
-            cp docker-compose.yml docker-compose.yml.backup
-
-            # Replace placeholder image with ECR image
-            sed -i "s|image: public.ecr.aws/docker/library/node:18-alpine|image: $IMAGE_URI|g" docker-compose.yml
-
-            # Remove placeholder command (ECR image has proper CMD)
-            sed -i '/command: sh -c/,/"$/d' docker-compose.yml
-
-            # Remove backend-code volume mount (ECR image contains the code)
-            sed -i '/- backend-code:\/app/d' docker-compose.yml
-            sed -i '/backend-code:/,/driver: local/d' docker-compose.yml
-          fi
+          echo "✅ Created docker-compose.override.yml with ECR image configuration"
 
           # ===================================================================
           # 4. Deploy backend container
