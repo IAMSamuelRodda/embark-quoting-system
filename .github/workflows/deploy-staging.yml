@@ -104,8 +104,20 @@ jobs:
           docker pull $IMAGE_URI
 
           # ===================================================================
-          # 3. Update docker-compose.yml if needed
+          # 3. Restore original docker-compose.yml and create override
           # ===================================================================
+
+          echo "📝 Restoring original docker-compose.yml from repository..."
+
+          # Restore original docker-compose.yml if it was corrupted by previous deployments
+          if [ -f docker-compose.yml.backup ]; then
+            cp docker-compose.yml.backup docker-compose.yml
+            echo "✅ Restored from backup"
+          else
+            # If no backup exists, fetch from git repository
+            curl -o docker-compose.yml https://raw.githubusercontent.com/IAMSamuelRodda/embark-quoting-system/main/docker-compose.yml
+            echo "✅ Downloaded from repository"
+          fi
 
           echo "📝 Creating docker-compose.override.yml for ECR deployment..."
 
