@@ -1163,6 +1163,125 @@ db_multi_az = true            # +$20/month (for high availability)
 
 ---
 
+## ⏰ Cost Optimization Strategy Timeline
+
+### CRITICAL: When to Optimize Infrastructure Costs
+
+**If you're still in AWS Free Tier (first 12 months):**
+
+**DO NOT** optimize infrastructure costs yet. Here's why:
+
+**Current Monthly Cost**: ~$7/month (S3 + CloudFront + minimal services)
+- RDS PostgreSQL: $0 (Free Tier)
+- ECS Fargate: $0 (Free Tier)
+- Professional managed architecture: Priceless
+
+**Your Time Value**: Your time is worth more than $15/month in savings.
+
+**The Math**:
+- Cost optimization work: ~8 hours
+- Annual savings: ~$180/year ($15/month × 12)
+- **Hourly value: $22.50/hour**
+
+Compare this to:
+- Building Issue #119 (Admin Dashboard): ~8 hours → **Unblocks production launch**
+- Getting first paying customer: Could generate thousands/year
+
+**Focus on revenue, not costs** while in Free Tier.
+
+---
+
+### Timeline for Cost Decisions
+
+#### **Phase 1: Months 1-10 (BUILD PRODUCT)**
+**Action**: Keep current infrastructure - don't change anything
+
+**Focus on**:
+1. Complete MVP features (Issue #119, etc.)
+2. Get first paying customers
+3. Validate product-market fit
+
+**Monthly Cost**: ~$7 (well under $30 target)
+
+---
+
+#### **Phase 2: Month 10 (PLAN AHEAD)**
+**Action**: Evaluate your situation 2 months before Free Tier expires
+
+**Find your Free Tier expiration date**:
+1. AWS Console: https://console.aws.amazon.com/billing/home#/freetier
+2. Email: Search for "Welcome to Amazon Web Services" (date + 12 months)
+3. Set calendar reminder for 2 months before expiration
+
+**Decision Tree**:
+
+```
+Do you have paying customers covering >$50/month revenue?
+│
+├─ YES → Keep managed services (RDS + ECS)
+│         Post-Free Tier cost: ~$22/month
+│         Keep professional architecture for growth
+│         Revenue covers costs
+│
+└─ NO → Migrate to cost-optimized setup (choose one):
+
+          Option A: Dual t4g.nano EC2 instances
+          - Staging + Production separate (secure)
+          - Cost: $6.72/month ($3.36 each)
+          - ARM-based (2 vCPU, 512 MB each)
+
+          Option B: Oracle Cloud Always Free
+          - Cost: $0/month FOREVER
+          - 4 ARM OCPUs, 24 GB RAM
+          - Migration effort: 2-3 days
+
+          Option C: Single EC2 consolidation
+          - Cost: $7.50/month
+          - ONLY if abandoning production plans
+          - Not recommended (no isolation)
+```
+
+---
+
+#### **Phase 3: Month 12 (EXECUTE PLAN)**
+**Action**: Implement chosen cost optimization before Free Tier expires
+
+**Migration Effort**:
+- t4g.nano migration: 4 hours prep + 2 hours execution
+- Oracle Cloud migration: 1-2 days
+- Downtime: 30 minutes to 2 hours (staging only)
+
+**Reference Documentation**: See `docs/reference/cost-optimization/` for detailed migration guides
+
+---
+
+### Post-Free Tier Cost Comparison
+
+| Architecture | Monthly Cost | Isolation | Effort | Use Case |
+|--------------|--------------|-----------|--------|----------|
+| **Current (RDS + ECS)** | $22/month | ✅ Excellent | None | Have revenue >$50/month |
+| **Dual t4g.nano** | $6.72/month | ✅ Good | Medium | No revenue yet, need isolation |
+| **Oracle Always Free** | $0/month | ✅ Excellent | High | Long-term hobby/learning |
+| **Single EC2** | $7.50/month | ❌ Poor | Medium | NOT RECOMMENDED |
+
+---
+
+### Key Principle: Optimize for the Right Cost
+
+**Infrastructure costs** are predictable and low (~$22/month max).
+
+**Your time costs** are high and unpredictable.
+
+**Premature optimization wastes your most expensive resource**: Your time.
+
+**Only optimize infrastructure when**:
+1. Free Tier expires AND no revenue yet, OR
+2. Monthly AWS bill exceeds 10% of monthly revenue
+
+Until then: **Build product, get customers, create value.**
+
+---
+
 ## 📚 Additional Resources
 
 - **Architecture**: `specs/BLUEPRINT.yaml` - Complete technical specifications
@@ -1172,4 +1291,4 @@ db_multi_az = true            # +$20/month (for high availability)
 
 ---
 
-**Last Updated**: 2025-11-11 (Added anti-pattern documentation for hardcoded E2E credentials)
+**Last Updated**: 2025-11-14 (Added cost optimization strategy timeline)

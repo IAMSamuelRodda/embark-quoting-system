@@ -68,3 +68,7 @@ playwright-report/
 # Development logs
 backend.log
 frontend.log
+
+# Terraform plan files (generated outputs, don't commit)
+tfplan*
+terraform/tfplan*
