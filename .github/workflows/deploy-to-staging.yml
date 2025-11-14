@@ -1,12 +1,11 @@
 name: Deploy to Staging (EC2)
 
 on:
-  # Deploy to staging when pushing tags with 'staging-' prefix
-  # Example: git tag staging-v1.2.3 && git push origin staging-v1.2.3
+  # Deploy to staging on every push to dev branch
+  # Staging environment tracks dev branch (features -> dev -> deploy automatically)
   push:
-    tags:
-      - 'staging-v*'     # staging-v1.0.0, staging-v1.2.3, etc.
-      - 'staging-*'       # staging-20250109, staging-feature-name, etc.
+    branches:
+      - dev
   # Allow manual triggers for debugging
   workflow_dispatch:
 
