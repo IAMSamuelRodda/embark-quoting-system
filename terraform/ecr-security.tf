@@ -177,31 +177,5 @@ resource "aws_security_group" "rds" {
   }
 }
 
-# Security Group for VPC Endpoints (for AWS service access from private subnets)
-resource "aws_security_group" "vpc_endpoints" {
-  name        = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
-  description = "Security group for VPC endpoints"
-  vpc_id      = aws_vpc.main.id
-
-  # Allow HTTPS from VPC
-  ingress {
-    description = "HTTPS from VPC"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
-  }
-
-  # Allow all outbound traffic
-  egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
-  }
-}
+# VPC Endpoints security group removed - endpoints disabled to save $29/month
+# ECS tasks access AWS services via Internet Gateway with IAM authentication

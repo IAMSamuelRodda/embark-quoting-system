@@ -3,8 +3,8 @@
 > **Purpose**: Current work, active bugs, and recent changes (~2 week rolling window)
 > **Lifecycle**: Living document (update daily/weekly during active development)
 
-**Last Updated:** 2025-11-15 (Session: Workflow Cleanup + Manual Deployment Strategy)
-**Current Phase:** Infrastructure Simplification & Manual Deployments
+**Last Updated:** 2025-11-17 (Session: Infrastructure Cost Optimization)
+**Current Phase:** Infrastructure Simplification & Cost Optimization
 **Version:** 1.0.0-beta
 
 ---
@@ -25,7 +25,36 @@
 
 ## Current Focus
 
-**Completed Nov 15 (Latest Session - Workflow Cleanup + Manual Deployment Strategy):**
+**Completed Nov 17 (Latest Session - Infrastructure Cost Optimization):**
+
+- ✅ **VPC Endpoints Removed** - Destroyed 5 VPC endpoints saving $29/month
+  - Removed Secrets Manager endpoint (~$7.20/month)
+  - Removed ECR Docker endpoint (~$7.20/month)
+  - Removed ECR API endpoint (~$7.20/month)
+  - Removed CloudWatch Logs endpoint (~$7.20/month)
+  - Removed S3 Gateway endpoint (free, but unnecessary)
+  - Rationale: ECS tasks use Internet Gateway for AWS service access with IAM authentication
+
+- ✅ **ECS Fargate Disabled** - Removed duplicate infrastructure saving $9/month
+  - Destroyed 9 ECS resources (cluster, service, task definition, autoscaling, CloudWatch alarms)
+  - Stopped ECS service (desired count = 0)
+  - Added `enable_ecs` variable to prevent recreation
+  - Rationale: EC2 t3.micro on FREE tier already running backend, ECS was duplicate infrastructure
+
+- ✅ **Terraform Folder Cleanup** - Organized configuration files
+  - Archived 10 obsolete `.tfplan` files (~690KB)
+  - Archived outdated documentation (AWS_RESOURCES.md, COST_COMPARISON.md from Nov 4)
+  - Archived old tfstate backups
+  - Created archive/README.md explaining archived files
+  - Removed VPC endpoint outputs from outputs.tf
+
+- ✅ **Infrastructure Cost Optimization**
+  - Total monthly savings: $38/month ($456/year)
+  - VPC endpoints: -$29/month
+  - ECS Fargate: -$9/month
+  - Staging environment now runs on EC2 free tier + minimal services
+
+**Completed Nov 15 (Previous Session - Workflow Cleanup + Manual Deployment Strategy):**
 
 - ✅ **Workflow Cleanup** - Removed automatic deployment workflows
   - Deleted `deploy-to-staging.yml` (automatic deployment workflow)
@@ -161,12 +190,13 @@
 
 ### Staging
 - **Frontend:** ✅ https://dtfaaynfdzwhd.cloudfront.net (CloudFront)
-- **Backend:** 🟡 EC2 instance (manual deployments only)
+- **Backend:** ✅ EC2 t3.micro instance (consolidated backend + database)
   - **Deployment Strategy:** Manual deployments from `dev` branch
-  - **Infrastructure:** EC2 t3.micro instance running Docker containers
-  - **Status:** Automatic deployment workflows removed (Nov 15)
-  - **Rationale:** 5+ days of deployment issues led to manual deployment strategy
-  - **Next Deployment:** Will be performed manually when ready
+  - **Infrastructure:** EC2 consolidated instance running Docker containers (backend + PostgreSQL)
+  - **Public IP:** 54.206.248.6
+  - **Cost:** FREE (12-month free tier)
+  - **Status:** Running and healthy
+  - **Note:** ECS Fargate removed Nov 17 (was duplicate infrastructure costing $9/month)
 
 ### Development
 - **Local:** ✅ Both frontend and backend running successfully
@@ -1063,6 +1093,7 @@ All core documentation is current (updated Nov 14, 2025):
 | 2025-11-14 | Claude Code | Repository cleanup (11 stale branches), closed 6 issues (#110-#112, #115-#116, #130), updated issue tracking |
 | 2025-11-14 | Claude Code | Implemented staging E2E failure alerts (Slack + GitHub issues), created Issue #141 for production alerts |
 | 2025-11-15 | Claude Code | Workflow cleanup (removed 3 workflows), branch cleanup (18 local + 2 remote), changed to manual deployment strategy, updated ARCHITECTURE.md and STATUS.md |
+| 2025-11-17 | Claude Code | Infrastructure cost optimization: removed VPC endpoints ($29/mo), disabled ECS Fargate ($9/mo), cleaned terraform folder, updated documentation |
 
 ---
 

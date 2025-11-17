@@ -79,6 +79,12 @@ variable "enable_consolidated_ec2" {
   default     = true
 }
 
+variable "enable_ecs" {
+  description = "Enable ECS Fargate service (costs ~$9/month, NOT on free tier). Set to false to use EC2 only."
+  type        = bool
+  default     = false
+}
+
 variable "enable_ec2_database" {
   description = "Enable separate EC2 instance for database only (alternative to RDS)"
   type        = bool

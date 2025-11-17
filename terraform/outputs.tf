@@ -276,30 +276,7 @@ output "setup_summary" {
 }
 
 # ===================================================================
-# VPC Endpoints
+# VPC Endpoints (removed to save $29/month)
 # ===================================================================
-
-output "vpc_endpoint_ecr_api_id" {
-  description = "ECR API VPC Endpoint ID"
-  value       = aws_vpc_endpoint.ecr_api.id
-}
-
-output "vpc_endpoint_ecr_dkr_id" {
-  description = "ECR Docker VPC Endpoint ID"
-  value       = aws_vpc_endpoint.ecr_dkr.id
-}
-
-output "vpc_endpoint_s3_id" {
-  description = "S3 Gateway VPC Endpoint ID"
-  value       = aws_vpc_endpoint.s3.id
-}
-
-output "vpc_endpoint_secretsmanager_id" {
-  description = "Secrets Manager VPC Endpoint ID"
-  value       = aws_vpc_endpoint.secretsmanager.id
-}
-
-output "vpc_endpoint_logs_id" {
-  description = "CloudWatch Logs VPC Endpoint ID"
-  value       = aws_vpc_endpoint.logs.id
-}
+# VPC endpoint outputs removed - endpoints archived in vpc-endpoints.tf.disabled
+# ECS tasks access AWS services via Internet Gateway with IAM authentication
