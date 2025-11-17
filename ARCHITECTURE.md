@@ -4,7 +4,7 @@
 > **Lifecycle**: Living (update as implementation diverges from original plan)
 
 **Version:** 1.0
-**Last Updated:** 2025-11-11
+**Last Updated:** 2025-11-17
 
 ---
 
@@ -124,15 +124,22 @@ features/quotes/
 ### Infrastructure
 | Technology | Purpose |
 |------------|---------|
-| **AWS ECS Fargate** | Serverless container compute |
-| **AWS RDS PostgreSQL** | Managed database |
+| **AWS EC2** | t3.micro instance (consolidated backend + database) |
+| **AWS RDS PostgreSQL** | Managed database (staging uses EC2 PostgreSQL) |
 | **AWS CloudFront** | CDN for frontend |
-| **AWS ALB** | Application load balancer |
 | **AWS Cognito** | Authentication & user management |
 | **AWS S3** | Static asset storage |
-| **AWS ECR** | Container registry |
+| **AWS ECR** | Container registry (~$0.01/month) |
 | **AWS Secrets Manager** | Credentials storage |
 | **Terraform** | Infrastructure as Code |
+
+**Cost Optimization (Staging):**
+- EC2 consolidated instance: **FREE** (12-month free tier)
+- ECS Fargate: **Removed** (was costing $9/month, duplicate infrastructure)
+- VPC Endpoints: **Removed** (was costing $29/month, unnecessary with Internet Gateway)
+- NAT Gateway: **Disabled** (saves $50/month)
+- ALB: **Disabled** (saves $25/month)
+- **Total monthly savings:** $113/month
 
 ---
 
@@ -402,7 +409,7 @@ CREATE INDEX idx_sync_logs_entity_id ON sync_logs(entity_id);
 
 ## Infrastructure
 
-### AWS Architecture Diagram
+### AWS Architecture Diagram (Staging - Cost-Optimized)
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        CloudFront (CDN)                     │
@@ -416,54 +423,66 @@ CREATE INDEX idx_sync_logs_entity_id ON sync_logs(entity_id);
 │                    Frontend Static Files                     │
 └──────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────┐
-│                     Application Load Balancer               │
-│                     (ALB - Port 80/443)                     │
-└─────────────────┬───────────────────────────────────────────┘
-                  │
-                  │ (HTTP requests to /api/*)
-                  ▼
-┌──────────────────────────────────────────────────────────────┐
-│                      ECS Fargate Cluster                     │
-│                                                              │
-│   ┌──────────────────────────────────────────────────┐     │
-│   │  ECS Task (Node.js/Express Backend)              │     │
-│   │  - Port 3000                                     │     │
-│   │  - Health check: GET /health                     │     │
-│   │  - Environment variables from Secrets Manager    │     │
-│   └──────────────┬───────────────────────────────────┘     │
-└──────────────────┼──────────────────────────────────────────┘
-                   │
-                   │ (Database queries)
-                   ▼
-┌──────────────────────────────────────────────────────────────┐
-│                    RDS PostgreSQL Instance                   │
-│                         (db.t3.micro)                        │
-│                  Private subnet, encrypted                   │
-└──────────────────────────────────────────────────────────────┘
+                  ┌──────────────────────────────┐
+                  │    AWS Cognito User Pool     │
+                  │  (Authentication & Users)    │
+                  └──────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────┐
-│                      AWS Cognito User Pool                   │
-│                    (Authentication & Users)                  │
+│               EC2 Consolidated Instance (t3.micro)           │
+│                        Public Subnet                         │
+│                    Internet Gateway Access                   │
+│  ┌───────────────────────────────────────────────────┐      │
+│  │  Docker Container: Node.js Backend                 │      │
+│  │  - Port 3000 (exposed via public IP)              │      │
+│  │  - Health check: GET /health                       │      │
+│  │  - Environment variables from Secrets Manager      │      │
+│  │  - Accesses AWS services via Internet Gateway      │      │
+│  └─────────────────┬─────────────────────────────────┘      │
+│  ┌─────────────────▼─────────────────────────────────┐      │
+│  │  Docker Container: PostgreSQL                      │      │
+│  │  - Port 5432 (internal only)                       │      │
+│  │  - Database: embark_quoting_dev                    │      │
+│  └────────────────────────────────────────────────────┘      │
 └──────────────────────────────────────────────────────────────┘
+
+**Network Architecture:**
+- Public Subnet (EC2 with public IP)
+- Internet Gateway (AWS service access + public internet)
+- NO NAT Gateway (saves $50/month)
+- NO ALB (saves $25/month)
+- NO VPC Endpoints (saves $29/month - EC2 uses Internet Gateway)
+- Security Groups restrict inbound traffic to necessary ports
+
+**Cost:** ~$3-5/month (with free tier)
 ```
 
 ### Terraform Modules
 
 **Infrastructure Components:**
 - `main.tf` - Primary configuration
-- `vpc.tf` - VPC, subnets, NAT gateway (implied in main)
-- `ecs.tf` - ECS Fargate cluster & task definitions
-- `rds.tf` - PostgreSQL RDS instance
+- `vpc.tf` - VPC, subnets, Internet Gateway
+- `ec2-consolidated.tf` - EC2 instance (backend + database containers)
+- `rds.tf` - PostgreSQL RDS instance (production only)
 - `cloudfront.tf` - CDN distribution
 - `s3-cognito.tf` - S3 bucket + Cognito user pool
 - `iam.tf` - IAM roles & policies
-- `ecr-security.tf` - Container registry security
+- `ecr-security.tf` - Container registry + security groups
 - `outputs.tf` - Exported values
+- `variables.tf` - Configuration variables
+
+**Disabled/Archived Files:**
+- `ecs.tf` - ECS Fargate (disabled via `enable_ecs=false`, see variables.tf)
+- `archive/vpc-endpoints.tf.disabled` - VPC endpoints (removed 2025-11-17)
 
 **Environments:**
-- Staging: Minimal cost architecture (~$21/month)
-- Production: Similar architecture with higher capacity
+- **Staging:** EC2 consolidated instance (~$3-5/month with free tier)
+  - EC2 t3.micro: FREE (12 months)
+  - ECS Fargate: **Disabled** (saves $9/month)
+  - VPC Endpoints: **Removed** (saves $29/month)
+  - NAT Gateway: **Disabled** (saves $50/month)
+  - ALB: **Disabled** (saves $25/month)
+- **Production:** RDS + EC2/ECS (when ready, ~$50-100/month depending on scaling needs)
 
 ---
 
@@ -485,9 +504,9 @@ CREATE INDEX idx_sync_logs_entity_id ON sync_logs(entity_id);
 ### Data Security
 
 **In Transit:**
-- HTTPS/TLS for all API requests (ALB → ECS)
+- HTTPS/TLS for all API requests (CloudFront → backend)
 - CloudFront HTTPS for frontend delivery
-- Database connections encrypted (RDS SSL)
+- Database connections encrypted (PostgreSQL SSL)
 
 **At Rest:**
 - RDS encryption enabled (AES-256)
@@ -496,7 +515,7 @@ CREATE INDEX idx_sync_logs_entity_id ON sync_logs(entity_id);
 
 **Secrets Management:**
 - AWS Secrets Manager for sensitive credentials
-- Environment variables injected into ECS tasks
+- Environment variables injected into Docker containers
 - No secrets in code or version control
 
 ### API Security
@@ -510,13 +529,14 @@ CREATE INDEX idx_sync_logs_entity_id ON sync_logs(entity_id);
 ### Access Control
 
 **Network Security:**
-- VPC with private subnets for RDS
-- Security groups restrict traffic (ALB → ECS → RDS)
-- No direct internet access to backend or database
+- VPC with public subnet for EC2 (staging)
+- Security groups restrict inbound traffic to necessary ports
+- Backend accessed via public IP (staging) or ALB (production)
+- Database runs internally in Docker container (no external access)
 
 **IAM Policies:**
 - Least privilege principle
-- ECS task roles for AWS service access only
+- EC2 instance roles for AWS service access only (Secrets Manager, ECR)
 - Separate roles for deployment (GitHub Actions OIDC)
 
 ---
