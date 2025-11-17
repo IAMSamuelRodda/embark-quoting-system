@@ -52,15 +52,19 @@ acm_certificate_arn = ""
 # ===================================================================
 
 # Disable NAT Gateway (saves $65/month)
-# ECS tasks will use public IPs instead
 enable_nat_gateway = false
 
 # Disable Application Load Balancer (saves $25/month)
-# Access ECS tasks directly via public IP
 enable_alb = false
 
-# Enable public IPs for ECS tasks (required when NAT Gateway disabled)
-ecs_assign_public_ip = true
+# Disable ECS Fargate (saves $9/month) - Use EC2 instead (FREE tier)
+enable_ecs = false
+
+# Enable EC2 consolidated instance (FREE for 12 months)
+enable_consolidated_ec2 = true
+
+# Enable public IPs for ECS tasks (not used when ECS disabled)
+ecs_assign_public_ip = false
 
 # Keep database in single AZ (saves $20/month vs Multi-AZ)
 db_multi_az = false
