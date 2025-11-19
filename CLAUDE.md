@@ -81,12 +81,18 @@ See `ARCHITECTURE.md` for complete details (database schema, tech stack, ADRs, i
 
 ## 🚀 Getting Started
 
+**Quick Local Setup:**
+```bash
+./scripts/dev-start.sh  # Launches full dev stack (DB + backend + frontend)
+```
+
+**GitHub Workflow:**
 ```bash
 # Mark epic/feature/task in progress
 gh issue edit <issue-number> --add-label "status: in-progress"
 ```
 
-See `CONTRIBUTING.md` for complete workflow.
+See `CONTRIBUTING.md` for complete workflow and environment setup details.
 
 ---
 
@@ -138,9 +144,8 @@ const { email, password } = getAndValidateCredentials();
 **If tests fail with auth errors**: Check credentials are configured (see DEVELOPMENT.md § Anti-Patterns § E2E Test Credentials)
 
 ---
-- The offline-first architecture adds complexity - data flows through multiple layers (UI → IndexedDB → Sync → API → Response → IndexedDB → UI), and any broken link causes silent failures.
-- 1. Multi-layer data flow creates blind spots: UI → IndexedDB → Sync → API → IndexedDB → UI means backend tests alone miss integration failures
-  2. Label mismatches break selectors: Tests caught "Length (m)" vs "Length (meters)", "Save Quote" vs "Create Quote", "Save Job" vs "Add Job" - all invisible to unit tests
-  3. Dropdown vs input fields matter: Tests revealed <select> vs <input> differences requiring .selectOption() vs .fill() - Playwright enforces real browser behavior
-  4. Test-driven debugging: Running E2E tests iteratively exposed each UI layer issue systematically (authentication → form labels → button text → submit behavior)
-- it's important to run npm run format:check before pushing to catch formatting issues early
+
+## 📝 Notes
+
+- **Offline-first complexity**: Data flows through multiple layers (UI → IndexedDB → Sync → API → IndexedDB → UI). Any broken link causes silent failures. E2E tests are critical for catching integration issues that unit tests miss.
+- **Pre-commit formatting**: Always run `npm run format:check` before pushing to catch formatting issues early.
