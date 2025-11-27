@@ -11,6 +11,9 @@ import type { Quote, Job, Financial } from '../types/models';
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+// Dev auth bypass mode - skip Cognito when VITE_DEV_AUTH_BYPASS is true
+const DEV_AUTH_BYPASS = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
+
 // Cognito configuration (must match authService.ts - use environment variables)
 const poolData = {
   UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
@@ -26,9 +29,15 @@ function getUserPool(): CognitoUserPool {
 }
 
 /**
- * Get current JWT token from Cognito
+ * Get current JWT token from Cognito (or bypass in dev mode)
  */
 async function getAuthToken(): Promise<string | null> {
+  // Dev mode bypass - return a dummy token that backend will accept
+  if (DEV_AUTH_BYPASS) {
+    console.log('⚠️  DEV_AUTH_BYPASS enabled - using dev token');
+    return 'dev-bypass-token';
+  }
+
   const cognitoUser = getUserPool().getCurrentUser();
   if (!cognitoUser) return null;
 

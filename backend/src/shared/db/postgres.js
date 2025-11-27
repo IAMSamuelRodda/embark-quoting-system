@@ -18,8 +18,19 @@ function getPoolConfig() {
     };
   }
 
+  // Check if SSL should be enabled:
+  // - AWS RDS requires SSL
+  // - Local Docker containers (localhost, container names) don't support SSL
+  const dbHost = process.env.DB_HOST || 'localhost';
+  const isLocalDb =
+    dbHost === 'localhost' ||
+    dbHost === '127.0.0.1' ||
+    dbHost.includes('embark_db') ||
+    !dbHost.includes('.');
+  const shouldUseSSL = !isLocalDb && (process.env.NODE_ENV === 'production' || dbHost.includes('rds.amazonaws.com'));
+
   return {
-    host: process.env.DB_HOST || 'localhost',
+    host: dbHost,
     port: parseInt(process.env.DB_PORT || '5432'),
     database: process.env.DB_NAME || 'embark_quoting_staging',
     user: process.env.DB_USER || 'embark_admin',
@@ -27,10 +38,7 @@ function getPoolConfig() {
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
-    ssl:
-      process.env.NODE_ENV === 'production' || process.env.DB_HOST?.includes('rds.amazonaws.com')
-        ? { rejectUnauthorized: false }
-        : false,
+    ssl: shouldUseSSL ? { rejectUnauthorized: false } : false,
   };
 }
 

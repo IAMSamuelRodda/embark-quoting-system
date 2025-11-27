@@ -124,22 +124,23 @@ features/quotes/
 ### Infrastructure
 | Technology | Purpose |
 |------------|---------|
-| **AWS EC2** | t3.micro instance (consolidated backend + database) |
-| **AWS RDS PostgreSQL** | Managed database (staging uses EC2 PostgreSQL) |
-| **AWS CloudFront** | CDN for frontend |
-| **AWS Cognito** | Authentication & user management |
-| **AWS S3** | Static asset storage |
-| **AWS ECR** | Container registry (~$0.01/month) |
-| **AWS Secrets Manager** | Credentials storage |
-| **Terraform** | Infrastructure as Code |
+| **Digital Ocean Droplet** | VPS hosting (s-2vcpu-4gb, Sydney region) |
+| **Docker Compose** | Container orchestration |
+| **Caddy** | Reverse proxy with auto-HTTPS |
+| **PostgreSQL** | Database (Docker container) |
+| **Authentication** | 🔴 NEEDS IMPLEMENTATION (Cognito deleted) |
 
-**Cost Optimization (Staging):**
-- EC2 consolidated instance: **FREE** (12-month free tier)
-- ECS Fargate: **Removed** (was costing $9/month, duplicate infrastructure)
-- VPC Endpoints: **Removed** (was costing $29/month, unnecessary with Internet Gateway)
-- NAT Gateway: **Disabled** (saves $50/month)
-- ALB: **Disabled** (saves $25/month)
-- **Total monthly savings:** $113/month
+**Infrastructure URLs:**
+- Frontend: https://embark.rodda.xyz
+- Backend API: https://api.embark.rodda.xyz
+- Droplet IP: 170.64.169.203
+
+**Migration Note (Nov 2025):**
+Migrated from AWS (ECS/EC2, RDS, CloudFront) to Digital Ocean VPS.
+- Previous AWS infrastructure: **FULLY DELETED** (including Cognito)
+- Terraform configs: Archived (not currently in use)
+- Authentication: Needs new solution (local JWT, Authentik, or similar)
+- Cost: Part of shared DO infrastructure (~$24/month total droplet)
 
 ---
 
@@ -409,80 +410,72 @@ CREATE INDEX idx_sync_logs_entity_id ON sync_logs(entity_id);
 
 ## Infrastructure
 
-### AWS Architecture Diagram (Staging - Cost-Optimized)
+### Digital Ocean Architecture Diagram
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        CloudFront (CDN)                     │
-│                  https://*.cloudfront.net                   │
+│                    Internet (HTTPS)                          │
+│         embark.rodda.xyz / api.embark.rodda.xyz             │
 └─────────────────┬───────────────────────────────────────────┘
                   │
-                  │ (Static assets: HTML, JS, CSS)
+                  │ (Cloudflare DNS → DO Droplet)
                   ▼
 ┌──────────────────────────────────────────────────────────────┐
-│                         S3 Bucket                            │
-│                    Frontend Static Files                     │
-└──────────────────────────────────────────────────────────────┘
-
-                  ┌──────────────────────────────┐
-                  │    AWS Cognito User Pool     │
-                  │  (Authentication & Users)    │
-                  └──────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────┐
-│               EC2 Consolidated Instance (t3.micro)           │
-│                        Public Subnet                         │
-│                    Internet Gateway Access                   │
+│          Digital Ocean Droplet: production-syd1              │
+│                  IP: 170.64.169.203                          │
+│              Plan: s-2vcpu-4gb (4GB RAM)                     │
+│                  Region: Sydney (syd1)                       │
 │  ┌───────────────────────────────────────────────────┐      │
+│  │  Caddy (Reverse Proxy)                             │      │
+│  │  - Auto-HTTPS via Let's Encrypt                    │      │
+│  │  - embark.rodda.xyz → frontend static              │      │
+│  │  - api.embark.rodda.xyz → backend:3000             │      │
+│  └─────────────────┬─────────────────────────────────┘      │
+│  ┌─────────────────▼─────────────────────────────────┐      │
 │  │  Docker Container: Node.js Backend                 │      │
-│  │  - Port 3000 (exposed via public IP)              │      │
+│  │  - Port 3000 (internal)                           │      │
 │  │  - Health check: GET /health                       │      │
-│  │  - Environment variables from Secrets Manager      │      │
-│  │  - Accesses AWS services via Internet Gateway      │      │
+│  │  - Connects to PostgreSQL container               │      │
 │  └─────────────────┬─────────────────────────────────┘      │
 │  ┌─────────────────▼─────────────────────────────────┐      │
 │  │  Docker Container: PostgreSQL                      │      │
 │  │  - Port 5432 (internal only)                       │      │
-│  │  - Database: embark_quoting_dev                    │      │
+│  │  - Database: embark_quoting                        │      │
+│  └────────────────────────────────────────────────────┘      │
+│  ┌────────────────────────────────────────────────────┐      │
+│  │  Docker Container: Frontend Static Files           │      │
+│  │  - Served via Caddy                                │      │
 │  └────────────────────────────────────────────────────┘      │
 └──────────────────────────────────────────────────────────────┘
 
-**Network Architecture:**
-- Public Subnet (EC2 with public IP)
-- Internet Gateway (AWS service access + public internet)
-- NO NAT Gateway (saves $50/month)
-- NO ALB (saves $25/month)
-- NO VPC Endpoints (saves $29/month - EC2 uses Internet Gateway)
-- Security Groups restrict inbound traffic to necessary ports
+                  ┌──────────────────────────────┐
+                  │  🔴 Authentication NEEDED     │
+                  │  (Cognito DELETED)            │
+                  │  Options: Local JWT, Authentik│
+                  └──────────────────────────────┘
 
-**Cost:** ~$3-5/month (with free tier)
+**Infrastructure Notes:**
+- Droplet managed via: ~/repos/do-vps-prod
+- Shared with other services (Nextcloud, Joplin, etc.)
+- Docker Compose for service orchestration
+- Caddy handles SSL/TLS automatically
+- Cost: ~$24/month (shared droplet)
+- ⚠️ Authentication: DEV_AUTH_BYPASS mode available for testing
 ```
 
-### Terraform Modules
+### Previous AWS Infrastructure (ARCHIVED - Nov 2025)
 
-**Infrastructure Components:**
-- `main.tf` - Primary configuration
-- `vpc.tf` - VPC, subnets, Internet Gateway
-- `ec2-consolidated.tf` - EC2 instance (backend + database containers)
-- `rds.tf` - PostgreSQL RDS instance (production only)
-- `cloudfront.tf` - CDN distribution
-- `s3-cognito.tf` - S3 bucket + Cognito user pool
-- `iam.tf` - IAM roles & policies
-- `ecr-security.tf` - Container registry + security groups
-- `outputs.tf` - Exported values
-- `variables.tf` - Configuration variables
+The AWS infrastructure has been **FULLY DELETED**. Terraform configurations remain in `terraform/` folder for historical reference only.
 
-**Disabled/Archived Files:**
-- `ecs.tf` - ECS Fargate (disabled via `enable_ecs=false`, see variables.tf)
-- `archive/vpc-endpoints.tf.disabled` - VPC endpoints (removed 2025-11-17)
-
-**Environments:**
-- **Staging:** EC2 consolidated instance (~$3-5/month with free tier)
-  - EC2 t3.micro: FREE (12 months)
-  - ECS Fargate: **Disabled** (saves $9/month)
-  - VPC Endpoints: **Removed** (saves $29/month)
-  - NAT Gateway: **Disabled** (saves $50/month)
-  - ALB: **Disabled** (saves $25/month)
-- **Production:** RDS + EC2/ECS (when ready, ~$50-100/month depending on scaling needs)
+**Deleted AWS Resources:**
+- CloudFront distributions
+- ECS Fargate/EC2 instances
+- RDS PostgreSQL
+- ALB/NAT Gateway
+- VPC Endpoints
+- ECR repositories
+- **Cognito User Pool (authentication)**
+- S3 buckets
+- Secrets Manager
 
 ---
 
@@ -490,11 +483,17 @@ CREATE INDEX idx_sync_logs_entity_id ON sync_logs(entity_id);
 
 ### Authentication & Authorization
 
-**Authentication:** AWS Cognito
+**Authentication:** 🔴 NEEDS IMPLEMENTATION
+
+**Previous (Deleted):** AWS Cognito
 - User pool for identity management
 - JWT tokens for API authentication
-- Token refresh via Cognito SDK
-- Session management in browser (secure cookies)
+
+**Current Options:**
+1. **DEV_AUTH_BYPASS** - Enabled via environment variable for development/testing
+2. **Local JWT Auth** - Implement custom JWT authentication with bcrypt passwords
+3. **Authentik** - Self-hosted identity provider (could run on same droplet)
+4. **Other** - Auth.js, Keycloak, etc.
 
 **Authorization:** Role-Based Access Control (RBAC)
 - Roles: `admin`, `user`
@@ -660,9 +659,10 @@ export const db = new EmbarkDatabase();
 4. **e2e-tests.yml** - Run E2E tests (manual or called from other workflows)
 5. **enforce-main-pr-source.yml** - Branch protection (ensures main only gets PRs from dev)
 
-**Removed Workflows:**
-- ~~deploy-staging.yml~~ - Removed (moving to manual deployments)
-- ~~deploy-prod.yml~~ - Never implemented
+**⚠️ Workflows Need Update:**
+- Current workflows reference AWS infrastructure (ECR, ECS, etc.)
+- Need to update for Digital Ocean deployment
+- See GitHub Issues for migration tasks
 
 **Branch Strategy:**
 - `feature/*` → `dev` (PR with CI validation)
@@ -671,46 +671,44 @@ export const db = new EmbarkDatabase();
 - `dev` → `main` (PR only - enforced by workflow)
 
 **Deployment Strategy:**
-- **Staging**: Manual deployment from `dev` branch
-- **Production**: Manual deployment from `main` branch
-- **Rationale**: Automatic deployments proved problematic. Manual deployments provide more control and visibility.
+- **Production**: Manual deployment to Digital Ocean droplet
+- **Rationale**: Simpler infrastructure, direct SSH/rsync deployment
 
 **Environment Variables:**
-- Stored in GitHub Secrets
-- Injected into build processes and infrastructure
-- Synchronized with AWS Secrets Manager
+- Stored in GitHub Secrets (need update for DO)
+- Backend: `.env` file on droplet
+- Frontend: Build-time environment variables
 
-### Manual Deployment Process
+### Manual Deployment Process (Digital Ocean)
 
 **Frontend (Static Site):**
 1. Build React app with Vite (`npm run build`)
-2. Upload `dist/` to S3 bucket
-3. Invalidate CloudFront cache
-4. Manual verification before going live
+2. Copy `dist/` to droplet via rsync/scp
+3. Caddy serves static files automatically
+4. Manual verification at https://embark.rodda.xyz
 
 **Backend (Docker Container):**
 1. Build Docker image from `backend/Dockerfile`
-2. Tag image with version
-3. Push to AWS ECR
-4. SSH into EC2 instance
-5. Pull latest image
-6. Update docker-compose.yml
-7. Restart services
-8. Manual health check verification
+2. Push to Docker Hub or build on droplet
+3. SSH into droplet: `ssh root@170.64.169.203`
+4. Pull/build latest image
+5. Update docker-compose.yml
+6. Restart services: `docker-compose up -d`
+7. Manual health check: `curl https://api.embark.rodda.xyz/health`
 
 ### Environment Configuration
 
-**Staging:**
-- Frontend: https://dtfaaynfdzwhd.cloudfront.net
-- Backend: ALB DNS (currently failing health checks)
-- Database: RDS instance (db.t3.micro)
-- Branch: `dev`
+**Production (Digital Ocean):**
+- Frontend: https://embark.rodda.xyz
+- Backend API: https://api.embark.rodda.xyz
+- Database: PostgreSQL (Docker container on droplet)
+- Droplet IP: 170.64.169.203
+- Branch: `main` (or `dev` for testing)
 
-**Production:**
-- Frontend: https://d1aekrwrb8e93r.cloudfront.net (planned)
-- Backend: ALB DNS (not yet deployed)
-- Database: RDS instance (separate from staging)
-- Branch: `main`
+**Local Development:**
+- Frontend: http://localhost:3000
+- Backend: http://localhost:4000
+- Database: PostgreSQL via Docker (`embark-dev-db`)
 
 ---
 
@@ -921,11 +919,43 @@ export const db = new EmbarkDatabase();
 
 ---
 
+### ADR-008: Migration from AWS to Digital Ocean
+**Date:** 2025-11-27
+**Status:** Accepted
+
+**Context:** AWS infrastructure costs were ~$100-200/month for staging/production. Team already operates a Digital Ocean droplet for personal services. Simpler deployment model desired.
+
+**Decision:** Migrate from AWS (ECS/EC2, RDS, CloudFront) to Digital Ocean VPS with Docker Compose.
+
+**Consequences:**
+- ✅ Significant cost reduction (~$24/month shared droplet vs ~$100+/month AWS)
+- ✅ Simpler deployment model (SSH + Docker Compose)
+- ✅ Unified infrastructure management
+- ✅ No complex IaC (Terraform) needed
+- ❌ Less scalability than AWS auto-scaling
+- ❌ Single point of failure (one droplet)
+- 🔴 **Authentication needs new solution** (Cognito deleted - see options in Security section)
+
+**Implementation:**
+- Frontend: https://embark.rodda.xyz (Caddy static files)
+- Backend: https://api.embark.rodda.xyz (Docker container)
+- Database: PostgreSQL (Docker container)
+- Reverse Proxy: Caddy (auto-HTTPS)
+- Authentication: 🔴 Needs implementation (DEV_AUTH_BYPASS available for testing)
+
+**Alternatives Considered:**
+- Keep AWS infrastructure (rejected - too expensive for current usage)
+- Vercel/Netlify for frontend + separate backend (rejected - split infrastructure)
+- Render/Railway (rejected - existing DO droplet available)
+
+---
+
 ## Update History
 
 | Date | Updated By | Changes |
 |------|------------|---------|
 | 2025-11-09 | Claude Code | Initial ARCHITECTURE.md creation |
+| 2025-11-27 | Claude Code | AWS → Digital Ocean migration: Updated infrastructure diagrams, deployment processes, added ADR-008 |
 
 ---
 

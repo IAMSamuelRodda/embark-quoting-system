@@ -65,21 +65,19 @@ cp frontend/.env.example frontend/.env
 ```
 
 **What it does:**
-- ✅ Validates prerequisites (Docker, AWS CLI, Node.js)
+- ✅ Validates prerequisites (Docker, Node.js)
 - ✅ Starts PostgreSQL database (Docker container)
 - ✅ Runs database migrations
-- ✅ Retrieves AWS Cognito credentials
 - ✅ Starts backend API (port 4000)
 - ✅ Starts frontend dev server (port 3000)
-- ✅ Auto-logs in with Playwright
 
 **Access:**
-- Frontend: http://localhost:3000 (auto-opens and logs in)
+- Frontend: http://localhost:3000
 - Backend: http://localhost:4000
 
-**Credentials (if needed manually):**
-- Email: `e2e-test@embark-quoting.local`
-- Password: Retrieve with `aws secretsmanager get-secret-value --secret-id embark-quoting/staging/e2e-test-credentials --query SecretString --output text | jq -r '.password'`
+**Authentication (Development):**
+- Set `DEV_AUTH_BYPASS=true` in backend `.env` to bypass authentication
+- See ARCHITECTURE.md for authentication options (Cognito was deleted)
 
 **See also:**
 - [`specs/ENVIRONMENTS.md`](./specs/ENVIRONMENTS.md) - Complete environment setup guide
@@ -99,26 +97,26 @@ cp frontend/.env.example frontend/.env
 
 **Backend**:
 - Node.js 20 + Express
-- PostgreSQL (local: Docker, cloud: RDS)
+- PostgreSQL (local: Docker, production: Docker on DO)
 - Drizzle ORM
 - Docker containerized
 
 **Local Development Stack:**
 - PostgreSQL 15 (Docker container: `embark-dev-db`)
-- Backend API on port 3001 (Express with `--watch` for hot-reload)
+- Backend API on port 4000 (Express with `--watch` for hot-reload)
 - Frontend on port 3000 (Vite dev server)
-- Staging Cognito for authentication
+- DEV_AUTH_BYPASS mode for testing
 - Logs: `/tmp/embark-*.log` (backend, frontend, migrations)
 
-**Production Infrastructure** (AWS):
-- ECS Fargate (compute)
-- RDS PostgreSQL (database)
-- Cognito (authentication)
-- S3 (storage)
-- SES (email)
-- CloudFront (CDN)
+**Production Infrastructure** (Digital Ocean):
+- Frontend: https://embark.rodda.xyz
+- Backend API: https://api.embark.rodda.xyz
+- Droplet: 170.64.169.203 (s-2vcpu-4gb, Sydney)
+- PostgreSQL (Docker container)
+- Caddy (reverse proxy, auto-HTTPS)
+- Authentication: 🔴 Needs implementation (Cognito deleted)
 
-**Cost**: ~$45/month (production, low-moderate usage)
+**Cost**: ~$24/month (shared droplet)
 
 ---
 
@@ -214,7 +212,7 @@ See [`ARCHITECTURE.md`](./ARCHITECTURE.md) and [`STATUS.md`](./STATUS.md) for cu
 ```bash
 cd frontend
 
-# Run all E2E tests (credentials auto-retrieved from AWS)
+# Run all E2E tests
 npm run test:e2e
 
 # Run specific test suite
@@ -227,7 +225,7 @@ npx playwright test e2e/sync_verification.spec.ts
 - ✅ Auto-sync verification (4 tests)
 
 **See [`DEVELOPMENT.md`](./DEVELOPMENT.md)** for:
-- E2E test credential setup (environment variables or AWS Secrets Manager)
+- E2E test credential setup
 - Pre-commit checklist (linting, formatting, unit tests)
 - CI/CD workflow expectations
 - Troubleshooting guide
@@ -252,6 +250,8 @@ Private - Embark Landscaping & Earthworks
 
 ## Links
 
+- **Production Frontend**: https://embark.rodda.xyz
+- **Production API**: https://api.embark.rodda.xyz
 - **Repository**: https://github.com/IAMSamuelRodda/embark-quoting-system
 - **Project Board**: https://github.com/users/IAMSamuelRodda/projects/2
 - **Issues**: https://github.com/IAMSamuelRodda/embark-quoting-system/issues

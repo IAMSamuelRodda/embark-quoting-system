@@ -3,12 +3,36 @@
  *
  * Validates JWT tokens from AWS Cognito and enforces role-based access control
  * Implements Feature 1.5 (RBAC) and secures Feature 2.2 (Backend Quote API)
+ *
+ * Supports DEV_AUTH_BYPASS mode for testing without Cognito
  */
 
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 
 // Lazy initialization: verifier is created on first use
 let verifier = null;
+
+/**
+ * Check if dev auth bypass is enabled
+ * @returns {boolean}
+ */
+function isDevAuthBypassEnabled() {
+  return process.env.DEV_AUTH_BYPASS === 'true';
+}
+
+/**
+ * Get dev user from environment variables
+ * @returns {Object} Dev user object
+ */
+function getDevUser() {
+  return {
+    sub: process.env.DEV_AUTH_USER_ID || 'dev-user-001',
+    email: process.env.DEV_AUTH_EMAIL || 'dev@embark.local',
+    username: process.env.DEV_AUTH_USERNAME || 'devuser',
+    role: process.env.DEV_AUTH_ROLE || 'admin',
+    groups: (process.env.DEV_AUTH_GROUPS || 'admins').split(','),
+  };
+}
 
 /**
  * Get or create the Cognito JWT verifier
@@ -36,6 +60,13 @@ function getVerifier() {
  */
 export async function authenticateToken(req, res, next) {
   try {
+    // DEV_AUTH_BYPASS: Skip Cognito verification for testing environments
+    if (isDevAuthBypassEnabled()) {
+      console.log('⚠️  DEV_AUTH_BYPASS enabled - using dev user');
+      req.user = getDevUser();
+      return next();
+    }
+
     // Check if authentication is configured
     const cognitoVerifier = getVerifier();
     if (!cognitoVerifier) {

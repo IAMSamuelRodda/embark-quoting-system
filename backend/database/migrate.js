@@ -12,16 +12,24 @@ async function runMigration() {
   console.log('  COGNITO_USER_POOL_ID:', process.env.COGNITO_USER_POOL_ID || 'UNDEFINED');
   console.log('  NODE_ENV:', process.env.NODE_ENV || 'UNDEFINED');
 
+  // Check if SSL should be enabled:
+  // - AWS RDS requires SSL
+  // - Local Docker containers (localhost, container names) don't support SSL
+  const dbHost = process.env.DB_HOST || 'localhost';
+  const isLocalDb =
+    dbHost === 'localhost' ||
+    dbHost === '127.0.0.1' ||
+    dbHost.includes('embark_db') ||
+    !dbHost.includes('.');
+  const shouldUseSSL = !isLocalDb && (process.env.NODE_ENV === 'production' || dbHost.includes('rds.amazonaws.com'));
+
   const pool = new Pool({
-    host: process.env.DB_HOST,
+    host: dbHost,
     port: parseInt(process.env.DB_PORT || '5432'),
     database: process.env.DB_NAME,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    // SSL configuration for RDS (same as postgres.js)
-    ssl: process.env.NODE_ENV === 'production' || process.env.DB_HOST?.includes('rds.amazonaws.com')
-      ? { rejectUnauthorized: false }
-      : false,
+    ssl: shouldUseSSL ? { rejectUnauthorized: false } : false,
   });
 
   const db = drizzle(pool);

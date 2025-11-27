@@ -7,13 +7,24 @@ import {
   type CognitoUserSession,
 } from 'amazon-cognito-identity-js';
 
-// Cognito configuration from environment variables (injected at build time)
-const poolData = {
-  UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
-  ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
+// Dev auth bypass mode - skip Cognito when VITE_DEV_AUTH_BYPASS is true
+const DEV_AUTH_BYPASS = import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
+
+// Dev user for bypass mode - matches backend seed-dev.js admin user
+const DEV_USER: AuthUser = {
+  email: 'admin@embarklandscaping.com.au',
+  role: 'admin',
+  groups: ['admins'],
 };
 
-const userPool = new CognitoUserPool(poolData);
+// Cognito configuration from environment variables (injected at build time)
+const poolData = {
+  UserPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID || 'dev-pool',
+  ClientId: import.meta.env.VITE_COGNITO_CLIENT_ID || 'dev-client',
+};
+
+// Only create user pool if not in dev bypass mode
+const userPool = DEV_AUTH_BYPASS ? null : new CognitoUserPool(poolData);
 
 export interface SignUpData {
   email: string;
@@ -37,6 +48,16 @@ class AuthService {
    * Sign up a new user
    */
   async signUp(data: SignUpData): Promise<ISignUpResult> {
+    // Dev bypass mode - sign up is disabled
+    if (DEV_AUTH_BYPASS) {
+      console.log('⚠️  DEV_AUTH_BYPASS enabled - sign up disabled in dev mode');
+      throw new Error('Sign up disabled in dev mode');
+    }
+
+    if (!userPool) {
+      throw new Error('Cognito not configured');
+    }
+
     const { email, password, role } = data;
 
     const attributeList = [
@@ -69,6 +90,10 @@ class AuthService {
    * Confirm user email with verification code
    */
   async confirmSignUp(email: string, code: string): Promise<string> {
+    if (DEV_AUTH_BYPASS || !userPool) {
+      throw new Error('Not available in dev mode');
+    }
+
     const cognitoUser = new CognitoUser({
       Username: email,
       Pool: userPool,
@@ -93,6 +118,16 @@ class AuthService {
   ): Promise<
     AuthUser | { challengeName: 'NEW_PASSWORD_REQUIRED'; cognitoUser: CognitoUser; email: string }
   > {
+    // Dev bypass mode - return dev user immediately
+    if (DEV_AUTH_BYPASS) {
+      console.log('⚠️  DEV_AUTH_BYPASS enabled - auto-signing in as dev user');
+      return DEV_USER;
+    }
+
+    if (!userPool) {
+      throw new Error('Cognito not configured');
+    }
+
     const { email, password } = data;
 
     const authenticationDetails = new AuthenticationDetails({
@@ -141,6 +176,10 @@ class AuthService {
     cognitoUser: CognitoUser,
     newPassword: string,
   ): Promise<AuthUser> {
+    if (DEV_AUTH_BYPASS) {
+      return DEV_USER;
+    }
+
     return new Promise((resolve, reject) => {
       cognitoUser.completeNewPasswordChallenge(
         newPassword,
@@ -170,6 +209,13 @@ class AuthService {
    * Sign out current user
    */
   async signOut(): Promise<void> {
+    // Dev bypass mode - nothing to sign out
+    if (DEV_AUTH_BYPASS) {
+      console.log('⚠️  DEV_AUTH_BYPASS enabled - sign out is a no-op');
+      return;
+    }
+
+    if (!userPool) return;
     const cognitoUser = userPool.getCurrentUser();
     if (cognitoUser) {
       cognitoUser.signOut();
@@ -180,6 +226,12 @@ class AuthService {
    * Get current authenticated user
    */
   async getCurrentUser(): Promise<AuthUser | null> {
+    // Dev bypass mode - always return dev user
+    if (DEV_AUTH_BYPASS) {
+      return DEV_USER;
+    }
+
+    if (!userPool) return null;
     const cognitoUser = userPool.getCurrentUser();
     if (!cognitoUser) {
       return null;
@@ -219,6 +271,10 @@ class AuthService {
    * Resend verification code
    */
   async resendConfirmationCode(email: string): Promise<string> {
+    if (DEV_AUTH_BYPASS || !userPool) {
+      throw new Error('Not available in dev mode');
+    }
+
     const cognitoUser = new CognitoUser({
       Username: email,
       Pool: userPool,
@@ -239,6 +295,10 @@ class AuthService {
    * Forgot password - send reset code
    */
   async forgotPassword(email: string): Promise<void> {
+    if (DEV_AUTH_BYPASS || !userPool) {
+      throw new Error('Not available in dev mode');
+    }
+
     const cognitoUser = new CognitoUser({
       Username: email,
       Pool: userPool,
@@ -260,6 +320,10 @@ class AuthService {
    * Reset password with code
    */
   async resetPassword(email: string, code: string, newPassword: string): Promise<string> {
+    if (DEV_AUTH_BYPASS || !userPool) {
+      throw new Error('Not available in dev mode');
+    }
+
     const cognitoUser = new CognitoUser({
       Username: email,
       Pool: userPool,

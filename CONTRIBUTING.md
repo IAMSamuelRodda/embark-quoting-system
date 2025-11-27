@@ -17,12 +17,15 @@ Launch the full local development stack with one command:
 
 **What it sets up:**
 - PostgreSQL database (Docker container: `embark-dev-db`)
-- Backend API on port 3001 (with hot-reload)
+- Backend API on port 4000 (with hot-reload)
 - Frontend dev server on port 3000
 - Database migrations
-- Auto-login with staging credentials
 
-**Result:** Browser opens at `http://localhost:3000`, fully set up and ready to code!
+**Authentication (Development):**
+- Set `DEV_AUTH_BYPASS=true` in `backend/.env` to bypass authentication
+- ⚠️ Note: AWS Cognito has been deleted - auth needs implementation
+
+**Result:** Browser opens at `http://localhost:3000`, ready to code!
 
 **Monitoring logs:**
 ```bash
@@ -477,6 +480,8 @@ gh issue reopen 47
 
 ## Project Links
 
+- **Production Frontend**: https://embark.rodda.xyz
+- **Production API**: https://api.embark.rodda.xyz
 - **GitHub Repository**: https://github.com/IAMSamuelRodda/embark-quoting-system
 - **Project Board (Roadmap)**: https://github.com/users/IAMSamuelRodda/projects/2
 - **Issues**: https://github.com/IAMSamuelRodda/embark-quoting-system/issues
@@ -803,4 +808,4 @@ gh issue create --title "Implement email bounce handling" \
 
 ---
 
-**Last Updated**: 2025-11-05 (Removed stale status tables, pointed to GitHub Issues as source of truth)
+**Last Updated**: 2025-11-27 (AWS → Digital Ocean migration, updated local dev setup and project links)

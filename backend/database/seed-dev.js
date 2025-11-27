@@ -18,14 +18,26 @@ const { Pool } = pg;
 const ADMIN_USER_ID = 'b0000000-0000-0000-0000-000000000001';
 
 async function seedDevDatabase() {
+  // Check if SSL should be enabled:
+  // - AWS RDS requires SSL
+  // - Local Docker containers (localhost, container names) don't support SSL
+  const dbHost = process.env.DB_HOST || 'localhost';
+  const isLocalDb =
+    dbHost === 'localhost' ||
+    dbHost === '127.0.0.1' ||
+    dbHost.includes('embark_db') ||
+    !dbHost.includes('.');
+  const shouldUseSSL = !isLocalDb && (process.env.NODE_ENV === 'production' || dbHost.includes('rds.amazonaws.com'));
+
   const connectionConfig = process.env.DATABASE_URL
-    ? { connectionString: process.env.DATABASE_URL }
+    ? { connectionString: process.env.DATABASE_URL, ssl: shouldUseSSL ? { rejectUnauthorized: false } : false }
     : {
-        host: process.env.DB_HOST || 'localhost',
+        host: dbHost,
         port: parseInt(process.env.DB_PORT || '5432'),
         user: process.env.DB_USER || 'postgres',
         password: process.env.DB_PASSWORD || 'postgres',
         database: process.env.DB_NAME || 'embark_quoting',
+        ssl: shouldUseSSL ? { rejectUnauthorized: false } : false,
       };
 
   const pool = new Pool(connectionConfig);

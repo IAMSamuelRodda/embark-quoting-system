@@ -310,78 +310,54 @@ aws ecs update-service \
 
 ## 🌐 Deployed Environments
 
-### Staging Environment (Cost-Optimized)
+### Production Environment (Digital Ocean) ✅ ACTIVE
 
-**Current Architecture** (Updated: 2025-11-13):
-- **Cost Target**: <$1/day ($30/month) ✅
-- **Actual Cost**: ~$0.23/day (~$7/month)
+**Migrated**: November 2025 (AWS → Digital Ocean)
 
 **Deployed URLs**:
 ```
-Frontend (CloudFront):  https://d2vxgs70elbgcz.cloudfront.net
-Backend API:            http://3.27.195.113:3000
-Database:               embark-quoting-staging-db.c6nzq8xqzvxf.ap-southeast-2.rds.amazonaws.com
-Health Check:           http://3.27.195.113:3000/health
+Frontend:     https://embark.rodda.xyz
+Backend API:  https://api.embark.rodda.xyz
+Health Check: https://api.embark.rodda.xyz/health
 ```
 
 **Architecture Details**:
-- ✅ Frontend served via CloudFront (HTTPS, global CDN)
-- ✅ Backend runs on ECS Fargate with public IP (HTTP, direct access)
-- ✅ Database: RDS PostgreSQL 15.14 (single-AZ, db.t4g.micro)
-- ✅ CORS configured to allow CloudFront origin
-- ⚠️ **NO Application Load Balancer** (saves $25/month)
-- ⚠️ **NO NAT Gateway** (saves $65/month)
+- ✅ Digital Ocean Droplet: 170.64.169.203 (production-syd1)
+- ✅ Plan: s-2vcpu-4gb (4GB RAM, 80GB disk)
+- ✅ Region: Sydney, Australia (syd1)
+- ✅ Frontend served via Caddy (auto-HTTPS)
+- ✅ Backend: Node.js Docker container
+- ✅ Database: PostgreSQL Docker container
+- 🔴 **Authentication**: Needs implementation (Cognito deleted)
 
-**Important Notes**:
-1. **Backend IP Changes**: The backend IP (`3.27.195.113`) changes every time the ECS task restarts
-   - GitHub Actions automatically updates `STAGING_API_URL` secret after deployment
-   - Frontend `.env.staging` needs manual update if deploying locally
-   - See `archive/2025-11-13-CLOUDFRONT-BACKEND-ORIGIN-LIMITATION.md` for details
+**Management**:
+- SSH: `ssh root@170.64.169.203`
+- Management repo: `~/repos/do-vps-prod`
+- Docker Compose for service orchestration
 
-2. **Mixed Content Warnings**: Frontend (HTTPS) calls backend (HTTP)
-   - Browsers may show security warnings
-   - This is expected for cost-optimized development environment
-   - Production will use ALB + CloudFront backend for full HTTPS
-
-3. **CORS Configuration**: Backend accepts requests from:
-   ```
-   http://localhost:5173              (local development)
-   https://d2vxgs70elbgcz.cloudfront.net  (deployed frontend)
-   ```
-
-**Upgrade Path** (when you have paying customers):
-```hcl
-# Option 1: Add Route 53 DNS ($0.50/month)
-# - Provides stable DNS name for backend IP
-# - Still direct access, but no IP changes
-
-# Option 2: Add ALB ($25/month)
-# - Stable DNS name
-# - Health checks
-# - SSL termination
-# - Can route through CloudFront backend distribution for full HTTPS
-```
-
-**Daily Shutdown to Save Costs**:
+**Deployment Process**:
 ```bash
-# Stop infrastructure when not working (saves $0.80/day)
-./scripts/infra-shutdown.sh
+# SSH into droplet
+ssh root@170.64.169.203
 
-# Start infrastructure when resuming work
-./scripts/infra-startup.sh
-# Script displays backend IP - update .env.staging if needed
+# Pull latest code and rebuild
+cd /path/to/embark
+git pull origin main
+docker-compose build
+docker-compose up -d
+
+# Check health
+curl https://api.embark.rodda.xyz/health
 ```
 
-### Production Environment
+**Cost**: ~$24/month (shared droplet with other services)
 
-**Status**: Not deployed yet (waiting for real users)
+### Previous AWS Infrastructure (ARCHIVED)
 
-**Planned Architecture**:
-- Application Load Balancer (health checks, SSL termination)
-- NAT Gateway (secure outbound traffic)
-- Multi-AZ RDS (high availability)
-- CloudFront for both frontend and backend (full HTTPS)
-- Estimated cost: ~$100/month
+AWS infrastructure was fully deleted in November 2025:
+- CloudFront, ECS, EC2, RDS, ALB, NAT Gateway, Cognito, S3, Secrets Manager
+
+Terraform configs remain in `terraform/` folder for historical reference only.
 
 ---
 
@@ -514,19 +490,23 @@ All Playwright E2E tests use centralized credential management via `frontend/e2e
 
 ### How It Works
 
+**⚠️ Note (Nov 2025):** AWS Cognito and Secrets Manager have been deleted. Authentication needs a new solution. For now, use `DEV_AUTH_BYPASS=true` in backend.
+
 The `getAndValidateCredentials()` function retrieves credentials in this order:
 
-1. **Environment variables** (if set):
+1. **Environment variables** (recommended):
    - `TEST_USER_EMAIL`
    - `TEST_USER_PASSWORD`
 
-2. **AWS Secrets Manager** (fallback):
-   - Secret: `embark-quoting/staging/e2e-test-credentials`
-   - Fields: `email`, `password`
+2. **AWS Secrets Manager** (DEPRECATED - no longer available):
+   - Previously: `embark-quoting/staging/e2e-test-credentials`
+   - ⚠️ AWS Secrets Manager has been deleted
 
-3. **Fail fast** with detailed error message if neither source available
+3. **Fail fast** with detailed error message if credentials unavailable
 
-**Why**: Prevents tests from hanging at login for 15+ seconds with empty passwords. Tests now fail immediately with actionable error messages.
+**For Development:**
+- Set `DEV_AUTH_BYPASS=true` in `backend/.env`
+- This bypasses authentication entirely for testing
 
 ### Running E2E Tests
 
@@ -670,19 +650,20 @@ const { email, password } = getAndValidateCredentials();
 ```
 
 This comprehensive script:
-- ✅ Validates prerequisites (Docker, AWS CLI, Node.js)
+- ✅ Validates prerequisites (Docker, Node.js)
 - ✅ Starts PostgreSQL database (Docker container)
 - ✅ Runs database migrations
-- ✅ Retrieves AWS Cognito credentials from Secrets Manager
 - ✅ Starts backend API server (port 4000)
 - ✅ Starts frontend dev server (port 3000)
-- ✅ Auto-logs in using Playwright browser automation
 
-**Result:** Browser opens at `http://localhost:3000`, logged in and ready to test!
+**Result:** Browser opens at `http://localhost:3000`
+
+**Authentication (Development):**
+- Set `DEV_AUTH_BYPASS=true` in `backend/.env` to bypass authentication
+- This enables development without needing a full auth system
 
 **Prerequisites:**
 - Docker Desktop running
-- AWS CLI configured with appropriate credentials
 - Node.js 18+ installed
 
 **Stop:** Press `Ctrl+C` to stop all services
@@ -850,15 +831,14 @@ This anti-pattern was encountered in commit 09c2653 where 8 test files used hard
 
 ---
 
-## 💰 AWS Cost Management (CRITICAL FOR DEVELOPMENT)
+## 💰 Infrastructure Cost History (ARCHIVED)
 
-> **Target**: <$1/day ($30/month) for development environment
-> **Actual (Before Optimization)**: $8-10/day ($240-300/month)
-> **Actual (After Optimization)**: $0.15-0.30/day ($5-8/month) ✅
+> **⚠️ Note (Nov 2025):** AWS infrastructure has been fully deleted. This section is preserved for historical reference only.
+> **Current Infrastructure:** Digital Ocean droplet at ~$24/month (shared with other services)
 
-### Overview
+### AWS Cost History (Before Migration)
 
-This project was accidentally deployed with **production-grade infrastructure** ($140/month) when only minimal development infrastructure ($5/month) was needed. This section documents cost drivers, fixes, and daily management practices to prevent future cost spikes.
+This project was originally deployed on AWS. The infrastructure was fully deleted in November 2025 and migrated to Digital Ocean.
 
 ### Cost Breakdown Analysis (Nov 2025)
 
@@ -1330,4 +1310,4 @@ Until then: **Build product, get customers, create value.**
 
 ---
 
-**Last Updated**: 2025-11-14 (Added cost optimization strategy timeline)
+**Last Updated**: 2025-11-27 (AWS → Digital Ocean migration, updated deployed environments and credentials)

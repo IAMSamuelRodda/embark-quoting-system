@@ -3,6 +3,17 @@
 > **Purpose**: Minimal critical directives for AI agents (pointers to detailed documentation)
 > **Lifecycle**: Living (keep minimal, move verbose content to CONTRIBUTING.md or DEVELOPMENT.md)
 
+## 🚨 Infrastructure Status (Nov 2025)
+
+**CRITICAL:** AWS infrastructure has been FULLY DELETED. Now using Digital Ocean.
+
+- **Production**: https://embark.rodda.xyz (frontend), https://api.embark.rodda.xyz (backend)
+- **Droplet**: 170.64.169.203 (production-syd1)
+- **🔴 Authentication**: AWS Cognito DELETED - needs new solution (use DEV_AUTH_BYPASS for testing)
+- **Terraform**: Archived - not in use
+
+---
+
 ## 📍 Critical Documents
 
 **Before starting work:**
@@ -120,6 +131,11 @@ gh pr merge <PR-NUMBER> --auto --squash --delete-branch
 
 ## 🔗 External Links
 
+**Production (Digital Ocean):**
+- **Frontend**: https://embark.rodda.xyz
+- **Backend API**: https://api.embark.rodda.xyz
+
+**GitHub:**
 - **Project Board**: https://github.com/users/IAMSamuelRodda/projects/2
 - **Issues**: https://github.com/IAMSamuelRodda/embark-quoting-system/issues
 - **Repository**: https://github.com/IAMSamuelRodda/embark-quoting-system
@@ -128,14 +144,20 @@ gh pr merge <PR-NUMBER> --auto --squash --delete-branch
 
 ## 🧪 E2E Testing & Authentication
 
-**CRITICAL - Correct Credential Pattern**:
+**⚠️ CRITICAL (Nov 2025):** AWS Cognito has been DELETED. Authentication needs a new solution.
+
+**For Development:**
+- Set `DEV_AUTH_BYPASS=true` in `backend/.env` to bypass authentication
+- See ARCHITECTURE.md § Security for authentication options
+
+**E2E Test Credential Pattern**:
 ```typescript
 // ✅ ALWAYS DO THIS
 import { getAndValidateCredentials } from './test-utils';
 const { email, password } = getAndValidateCredentials();
 ```
 
-**If tests fail with auth errors**: Check credentials are configured (see DEVELOPMENT.md § Anti-Patterns § E2E Test Credentials)
+**If tests fail with auth errors**: Check DEV_AUTH_BYPASS is enabled or credentials are configured (see DEVELOPMENT.md § E2E Test Credentials)
 
 ---
 - The offline-first architecture adds complexity - data flows through multiple layers (UI → IndexedDB → Sync → API → Response → IndexedDB → UI), and any broken link causes silent failures.

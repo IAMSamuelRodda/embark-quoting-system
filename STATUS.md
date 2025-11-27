@@ -3,8 +3,8 @@
 > **Purpose**: Current work, active bugs, and recent changes (~2 week rolling window)
 > **Lifecycle**: Living document (update daily/weekly during active development)
 
-**Last Updated:** 2025-11-17 (Session: Infrastructure Cost Optimization)
-**Current Phase:** Infrastructure Simplification & Cost Optimization
+**Last Updated:** 2025-11-27 (Session: AWS → Digital Ocean Migration)
+**Current Phase:** Infrastructure Migration (AWS → Digital Ocean)
 **Version:** 1.0.0-beta
 
 ---
@@ -13,46 +13,88 @@
 
 | Aspect | Status | Notes |
 |--------|--------|-------|
-| **Frontend Deployment** | 🟢 Live | https://d1aekrwrb8e93r.cloudfront.net |
-| **Backend Deployment** | 🟢 Live | ECS task healthy, ALB target healthy |
-| **CI/CD Pipeline** | 🟢 Improved | E2E tests improved (8 tests fixed via PR #134) |
-| **Documentation** | 🟢 Current | Updated Nov 13, 2025 |
-| **E2E Test Coverage** | 🟢 Excellent | 8 core tests passing locally (auth + sync + calculations) |
-| **Known Bugs** | 🟢 Excellent | 3 open issues (#113-#114, #117-#119) + 6 closed (#110-#112, #115-#116, #130) |
-| **Technical Debt** | 🟡 Moderate | See [Known Issues](#known-issues) below |
+| **Frontend Deployment** | 🟢 Live | https://embark.rodda.xyz (Digital Ocean) |
+| **Backend Deployment** | 🟡 Partial | https://api.embark.rodda.xyz (some features working) |
+| **Database** | 🟢 Running | PostgreSQL on DO droplet |
+| **Authentication** | 🔴 Needs Solution | Cognito DELETED - need alternative |
+| **CI/CD Pipeline** | 🔴 Needs Update | Workflows still reference AWS |
+| **Documentation** | 🟡 Updating | This session - updating all docs |
+| **E2E Test Coverage** | 🟢 Good | 8 core tests (need new URLs) |
+| **Known Bugs** | 🟡 Moderate | 3 open issues + migration issues |
+| **Technical Debt** | 🟡 Moderate | AWS references need cleanup |
+
+---
+
+## 🔄 Infrastructure Migration: AWS → Digital Ocean
+
+**Migration Status:** Partially Complete - Services Running
+
+### What Has Changed (Nov 27, 2025)
+
+**AWS Infrastructure FULLY DELETED:**
+- ❌ CloudFront distributions (frontend CDN) - DELETED
+- ❌ ECS Fargate/EC2 (backend compute) - DELETED
+- ❌ RDS PostgreSQL (database) - DELETED
+- ❌ ALB/NAT Gateway (networking) - DELETED
+- ❌ VPC Endpoints - DELETED
+- ❌ ECR repositories - DELETED
+- ❌ Cognito User Pool - DELETED
+- ❌ S3 buckets - DELETED
+- ❌ Secrets Manager - DELETED
+
+**⚠️ Authentication Impact:** Cognito is deleted - need alternative auth solution or DEV_AUTH_BYPASS mode.
+
+**New Infrastructure DEPLOYED:**
+- ✅ Digital Ocean Droplet: `170.64.169.203` (production-syd1)
+- ✅ Frontend: https://embark.rodda.xyz
+- ✅ Backend API: https://api.embark.rodda.xyz
+- ✅ PostgreSQL: Docker container on droplet
+- ✅ Caddy: Reverse proxy with auto-HTTPS
+- Plan: s-2vcpu-4gb (4GB RAM, 80GB disk, Sydney region)
+- Managed via: `~/repos/do-vps-prod`
+
+### Migration Tasks Remaining
+
+See GitHub Issues for tracking. Key tasks:
+1. ✅ **Database Setup** - PostgreSQL Docker container on DO droplet
+2. ✅ **Backend Deployment** - Node.js Docker container on DO droplet
+3. ✅ **Frontend Deployment** - Static files via Caddy
+4. ✅ **DNS/Domain Setup** - embark.rodda.xyz and api.embark.rodda.xyz
+5. 🔴 **Authentication** - Cognito DELETED - implement new auth (local JWT, Authentik, etc.)
+6. 🔄 **CI/CD Updates** - Update GitHub Actions for DO deployment
+7. 🔄 **Environment Variables** - Update all env configs for DO
+8. 🔄 **Documentation** - Update all docs to reference DO (this session)
+9. 🔄 **Testing** - Verify all features work on new infrastructure
+
+### Uncommitted Code Changes (In Progress)
+
+Backend changes already made (not yet committed):
+- `backend/src/shared/db/postgres.js` - Added SSL detection for local vs cloud DBs
+- `backend/src/shared/middleware/auth.middleware.js` - Added DEV_AUTH_BYPASS mode
+- `backend/database/migrate.js` - Updated for flexible DB connections
+- `backend/database/seed-dev.js` - Updated for flexible DB connections
+- `frontend/src/features/auth/authService.ts` - Auth updates
+- `frontend/src/shared/api/apiClient.ts` - API client updates
 
 ---
 
 ## Current Focus
 
-**Completed Nov 17 (Latest Session - Infrastructure Cost Optimization):**
+**Nov 27, 2025 (Current Session - AWS → Digital Ocean Migration):**
+
+- 🔄 **AWS Infrastructure Deleted** - All AWS resources deactivated
+- 🔄 **Documentation Audit** - Updating all docs for DO migration
+- ⏳ **Database Migration** - Set up PostgreSQL on DO droplet
+- ⏳ **Backend Deployment** - Deploy to DO droplet
+- ⏳ **Frontend Deployment** - Deploy static files
+- ⏳ **CI/CD Updates** - Update GitHub Actions workflows
+
+**Previous Session (Nov 17 - Infrastructure Cost Optimization on AWS):**
 
 - ✅ **VPC Endpoints Removed** - Destroyed 5 VPC endpoints saving $29/month
-  - Removed Secrets Manager endpoint (~$7.20/month)
-  - Removed ECR Docker endpoint (~$7.20/month)
-  - Removed ECR API endpoint (~$7.20/month)
-  - Removed CloudWatch Logs endpoint (~$7.20/month)
-  - Removed S3 Gateway endpoint (free, but unnecessary)
-  - Rationale: ECS tasks use Internet Gateway for AWS service access with IAM authentication
-
 - ✅ **ECS Fargate Disabled** - Removed duplicate infrastructure saving $9/month
-  - Destroyed 9 ECS resources (cluster, service, task definition, autoscaling, CloudWatch alarms)
-  - Stopped ECS service (desired count = 0)
-  - Added `enable_ecs` variable to prevent recreation
-  - Rationale: EC2 t3.micro on FREE tier already running backend, ECS was duplicate infrastructure
-
 - ✅ **Terraform Folder Cleanup** - Organized configuration files
-  - Archived 10 obsolete `.tfplan` files (~690KB)
-  - Archived outdated documentation (AWS_RESOURCES.md, COST_COMPARISON.md from Nov 4)
-  - Archived old tfstate backups
-  - Created archive/README.md explaining archived files
-  - Removed VPC endpoint outputs from outputs.tf
-
-- ✅ **Infrastructure Cost Optimization**
-  - Total monthly savings: $38/month ($456/year)
-  - VPC endpoints: -$29/month
-  - ECS Fargate: -$9/month
-  - Staging environment now runs on EC2 free tier + minimal services
+- ✅ **Infrastructure Cost Optimization** - Total monthly savings: $38/month
 
 **Completed Nov 15 (Previous Session - Workflow Cleanup + Manual Deployment Strategy):**
 
@@ -184,24 +226,38 @@
 ## Deployment Status
 
 ### Production
-- **Status:** Not deployed yet
-- **Target:** Main branch → production environment (manual deployment when ready)
-- **Readiness:** Blocked by critical bugs (sync + calculations)
+- **Status:** ⚠️ MIGRATING TO DIGITAL OCEAN
+- **Previous:** AWS infrastructure (now deactivated)
+- **Target:** Digital Ocean Droplet `170.64.169.203`
+- **Readiness:** Blocked pending migration completion
 
-### Staging
-- **Frontend:** ✅ https://dtfaaynfdzwhd.cloudfront.net (CloudFront)
-- **Backend:** ✅ EC2 t3.micro instance (consolidated backend + database)
-  - **Deployment Strategy:** Manual deployments from `dev` branch
-  - **Infrastructure:** EC2 consolidated instance running Docker containers (backend + PostgreSQL)
-  - **Public IP:** 54.206.248.6
-  - **Cost:** FREE (12-month free tier)
-  - **Status:** Running and healthy
-  - **Note:** ECS Fargate removed Nov 17 (was duplicate infrastructure costing $9/month)
+### Staging (DEACTIVATED - Migrating)
+- **Previous Frontend:** ~~https://dtfaaynfdzwhd.cloudfront.net~~ (CloudFront - DELETED)
+- **Previous Backend:** ~~EC2 t3.micro instance~~ (DELETED)
+- **New Target:** Digital Ocean Droplet `170.64.169.203`
+  - **Droplet:** production-syd1 (4GB RAM, 80GB disk, Sydney)
+  - **Services:** Docker Compose
+  - **Access:** Via Caddy reverse proxy
+  - **Cost:** Part of existing DO infrastructure (~$24/month shared)
+
+### New Infrastructure (Digital Ocean) ✅ ACTIVE
+- **Frontend:** https://embark.rodda.xyz (Caddy reverse proxy)
+- **Backend API:** https://api.embark.rodda.xyz (Caddy reverse proxy)
+- **Droplet IP:** 170.64.169.203
+- **Region:** Sydney, Australia (syd1)
+- **Management Repo:** `~/repos/do-vps-prod`
+- **Services Running:**
+  - PostgreSQL (Docker container)
+  - Node.js Backend (Docker container)
+  - Frontend (static files via Caddy)
+  - Caddy (reverse proxy with auto-HTTPS)
 
 ### Development
-- **Local:** ✅ Both frontend and backend running successfully
-- **Tests:** ✅ 8/8 core E2E tests passing (offline-auth + sync_verification)
-- **Git:** ✅ Clean working directory, on `dev` branch
+- **Local:** ✅ Both frontend and backend can run locally
+- **Database:** PostgreSQL via Docker (`embark-dev-db`)
+- **Auth:** DEV_AUTH_BYPASS mode available for testing
+- **Tests:** E2E tests available (need backend running)
+- **Git:** On `dev` branch with uncommitted migration changes
 
 ---
 
@@ -960,12 +1016,19 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for comprehensive details.
 **Tech Stack:**
 - **Frontend:** React 19.1.1, Vite 7.1.7, TypeScript 5.9.3, Tailwind CSS 4.1.16
 - **Backend:** Node.js, Express 4.18.2, PostgreSQL (via Drizzle ORM)
-- **Infrastructure:** AWS (ECS Fargate, RDS, CloudFront, ALB, Cognito)
+- **Infrastructure:** Digital Ocean Droplet (Docker Compose, Caddy)
 - **Testing:** Playwright 1.56.1, Vitest, Jest, Storybook 10.0.5
 - **State Management:** Zustand 5.0.8 (frontend), Dexie.js 4.2.1 (IndexedDB)
-- **IaC:** Terraform (manages all AWS resources)
+- **Deployment:** Docker containers on Digital Ocean VPS
 
 **Architecture Pattern:** Vertical Slice Architecture (offline-first)
+
+**Infrastructure (Digital Ocean):**
+- Droplet: production-syd1 (170.64.169.203)
+- Frontend: https://embark.rodda.xyz
+- Backend: https://api.embark.rodda.xyz
+- Database: PostgreSQL (Docker container)
+- Reverse Proxy: Caddy (auto-HTTPS)
 
 ---
 
@@ -1076,8 +1139,9 @@ All core documentation is current (updated Nov 14, 2025):
 - **Project Board:** https://github.com/users/IAMSamuelRodda/projects/2
 - **Repository:** https://github.com/IAMSamuelRodda/embark-quoting-system
 - **Issues:** https://github.com/IAMSamuelRodda/embark-quoting-system/issues
-- **Staging Frontend:** https://dtfaaynfdzwhd.cloudfront.net
-- **Staging Backend:** Healthy and operational
+- **Production Frontend:** https://embark.rodda.xyz (Digital Ocean)
+- **Production Backend:** https://api.embark.rodda.xyz (Digital Ocean)
+- **Droplet IP:** 170.64.169.203
 
 ---
 
@@ -1094,6 +1158,7 @@ All core documentation is current (updated Nov 14, 2025):
 | 2025-11-14 | Claude Code | Implemented staging E2E failure alerts (Slack + GitHub issues), created Issue #141 for production alerts |
 | 2025-11-15 | Claude Code | Workflow cleanup (removed 3 workflows), branch cleanup (18 local + 2 remote), changed to manual deployment strategy, updated ARCHITECTURE.md and STATUS.md |
 | 2025-11-17 | Claude Code | Infrastructure cost optimization: removed VPC endpoints ($29/mo), disabled ECS Fargate ($9/mo), cleaned terraform folder, updated documentation |
+| 2025-11-27 | Claude Code | AWS → Digital Ocean migration: Updated all infrastructure references, new URLs (embark.rodda.xyz, api.embark.rodda.xyz), documented migration status |
 
 ---
 
